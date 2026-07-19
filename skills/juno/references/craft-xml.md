@@ -1,13 +1,13 @@
-# Формат файла конструкции
+# The craft file format
 
-Всё проверено на игре 1.3.205 разбором 62 конструкций из поставки. Разбор и
-обратная сборка всех 62 дают побайтово исходный файл — то есть модель ничего
-не теряет.
+Everything here was verified against game 1.3.205 by parsing the 62 craft that
+ship with it. Parsing and re-serializing all 62 reproduces the original file
+byte for byte — that is, the model loses nothing.
 
-## Общая структура
+## Overall structure
 
 ```xml
-<Craft name="Имя" xmlVersion="15" activeCommandPod="0"
+<Craft name="Name" xmlVersion="15" activeCommandPod="0"
        price="…" initialBoundsMin="…" initialBoundsMax="…" localCenterOfMass="…">
   <Assembly>
     <Parts>       … <Part> … </Parts>
@@ -21,14 +21,14 @@
 </Craft>
 ```
 
-`xmlVersion` встречается от 2 до 15; игра поднимает старые файлы до текущей
-версии при загрузке. Новые файлы пишите с 15.
+`xmlVersion` ranges from 2 to 15; the game upgrades older files to the current
+version on load. Write new files with 15.
 
-## Деталь
+## Part
 
 ```xml
 <Part id="3" partType="RocketEngine1" position="0,-2.82,0" rotation="0,0,0"
-      name="Двигатель" activationStage="0" commandPodId="0" materials="0,1,2,3,4">
+      name="Engine" activationStage="0" commandPodId="0" materials="0,1,2,3,4">
   <Drag drag="0,0,0,0,0,0" area="0,0,0,0,0,0"/>
   <Config/>
   <RocketEngine nozzleTypeId="Bravo" nozzleThroatSize="0.85"/>
@@ -36,66 +36,68 @@
 </Part>
 ```
 
-| атрибут | смысл |
+| attribute | meaning |
 |---|---|
-| `id` | уникальное целое; непрерывность не требуется |
-| `partType` | тип из каталога (`part_lookup`) |
-| `position` | **центр** детали, метры, локальные координаты аппарата, `+Y` вверх |
-| `rotation` | углы Эйлера, градусы |
-| `rootPart="true"` | ровно у одной детали |
-| `commandPodId` | какой командный модуль управляет деталью |
-| `activationStage` | ступень; отсутствие равно нулю |
-| `activationGroup` | группа 1..10 |
-| `materials` | пять индексов в список материалов темы |
-| `mirrored="true"` | зеркальная копия |
+| `id` | unique integer; does not have to be contiguous |
+| `partType` | type from the catalog (`part_lookup`) |
+| `position` | the part's **center**, meters, craft-local coordinates, `+Y` up |
+| `rotation` | Euler angles, degrees |
+| `rootPart="true"` | on exactly one part |
+| `commandPodId` | which command pod controls the part |
+| `activationStage` | stage; absent means zero |
+| `activationGroup` | group 1..10 |
+| `materials` | five indices into the theme's material list |
+| `mirrored="true"` | mirrored copy |
 
-### Производные поля
+### Derived fields
 
-`price`, `initialBoundsMin/Max`, `localCenterOfMass`, `<Drag>` и содержимое
-`<Bodies>` игра **пересчитывает при загрузке**. Достаточно приблизительных
-значений или нулей. Не тратьте усилия на их точное воспроизведение.
+`price`, `initialBoundsMin/Max`, `localCenterOfMass`, `<Drag>` and the contents
+of `<Bodies>` are **recomputed by the game on load**. Approximate values or
+zeros are enough. Do not spend effort reproducing them exactly.
 
-### Модификаторы
+### Modifiers
 
-Тег внутри `<Part>` — имя модификатора, атрибуты — его параметры. Именно
-модификаторы определяют, чем деталь является:
+A tag inside `<Part>` is a modifier name, its attributes are the modifier's
+parameters. It is the modifiers that determine what a part actually is:
 
-- `<Fuselage topScale="ш,г" bottomScale="ш,г" offset="0,длина,0" cornerRadiuses="…"/>`
-  — процедурный корпус. `offset.y` задаёт длину, `topScale`/`bottomScale` —
-  полуоси эллипса на торцах.
-- `<FuelTank capacity fuel fuelType subPriority utilization/>` — `fuelType`
-  бывает `Jet`, `Battery`, `Mono`; отсутствие означает ракетное топливо.
-- `<RocketEngine nozzleTypeId mass nozzleThroatSize/>` — все ракетные двигатели
-  различаются только `nozzleTypeId`.
+- `<Fuselage topScale="w,h" bottomScale="w,h" offset="0,length,0" cornerRadiuses="…"/>`
+  — procedural fuselage. `offset.y` sets the length, `topScale`/`bottomScale`
+  the ellipse semi-axes at the ends.
+- `<FuelTank capacity fuel fuelType subPriority utilization/>` — `fuelType` can
+  be `Jet`, `Battery`, `Mono`; absent means rocket fuel.
+- `<RocketEngine nozzleTypeId mass nozzleThroatSize/>` — all rocket engines
+  differ only in `nozzleTypeId`.
 - `<Wing rootLeadingOffset rootTrailingOffset tipLeadingOffset tipTrailingOffset
-  tipPosition/>` — процедурное крыло.
+  tipPosition/>` — procedural wing.
 - `<CommandPod activationGroupNames activationGroupStates craftConfigType/>` —
-  здесь же названия групп активации; `craftConfigType` бывает `Plane` и `Rocket`.
-- `<FlightProgram><Program>…</Program></FlightProgram>` — встроенная программа
-  Vizzy; делает конструкцию самодостаточной.
-- `<InputController input="AG3*Throttle" inputId="Motor"/>` — привязка привода к
-  органам управления. Атрибут `input` принимает выражения над `Pitch`, `Roll`,
+  this is also where activation group names live; `craftConfigType` can be
+  `Plane` or `Rocket`.
+- `<FlightProgram><Program>…</Program></FlightProgram>` — an embedded Vizzy
+  program; makes the craft self-contained.
+- `<InputController input="AG3*Throttle" inputId="Motor"/>` — binds an actuator
+  to the controls. The `input` attribute takes expressions over `Pitch`, `Roll`,
   `Yaw`, `Throttle`, `Brake`, `Slider1..3`, `AG1..AG10`.
 
-Полный список модификаторов и их значения по умолчанию — `part_lookup` по `id`.
+The full list of modifiers and their default values comes from `part_lookup` by
+`id`.
 
-### Модификаторы обязательны, умолчания не подставляются
+### Modifiers are mandatory, defaults are not filled in
 
-Если тип детали объявляет модификатор, он **должен присутствовать в XML**.
-Игра не достраивает его из определения типа.
+If a part type declares a modifier, it **must be present in the XML**. The game
+does not add it from the type definition.
 
-Проверено на практике: командный модуль `CommandPod1` объявляет `<FuelTank>`
-(капсула несёт бортовую батарею). Конструкция, где у него этого модификатора
-нет, не открывается вовсе — построение топливной системы падает с
-`NullReferenceException` в `CraftFuelSources.Rebuild`, а в интерфейсе видно
-лишь то, что аппарат не грузится.
+Verified in practice: the `CommandPod1` command pod declares a `<FuelTank>` (the
+capsule carries an onboard battery). A craft where it lacks that modifier will
+not open at all — building the fuel system fails with a
+`NullReferenceException` in `CraftFuelSources.Rebuild`, and all the interface
+shows is that the craft will not load.
 
-Исключение — `<Config>`: его полсотни служебных атрибутов игра заполняет сама,
-и в сохранённых ею конструкциях он всегда краткий.
+The exception is `<Config>`: the game fills in its fifty-odd service attributes
+itself, and in craft it has saved it is always short.
 
-`craft_build` дописывает недостающие модификаторы автоматически.
+`craft_build` adds missing modifiers automatically.
 
-## Соединения
+## Connections
 
 ```xml
 <Connection partA="1" partB="0" attachPointsA="2,4" attachPointsB="1,5">
@@ -104,15 +106,15 @@
 </Connection>
 ```
 
-`attachPointsA/B` — **списки индексов через запятую**. Стековая стыковка
-связывает пару `load` (силовой стык, переток топлива) и пару `shell` (обшивка).
-Для стыковки `partA` — нижняя деталь, `partB` — верхняя.
+`attachPointsA/B` are **comma-separated lists of indices**. A stack connection
+links a `load` pair (structural joint, fuel flow) and a `shell` pair (skin). For
+a stack connection `partA` is the lower part, `partB` the upper one.
 
-`<BodyJoint>` присутствует, **только когда соединение соединяет два разных
-физических тела** — то есть на отделителях, шарнирах, поршнях. Жёсткие сварные
-стыки его не имеют.
+`<BodyJoint>` is present **only when the connection joins two different rigid
+bodies** — that is, on decouplers, hinges and pistons. Rigid welded joints do
+not have one.
 
-## Тела
+## Bodies
 
 ```xml
 <Bodies>
@@ -120,19 +122,19 @@
 </Bodies>
 ```
 
-Группирует детали в жёсткие тела. Границы проходят по отделителям и подвижным
-соединениям. Игра пересчитывает массу и центр масс, но **само разбиение уважает**:
-неверная группировка — вероятная причина разваливающегося аппарата.
+Groups parts into rigid bodies. The boundaries run along decouplers and movable
+connections. The game recomputes mass and center of mass, but **respects the
+split itself**: an incorrect grouping is a likely cause of a craft falling apart.
 
-## Темы и симметрия
+## Themes and symmetry
 
-`<DesignerSettings/>` и `<Themes/>` могут быть пустыми — игра подставит тему по
-умолчанию. `<Symmetry/>` тоже необязателен; он нужен редактору для групповой
-правки зеркальных деталей, на физику не влияет.
+`<DesignerSettings/>` and `<Themes/>` may be empty — the game will substitute
+the default theme. `<Symmetry/>` is optional too; the designer needs it to edit
+mirrored parts as a group, and it has no effect on physics.
 
-## Настройка для сверки
+## A setting for comparison
 
-Игра по умолчанию минифицирует сохраняемый XML, выбрасывая значения по
-умолчанию. Чтобы сравнить сгенерированную конструкцию с тем, что игра из неё
-сделала, установите в `Settings.xml` атрибут `optimizeCraftXML="false"` у
-элемента `<Designer>`. Текущее значение показывает `game_state`.
+By default the game minifies the XML it saves, dropping default values. To
+compare a generated craft with what the game made of it, set the
+`optimizeCraftXML="false"` attribute on the `<Designer>` element in
+`Settings.xml`. `game_state` shows the current value.

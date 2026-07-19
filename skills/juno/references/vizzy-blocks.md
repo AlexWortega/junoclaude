@@ -1,12 +1,12 @@
-# Справочник блоков Vizzy
+# Vizzy block reference
 
-Добыт из программ, написанных самой игрой: 25 программ, версия игры 1.3.205.
+Mined from programs written by the game itself: 25 programs, game version 1.3.205.
 
-Строки style здесь — реальные. Подстановка неверного style даёт программу, которую игра не откроет.
+The style strings here are the real ones. Substituting a wrong style produces a program the game will not open.
 
-## Свойства аппарата
+## Craft properties
 
-Используются как `["prop", "Имя"]`.
+Used as `["prop", "Name"]`.
 
 - **Altitude**: `Altitude.AGL`, `Altitude.ASL`
 - **Craft**: `Craft.NameToID`, `Craft.Position`
@@ -25,26 +25,26 @@
 - **Time**: `Time.FrameDeltaTime`, `Time.TotalTime`
 - **Vel**: `Vel.Acceleration`, `Vel.Gravity`, `Vel.MachNumber`, `Vel.OrbitVelocity`, `Vel.SurfaceVelocity`, `Vel.VerticalSurfaceVelocity`
 
-## Инструкции
+## Instructions
 
-| блок | тег | style | арность | тело |
+| block | tag | style | arity | body |
 |---|---|---|---|---|
 | `SetVariable:set-variable` | SetVariable | `set-variable` | 2 |  |
 | `Comment:comment` | Comment | `comment` | 1 |  |
 | `SetCraftProperty:set-mfd-widget` | SetCraftProperty | `set-mfd-widget` | 2 |  |
-| `If:if` | If | `if` | 1 | да |
+| `If:if` | If | `if` | 1 | yes |
 | `CallCustomInstruction:call-custom-instruction` | CallCustomInstruction | `call-custom-instruction` | 0/2/3/4/5 |  |
 | `SetCraftProperty:create-mfd-widget` | SetCraftProperty | `create-mfd-widget` | 1 |  |
 | `SetCraftProperty:set-mfd-label` | SetCraftProperty | `set-mfd-label` | 2 |  |
 | `WaitSeconds:wait-seconds` | WaitSeconds | `wait-seconds` | 1 |  |
 | `Event:flight-start` | Event | `flight-start` | 0 |  |
 | `Event:receive-msg` | Event | `receive-msg` | 1 |  |
-| `ElseIf:else-if` | ElseIf | `else-if` | 1 | да |
-| `While:while` | While | `while` | 1 | да |
-| `ElseIf:else` | ElseIf | `else` | 1 | да |
+| `ElseIf:else-if` | ElseIf | `else-if` | 1 | yes |
+| `While:while` | While | `while` | 1 | yes |
+| `ElseIf:else` | ElseIf | `else` | 1 | yes |
 | `SetCraftProperty:set-mfd-sprite` | SetCraftProperty | `set-mfd-sprite` | 2 |  |
 | `SetCraftProperty:set-mfd-event` | SetCraftProperty | `set-mfd-event` | 3 |  |
-| `For:for` | For | `for` | 3 | да |
+| `For:for` | For | `for` | 3 | yes |
 | `SetList:list-add` | SetList | `list-add` | 2 |  |
 | `BroadcastMessage:broadcast-msg` | BroadcastMessage | `broadcast-msg` | 2 |  |
 | `SetCraftProperty:set-mfd-gauge` | SetCraftProperty | `set-mfd-gauge` | 2 |  |
@@ -58,7 +58,7 @@
 | `CustomInstruction:custom-instruction` | CustomInstruction | `custom-instruction` | 0 |  |
 | `SetCraftProperty:set-mfd-alignment` | SetCraftProperty | `set-mfd-alignment` | 1 |  |
 | `LockNavSphere:lock-nav-sphere` | LockNavSphere | `lock-nav-sphere` | 0 |  |
-| `Repeat:repeat` | Repeat | `repeat` | 1 | да |
+| `Repeat:repeat` | Repeat | `repeat` | 1 | yes |
 | `ActivateStage:activate-stage` | ActivateStage | `activate-stage` | 0 |  |
 | `SetVariable:list-init` | SetVariable | `list-init` | 2 |  |
 | `SetTarget:set-target` | SetTarget | `set-target` | 1 |  |
@@ -75,11 +75,11 @@
 | `SetCraftProperty:destroy-mfd-widget` | SetCraftProperty | `destroy-mfd-widget` | 1 |  |
 | `SetCraftProperty:set-mfd-order-back` | SetCraftProperty | `set-mfd-order-back` | 2 |  |
 
-## Выражения
+## Expressions
 
-Выражения **не нумеруются** — атрибута id у них нет. Это правило игра соблюдает строго.
+Expressions are **not numbered** — they have no id attribute. The game follows this rule strictly.
 
-| блок | тег | style | арность |
+| block | tag | style | arity |
 |---|---|---|---|
 | `Constant` | Constant | `` | 0 |
 | `Variable` | Variable | `` | 0/1 |

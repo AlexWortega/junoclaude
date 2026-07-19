@@ -1,106 +1,104 @@
 ---
 name: juno
 description: >
-  Сборка, программирование и испытание аппаратов в Juno: New Origins (SimpleRockets 2).
-  Используйте, когда пользователь упоминает Juno New Origins, SimpleRockets 2, SR2,
-  просит собрать ракету, самолёт, ровер или спутник для этой игры, написать программу
-  Vizzy, разобраться в craft XML, ступенях, запуске аппарата или испытании конструкции.
-  Также при запросах вида «сделай ракету, которая выйдет на орбиту», «напиши программу
-  полёта», «почему мой аппарат развалился», либо при правке файлов в каталоге
-  com.jundroo.SimpleRockets2.
+  Build, program and test craft in Juno: New Origins (SimpleRockets 2).
+  Use when the user mentions Juno New Origins, SimpleRockets 2, SR2, asks to
+  build a rocket, plane, rover or satellite for that game, to write a Vizzy
+  flight program, or to work out craft XML, staging, launching a craft or
+  testing a design. Also for requests like "make me a rocket that reaches
+  orbit", "write a flight program", "why did my craft explode", or when
+  editing files under com.jundroo.SimpleRockets2.
 ---
 
 # Juno: New Origins
 
-Инструменты работают напрямую с файлами игры. Все её форматы — обычный XML без
-подписей и контрольных сумм, поэтому конструкции и программы полёта можно
-порождать программно.
+The tools work directly on the game's files. All of its formats are plain XML
+with no signatures or checksums, so craft and flight programs can be generated
+programmatically.
 
-## Рабочий цикл
+## Workflow
 
-1. `game_state` — убедиться, что игра **не запущена**: писать при запущенной игре нельзя.
-2. `craft_read` / `part_lookup` — понять, с чем работаем.
-3. `vizzy_write` — программа полёта (сначала с `dry_run: true`).
-4. `game_launch` → проверить в игре → `log_read` — обратная связь.
-5. `junoclaude_restore` — откат, если что-то пошло не так.
+1. `game_state` — confirm the game is **not running**: you cannot write while it is.
+2. `craft_read` / `part_lookup` — understand what you are working with.
+3. `vizzy_write` — the flight program (start with `dry_run: true`).
+4. `game_launch` → check in game → `log_read` — feedback.
+5. `junoclaude_restore` — roll back if something went wrong.
 
-Каждая запись сначала делает снимок; `junoclaude_restore` без аргументов покажет список.
+Every write takes a snapshot first; `junoclaude_restore` with no arguments lists them.
 
-## Четыре правила
+## Four rules
 
-Они предотвращают почти все отказы.
+They prevent almost every failure.
 
-1. **Не писать craft XML вручную.** Структура соединений неочевидна (см. ниже);
-   пользуйтесь инструментами.
-2. **Не запрашивать `craft_read` в режиме `xml` без `part_ids`.** Конструкции
-   доходят до 2 МБ — контекст закончится на первом вызове. Начинайте со сводки.
-3. **Не править на живую то, что игра пишет сама** — `GameStates/`,
-   `Settings.xml`, `Career/`. Конструкции и программы полёта писать при
-   запущенной игре можно: проверено, что их список не кэшируется и новый файл
-   сразу виден в редакторе.
-4. **Не выдумывать имена свойств Vizzy.** Компилятор проверяет их по каталогу и
-   подсказывает похожие, но лучше свериться заранее.
+1. **Do not write craft XML by hand.** The connection structure is not obvious
+   (see below); use the tools.
+2. **Do not request `craft_read` in `xml` mode without `part_ids`.** Craft reach
+   2 MB — the context will run out on the first call. Start with the summary.
+3. **Do not edit live what the game writes itself** — `GameStates/`,
+   `Settings.xml`, `Career/`. Craft and flight programs can be written while the
+   game is running: the craft list is verified not to be cached, and a new file
+   shows up in the designer immediately.
+4. **Do not invent Vizzy property names.** The compiler checks them against the
+   catalog and suggests near matches, but it is better to check beforehand.
 
-## Система координат и геометрия
+## Coordinate system and geometry
 
-- **`+Y` — вверх по стеку.** `position` детали — её **центр**, в метрах, в
-  локальных координатах аппарата.
-- `rotation` — углы Эйлера в **градусах**.
-- Габариты и масса (`price`, `initialBounds*`, `localCenterOfMass`, `<Drag>`)
-  **производные**: игра пересчитывает их при загрузке. Приблизительных значений
-  достаточно.
-- Большинство корпусных деталей **процедурные**: `Fuselage1` — это и топливный
-  бак, и переходник, и обтекатель, разница только в модификаторе `<Fuselage>`
-  (`topScale`, `bottomScale`, а `offset.y` задаёт длину). Аналогично
-  `RocketEngine1` покрывает все ракетные двигатели через `nozzleTypeId`.
+- **`+Y` is up along the stack.** A part's `position` is its **center**, in
+  meters, in craft-local coordinates.
+- `rotation` is Euler angles in **degrees**.
+- Bounds and mass (`price`, `initialBounds*`, `localCenterOfMass`, `<Drag>`) are
+  **derived**: the game recomputes them on load. Approximate values are enough.
+- Most fuselage parts are **procedural**: `Fuselage1` is a fuel tank, an adapter
+  and a nose cone all at once, the difference being only the `<Fuselage>`
+  modifier (`topScale`, `bottomScale`, with `offset.y` setting the length).
+  Likewise `RocketEngine1` covers every rocket engine via `nozzleTypeId`.
 
-## Соединения — здесь ошибаются чаще всего
+## Connections — the most common source of mistakes
 
-`attachPointsA` и `attachPointsB` — **списки индексов через запятую**, а не
-одиночные числа. Стыковка стека связывает **две пары**: `load` (силовой стык и
-переток топлива) и `shell` (обшивка, влияет на сопротивление). Указав только
-`load`, получите сегментированный корпус с неправильной аэродинамикой.
+`attachPointsA` and `attachPointsB` are **comma-separated lists of indices**, not
+single numbers. A stack connection links **two pairs**: `load` (the structural
+joint and fuel flow) and `shell` (the skin, which affects drag). Specifying only
+`load` gives you a segmented fuselage with wrong aerodynamics.
 
-В `<Connection partA partB>` для стековой стыковки **`partA` — нижняя деталь,
-`partB` — верхняя**. Игра пишет и обратный порядок, если так собирали в
-редакторе, поэтому при чтении встречаются оба.
+In `<Connection partA partB>` for a stack connection, **`partA` is the lower part
+and `partB` the upper one**. The game also writes the reverse order if that is
+how the craft was assembled in the designer, so both occur when reading.
 
-Проверенные рецепты (добыты из конструкций, которые игра сохранила сама):
+Verified recipes (mined from craft the game saved itself):
 
-| нижняя | верхняя | attachPointsA | attachPointsB |
+| lower | upper | attachPointsA | attachPointsB |
 |---|---|---|---|
 | `Fuselage1` | `Fuselage1` | `2,4` | `1,5` |
 | `RocketEngine1` | `Fuselage1` | `0` | `1` |
 | `Fuselage1` | `Detacher1` | `2,4` | `1,0` |
 | `Gyroscope1` | `Fuselage1` | `2,4` | `1,5` |
 
-Полный список — через `part_lookup` с указанием `id`. Радиальное крепление
-(деталь на боку другой) устроено иначе: служебная точка `rotate` прилепляемой
-детали к точке `surface` принимающей.
+The full list comes from `part_lookup` with an `id`. Radial attachment (a part on
+the side of another) works differently: the `rotate` service point of the
+attached part goes to the `surface` point of the receiving one.
 
-## Ступени
+## Stages
 
-Ступень задаётся атрибутом **`activationStage` на каждой `<Part>`**. Элемента
-`<Stages>` не существует. Ступень `0` срабатывает первой; отсутствие атрибута
-равно нулю. Отделитель принято относить на ступень выше того блока, который он
-сбрасывает.
+A stage is set by the **`activationStage` attribute on each `<Part>`**. There is
+no `<Stages>` element. Stage `0` fires first; a missing attribute means zero. By
+convention a decoupler belongs to the stage above the block it drops.
 
-Группы активации (1..10) хранятся в `activationGroup` детали, а их названия — в
-`activationGroupNames` командного модуля.
+Activation groups (1..10) are stored in a part's `activationGroup`, and their
+names in the command pod's `activationGroupNames`.
 
 ## Vizzy
 
-Программа полёта пишется в компактном DSL, компилятор сам расставляет `id` и
-`style`:
+A flight program is written in a compact DSL; the compiler assigns `id` and
+`style` itself:
 
 ```json
 {
-  "name": "Взлёт",
+  "name": "Liftoff",
   "on": {
     "FlightStart": [
       ["set-input", "throttle", 1],
       ["stage"],
-      ["display", "Пуск!", 7],
+      ["display", "Ignition", 7],
       ["while", ["<", ["prop", "Misc.Stage"], ["prop", "Misc.NumStages"]], [
         ["wait-until", ["=", ["prop", "Fuel.FuelInStage"], 0]],
         ["stage"]
@@ -110,32 +108,33 @@ description: >
 }
 ```
 
-- Выражения — массивы: `["<", ["prop", "Altitude.ASL"], 1000]`.
-- `"$имя"` — ссылка на переменную, `["prop", "…"]` — свойство аппарата.
-- Тело блока (`while`, `if`, `for`, `repeat`) идёт **последним** аргументом.
-- Программу можно сохранить отдельным файлом либо встроить в аппарат
-  (`craft` + `part_id`) — встроенная делает конструкцию самодостаточной.
+- Expressions are arrays: `["<", ["prop", "Altitude.ASL"], 1000]`.
+- `"$name"` is a variable reference, `["prop", "…"]` a craft property.
+- A block's body (`while`, `if`, `for`, `repeat`) is the **last** argument.
+- A program can be saved as a separate file or embedded in a craft
+  (`craft` + `part_id`) — embedding makes the craft self-contained.
 
-Сначала `dry_run: true`, чтобы увидеть XML и убедиться в отсутствии ошибок.
+Use `dry_run: true` first to see the XML and confirm there are no errors.
 
-## Справочники
+## References
 
-Читайте по мере необходимости:
+Read as needed:
 
-- `references/craft-xml.md` — полная структура файла конструкции, какие поля
-  производные, устройство `<Bodies>` и `<BodyJoint>`. *Читать, когда нужно
-  изменить то, чего не покрывают инструменты.*
-- `references/vizzy-blocks.md` — все инструкции, выражения и свойства аппарата.
-  *Читать, когда компилятор отверг операцию.*
-- `references/troubleshooting.md` — таблица «симптом → причина → что искать в
-  логе». *Читать, когда конструкция не грузится, разваливается или не летит.*
-- `references/scenarios.md` — форматы `FlightState` и `GameState`, различия
-  версий 2 и 3, орбитальные элементы. *Читать перед правкой сценариев.*
+- `references/craft-xml.md` — the full structure of a craft file, which fields
+  are derived, how `<Bodies>` and `<BodyJoint>` work. *Read when you need to
+  change something the tools do not cover.*
+- `references/vizzy-blocks.md` — every instruction, expression and craft
+  property. *Read when the compiler rejected an operation.*
+- `references/troubleshooting.md` — a "symptom → cause → what to look for in the
+  log" table. *Read when a craft will not load, falls apart or will not fly.*
+- `references/scenarios.md` — the `FlightState` and `GameState` formats, the
+  differences between versions 2 and 3, orbital elements. *Read before editing
+  scenarios.*
 
-## Мод-мост
+## Bridge mod
 
-Живая телеметрия, запуск полёта и управление из чата требуют мода `JunoBridge`
-(каталог `mod/`). Пока он не собран, `game_state` покажет, что моды не
-установлены, и обратная связь ограничена `log_read` и разбором сохранённого
-состояния после выхода из игры. Сборка требует Unity 2022.3.62f3 — инструкция
-в `mod/README.md`.
+Live telemetry, launching a flight and controlling it from chat require the
+`JunoBridge` mod (the `mod/` directory). Until it is built, `game_state` will
+report that no mods are installed, and feedback is limited to `log_read` and
+parsing the saved state after quitting the game. Building it requires Unity
+2022.3.62f3 — see `mod/README.md`.
