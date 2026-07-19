@@ -8,7 +8,14 @@
 import type { XmlNode } from '../xml.js';
 import { buildXml, GAME_FORMAT } from '../xml.js';
 import { resolveStackConnection, partType, type ResolvedConnection } from '../catalog.js';
-import { fuelCapacity, fuselageOffset, round6, vecStr, type FuselageShape } from './geometry.js';
+import {
+  fuelCapacity,
+  fuselageOffset,
+  fuselageVolume,
+  round6,
+  vecStr,
+  type FuselageShape,
+} from './geometry.js';
 import type { XmlNode as Node } from '../xml.js';
 
 export type StackItem =
@@ -193,6 +200,47 @@ async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promis
   return out;
 }
 
+/**
+ * Грубая оценка массы группы деталей. Точное значение игра всё равно
+ * пересчитает, но ноль ей подсовывать нельзя — вырожденное тело выбрасывает
+ * при спавне. Сухая масса бака взята как доля от объёма топлива, чтобы порядок
+ * величины совпадал с тем, что игра считает сама.
+ */
+function estimateGroupMass(partIds: number[], stack: StackItem[]): number {
+  let mass = 0;
+  for (const id of partIds) {
+    const item = stack[id];
+    if (item === undefined) continue;
+    switch (item.kind) {
+      case 'tank': {
+        const half = item.diameter / 2;
+        const shape: FuselageShape = {
+          length: item.length,
+          topScale: [half, half],
+          bottomScale: [half, half],
+        };
+        mass += fuselageVolume(shape) * 12;
+        break;
+      }
+      case 'engine':
+        mass += 8 * (item.size ?? 1);
+        break;
+      case 'pod':
+        mass += 100;
+        break;
+      case 'parachute':
+        mass += 4.5;
+        break;
+      case 'decoupler':
+        mass += 5;
+        break;
+      default:
+        mass += 2;
+    }
+  }
+  return Math.max(mass, 1);
+}
+
 export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   const warnings: BuildWarning[] = [];
   if (spec.stack.length === 0) throw new Error('Стек пуст: нужна хотя бы одна деталь');
@@ -288,40 +336,39 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     );
   }
 
-  // Тела разрываются на отделителях: всё, что выше отделителя, — отдельное
-  // физическое тело, иначе аппарат не разделится при отстреле ступени.
-  const bodies: XmlNode[] = [];
-  let bodyId = 1;
+  // Отделяемая деталь образует собственное физическое тело, поэтому разрыв
+  // ставится ПЕРЕД ней, а не после: иначе последний в стеке парашют слипался
+  // с корпусом, и аппарат уходил в полёт одним телом. Проверено сравнением с
+  // тем, как игра пересохранила нашу же конструкцию: она разбивает на
+  // {двигатель, бак, модуль} и {парашют}.
+  const detachable = (item: StackItem): boolean =>
+    item.kind === 'decoupler' || item.kind === 'parachute';
+
+  const groups: number[][] = [];
   let current: number[] = [];
   spec.stack.forEach((item, index) => {
-    current.push(index);
-    // Парашют тоже отделяемый — в эталонной конструкции он своё тело.
-    const breaks = item.kind === 'decoupler' || item.kind === 'parachute';
-    if (breaks || index === spec.stack.length - 1) {
-      bodies.push(
-        node('Body', {
-          id: String(bodyId++),
-          partIds: current.join(','),
-          mass: '0',
-          position: '0,0,0',
-          rotation: '0,0,0',
-          centerOfMass: '0,0,0',
-        })
-      );
+    if (detachable(item)) {
+      if (current.length > 0) groups.push(current);
+      groups.push([index]);
       current = [];
+      return;
     }
+    current.push(index);
   });
-  if (current.length > 0)
-    bodies.push(
-      node('Body', {
-        id: String(bodyId++),
-        partIds: current.join(','),
-        mass: '0',
-        position: '0,0,0',
-        rotation: '0,0,0',
-        centerOfMass: '0,0,0',
-      })
-    );
+  if (current.length > 0) groups.push(current);
+
+  const bodies: XmlNode[] = groups.map((partIds, i) =>
+    node('Body', {
+      id: String(i + 1),
+      partIds: partIds.join(','),
+      // Массу игра пересчитывает при загрузке, но ноль трактуется физикой как
+      // вырожденное тело: аппарат с нулевой массой выбрасывает при спавне.
+      mass: String(round6(estimateGroupMass(partIds, spec.stack))),
+      position: '0,0,0',
+      rotation: '0,0,0',
+      centerOfMass: '0,0,0',
+    })
+  );
 
   const maxRadius = Math.max(
     0.5,

@@ -24055,6 +24055,40 @@ async function fillDefaultModifiers(typeId, existing) {
   }
   return out;
 }
+function estimateGroupMass(partIds, stack) {
+  let mass = 0;
+  for (const id of partIds) {
+    const item = stack[id];
+    if (item === void 0) continue;
+    switch (item.kind) {
+      case "tank": {
+        const half = item.diameter / 2;
+        const shape = {
+          length: item.length,
+          topScale: [half, half],
+          bottomScale: [half, half]
+        };
+        mass += fuselageVolume(shape) * 12;
+        break;
+      }
+      case "engine":
+        mass += 8 * (item.size ?? 1);
+        break;
+      case "pod":
+        mass += 100;
+        break;
+      case "parachute":
+        mass += 4.5;
+        break;
+      case "decoupler":
+        mass += 5;
+        break;
+      default:
+        mass += 2;
+    }
+  }
+  return Math.max(mass, 1);
+}
 async function buildCraft(spec) {
   const warnings = [];
   if (spec.stack.length === 0) throw new Error("\u0421\u0442\u0435\u043A \u043F\u0443\u0441\u0442: \u043D\u0443\u0436\u043D\u0430 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u0430 \u0434\u0435\u0442\u0430\u043B\u044C");
@@ -24133,37 +24167,31 @@ async function buildCraft(spec) {
       })
     );
   }
-  const bodies = [];
-  let bodyId = 1;
+  const detachable = (item) => item.kind === "decoupler" || item.kind === "parachute";
+  const groups = [];
   let current = [];
   spec.stack.forEach((item, index) => {
-    current.push(index);
-    const breaks = item.kind === "decoupler" || item.kind === "parachute";
-    if (breaks || index === spec.stack.length - 1) {
-      bodies.push(
-        node("Body", {
-          id: String(bodyId++),
-          partIds: current.join(","),
-          mass: "0",
-          position: "0,0,0",
-          rotation: "0,0,0",
-          centerOfMass: "0,0,0"
-        })
-      );
+    if (detachable(item)) {
+      if (current.length > 0) groups.push(current);
+      groups.push([index]);
       current = [];
+      return;
     }
+    current.push(index);
   });
-  if (current.length > 0)
-    bodies.push(
-      node("Body", {
-        id: String(bodyId++),
-        partIds: current.join(","),
-        mass: "0",
-        position: "0,0,0",
-        rotation: "0,0,0",
-        centerOfMass: "0,0,0"
-      })
-    );
+  if (current.length > 0) groups.push(current);
+  const bodies = groups.map(
+    (partIds, i) => node("Body", {
+      id: String(i + 1),
+      partIds: partIds.join(","),
+      // Массу игра пересчитывает при загрузке, но ноль трактуется физикой как
+      // вырожденное тело: аппарат с нулевой массой выбрасывает при спавне.
+      mass: String(round6(estimateGroupMass(partIds, spec.stack))),
+      position: "0,0,0",
+      rotation: "0,0,0",
+      centerOfMass: "0,0,0"
+    })
+  );
   const maxRadius = Math.max(
     0.5,
     ...spec.stack.map(
