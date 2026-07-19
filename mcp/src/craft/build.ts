@@ -53,6 +53,47 @@ const node = (tag: string, attrs: Record<string, string> = {}, children: XmlNode
   children,
 });
 
+/**
+ * Where an item's own bottom and top attach points sit, relative to its
+ * position, along the stack axis.
+ *
+ * This is what actually determines layout: a part is placed so its bottom
+ * attach point coincides with the top attach point of the part below. Adding up
+ * bounding boxes instead leaves gaps, and a joint stretched across a gap tears
+ * apart under load.
+ *
+ * Verified against the stock reference rocket: its tank sits at y=-0.32 with a
+ * half-length of 2.5, putting its bottom at -2.82 — and the engine sits at
+ * exactly -2.82, because an engine attaches at its own origin rather than
+ * offset by half its height.
+ */
+function attachOffsets(item: StackItem): { bottom: number; top: number } {
+  switch (item.kind) {
+    // Procedural hulls: their attach points are at ±1 in normalised
+    // coordinates, scaled by the half-length set through the Fuselage modifier.
+    case 'tank':
+      return { bottom: -item.length / 2, top: item.length / 2 };
+    case 'decoupler':
+      return { bottom: -0.175, top: 0.175 };
+    case 'nosecone': {
+      const h = item.length ?? item.diameter;
+      return { bottom: -h / 2, top: h / 2 };
+    }
+    // Fixed geometry, measured from the catalogue's attach points.
+    case 'pod':
+      return { bottom: -0.632, top: 0.632 };
+    // An engine hangs below its single attach point and a parachute sits above
+    // its own — both attach at their origin, not offset by half their height.
+    case 'engine':
+    case 'parachute':
+      return { bottom: 0, top: 0 };
+    case 'raw': {
+      const h = item.length ?? 1;
+      return { bottom: -h / 2, top: h / 2 };
+    }
+  }
+}
+
 /** Overall height of an item along the stack axis. */
 function itemHeight(item: StackItem): number {
   switch (item.kind) {
@@ -271,12 +312,29 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   // craft: it shifted every part by the same amount and wrote
   // localCenterOfMass equal to minus the root part's position.
   const heights = spec.stack.map(itemHeight);
-  let cursor = 0;
-  const rawCentres = heights.map((h) => {
-    const centre = cursor + h / 2;
-    cursor += h;
-    return centre;
+  const offsets = spec.stack.map(attachOffsets);
+
+  // Place each part so its bottom attach point meets the top attach point of
+  // the part below. Summing bounding boxes would leave gaps between parts, and
+  // a joint stretched over a gap tears apart in flight.
+  const rawCentres: number[] = [];
+  let joint = 0; // height of the joint currently being built on
+  spec.stack.forEach((item, index) => {
+    const off = offsets[index] as { bottom: number; top: number };
+    const position = joint - off.bottom;
+    rawCentres.push(position);
+    joint = position + off.top;
   });
+
+  // Bounds come from the parts' actual extents, since an engine reaches below
+  // its attach point and a nose cone above its own.
+  const extentLow = Math.min(
+    ...rawCentres.map((c, i) => c - (heights[i] as number) / 2)
+  );
+  const extentHigh = Math.max(
+    ...rawCentres.map((c, i) => c + (heights[i] as number) / 2)
+  );
+  const cursor = extentHigh - extentLow;
 
   let massSum = 0;
   let momentSum = 0;
@@ -289,7 +347,6 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
 
   const layout: BuildResult['layout'] = [];
   const parts: XmlNode[] = [];
-  const totalHeight = cursor;
 
   for (const [index, item] of spec.stack.entries()) {
     const height = heights[index] as number;
@@ -329,17 +386,40 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     );
   }
 
-  // Connections between adjacent parts of the stack.
-  const connections: XmlNode[] = [];
+  // Which parts are joined, as index pairs (lower, upper). Normally these are
+  // stack neighbours, but an upper stage engine is an exception.
+  //
+  // A decoupler never joins an engine directly — that pair occurs in none of
+  // the 61 stock craft. `Detacher1` carries a `CoverEngine` modifier: the
+  // interstage *encloses* the upper stage's engine and itself joins tank to
+  // tank. The engine connects only to its own tank. So for the sequence
+  // `decoupler, engine, tank` we join decoupler→tank and engine→tank, and skip
+  // the decoupler→engine joint that has no physical counterpart.
+  const pairs: Array<[number, number]> = [];
   for (let i = 0; i + 1 < spec.stack.length; i++) {
-    const lower = partTypeOf(spec.stack[i] as StackItem);
-    const upper = partTypeOf(spec.stack[i + 1] as StackItem);
+    const here = spec.stack[i] as StackItem;
+    const next = spec.stack[i + 1] as StackItem;
+    const afterNext = spec.stack[i + 2];
+
+    if (here.kind === 'decoupler' && next.kind === 'engine' && afterNext?.kind === 'tank') {
+      pairs.push([i, i + 2]); // interstage to the tank it covers
+      pairs.push([i + 1, i + 2]); // enclosed engine to that same tank
+      i += 1; // the engine's own joint is already recorded
+      continue;
+    }
+    pairs.push([i, i + 1]);
+  }
+
+  const connections: XmlNode[] = [];
+  for (const [lowerIdx, upperIdx] of pairs) {
+    const lower = partTypeOf(spec.stack[lowerIdx] as StackItem);
+    const upper = partTypeOf(spec.stack[upperIdx] as StackItem);
     let resolved: ResolvedConnection;
     try {
       resolved = await resolveStackConnection(lower, upper);
     } catch (e) {
       throw new Error(
-        `Could not join ${lower} (position ${i}) to ${upper} (position ${i + 1}): ${(e as Error).message}`
+        `Could not join ${lower} (position ${lowerIdx}) to ${upper} (position ${upperIdx}): ${(e as Error).message}`
       );
     }
     if (resolved.confidence === 'inferred')
@@ -352,8 +432,8 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
 
     connections.push(
       node('Connection', {
-        partA: String(i),
-        partB: String(i + 1),
+        partA: String(lowerIdx),
+        partB: String(upperIdx),
         attachPointsA: resolved.a,
         attachPointsB: resolved.b,
       })
@@ -408,8 +488,8 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
       parent: '',
       // Bounds are in craft-local coordinates, whose origin now sits at the
       // centre of mass, so the bottom of the stack is negative.
-      initialBoundsMin: vecStr([-maxRadius, -centreOfMass, -maxRadius]),
-      initialBoundsMax: vecStr([maxRadius, totalHeight - centreOfMass, maxRadius]),
+      initialBoundsMin: vecStr([-maxRadius, extentLow - centreOfMass, -maxRadius]),
+      initialBoundsMax: vecStr([maxRadius, extentHigh - centreOfMass, maxRadius]),
       price: '0',
       xmlVersion: '15',
       suppressCraftConfigWarnings: 'false',

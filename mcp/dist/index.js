@@ -23934,6 +23934,32 @@ var node = (tag, attrs = {}, children = []) => ({
   attrs,
   children
 });
+function attachOffsets(item) {
+  switch (item.kind) {
+    // Procedural hulls: their attach points are at ±1 in normalised
+    // coordinates, scaled by the half-length set through the Fuselage modifier.
+    case "tank":
+      return { bottom: -item.length / 2, top: item.length / 2 };
+    case "decoupler":
+      return { bottom: -0.175, top: 0.175 };
+    case "nosecone": {
+      const h = item.length ?? item.diameter;
+      return { bottom: -h / 2, top: h / 2 };
+    }
+    // Fixed geometry, measured from the catalogue's attach points.
+    case "pod":
+      return { bottom: -0.632, top: 0.632 };
+    // An engine hangs below its single attach point and a parachute sits above
+    // its own — both attach at their origin, not offset by half their height.
+    case "engine":
+    case "parachute":
+      return { bottom: 0, top: 0 };
+    case "raw": {
+      const h = item.length ?? 1;
+      return { bottom: -h / 2, top: h / 2 };
+    }
+  }
+}
 function itemHeight(item) {
   switch (item.kind) {
     case "pod":
@@ -24106,12 +24132,22 @@ async function buildCraft(spec) {
       throw new Error(`Unknown part type "${id}". Check it with part_lookup.`);
   }
   const heights = spec.stack.map(itemHeight);
-  let cursor = 0;
-  const rawCentres = heights.map((h) => {
-    const centre = cursor + h / 2;
-    cursor += h;
-    return centre;
+  const offsets = spec.stack.map(attachOffsets);
+  const rawCentres = [];
+  let joint = 0;
+  spec.stack.forEach((item, index) => {
+    const off = offsets[index];
+    const position = joint - off.bottom;
+    rawCentres.push(position);
+    joint = position + off.top;
   });
+  const extentLow = Math.min(
+    ...rawCentres.map((c, i) => c - heights[i] / 2)
+  );
+  const extentHigh = Math.max(
+    ...rawCentres.map((c, i) => c + heights[i] / 2)
+  );
+  const cursor = extentHigh - extentLow;
   let massSum = 0;
   let momentSum = 0;
   spec.stack.forEach((item, index) => {
@@ -24122,7 +24158,6 @@ async function buildCraft(spec) {
   const centreOfMass = massSum > 0 ? momentSum / massSum : cursor / 2;
   const layout = [];
   const parts2 = [];
-  const totalHeight = cursor;
   for (const [index, item] of spec.stack.entries()) {
     const height = heights[index];
     const centerY = rawCentres[index] - centreOfMass;
@@ -24156,16 +24191,29 @@ async function buildCraft(spec) {
       )
     );
   }
-  const connections2 = [];
+  const pairs = [];
   for (let i = 0; i + 1 < spec.stack.length; i++) {
-    const lower = partTypeOf(spec.stack[i]);
-    const upper = partTypeOf(spec.stack[i + 1]);
+    const here = spec.stack[i];
+    const next = spec.stack[i + 1];
+    const afterNext = spec.stack[i + 2];
+    if (here.kind === "decoupler" && next.kind === "engine" && afterNext?.kind === "tank") {
+      pairs.push([i, i + 2]);
+      pairs.push([i + 1, i + 2]);
+      i += 1;
+      continue;
+    }
+    pairs.push([i, i + 1]);
+  }
+  const connections2 = [];
+  for (const [lowerIdx, upperIdx] of pairs) {
+    const lower = partTypeOf(spec.stack[lowerIdx]);
+    const upper = partTypeOf(spec.stack[upperIdx]);
     let resolved;
     try {
       resolved = await resolveStackConnection(lower, upper);
     } catch (e) {
       throw new Error(
-        `Could not join ${lower} (position ${i}) to ${upper} (position ${i + 1}): ${e.message}`
+        `Could not join ${lower} (position ${lowerIdx}) to ${upper} (position ${upperIdx}): ${e.message}`
       );
     }
     if (resolved.confidence === "inferred")
@@ -24175,8 +24223,8 @@ async function buildCraft(spec) {
       });
     connections2.push(
       node("Connection", {
-        partA: String(i),
-        partB: String(i + 1),
+        partA: String(lowerIdx),
+        partB: String(upperIdx),
         attachPointsA: resolved.a,
         attachPointsB: resolved.b
       })
@@ -24220,8 +24268,8 @@ async function buildCraft(spec) {
       parent: "",
       // Bounds are in craft-local coordinates, whose origin now sits at the
       // centre of mass, so the bottom of the stack is negative.
-      initialBoundsMin: vecStr([-maxRadius, -centreOfMass, -maxRadius]),
-      initialBoundsMax: vecStr([maxRadius, totalHeight - centreOfMass, maxRadius]),
+      initialBoundsMin: vecStr([-maxRadius, extentLow - centreOfMass, -maxRadius]),
+      initialBoundsMax: vecStr([maxRadius, extentHigh - centreOfMass, maxRadius]),
       price: "0",
       xmlVersion: "15",
       suppressCraftConfigWarnings: "false",

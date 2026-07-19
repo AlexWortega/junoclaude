@@ -167,14 +167,31 @@ async function main() {
 
   token = (await readFile(TOKEN_FILE, 'utf8')).trim();
 
-  const status = await get('/status');
+  // A scene transition left over from a previous flight rejects every command,
+  // so wait it out rather than failing the run.
+  let status = await get('/status');
+  for (let i = 0; i < 40 && status.transitioning; i++) {
+    await sleep(2000);
+    status = await get('/status');
+  }
   console.error(`bridge ok, scene=${status.scene}`);
 
   await post('/flight/launch', { craftId, launchLocation: location });
   await waitForFlight();
-  await sleep(3000);
 
-  const before = digest(await get('/telemetry'));
+  // Telemetry stays unavailable for a moment after the scene settles; retry
+  // rather than treating the gap as a failure.
+  let before;
+  for (let i = 0; i < 20; i++) {
+    await sleep(1500);
+    try {
+      before = digest(await get('/telemetry'));
+      break;
+    } catch {
+      /* still settling */
+    }
+  }
+  if (before === undefined) throw new Error('Telemetry never became available after launch');
   console.error(
     `on pad: alt ${before.altitude.toFixed(1)}m agl ${before.agl.toFixed(1)}m ` +
       `pitch ${before.pitch.toFixed(1)}° parts ${before.parts} fuel ${before.fuel.toFixed(0)}`

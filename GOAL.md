@@ -28,8 +28,31 @@ Not working yet:
 Each step is verifiable on its own, and none of the later ones are worth
 attempting before the earlier ones hold.
 
-1. **Survive staging.** The cause is already known, and it is structural rather
-   than a wrong attach point.
+1. ~~**Survive staging.**~~ **Done.** Multi-stage craft now hold together: a
+   7-part two-stage vehicle keeps all its parts through a full burn. Two fixes
+   were needed.
+
+   *Layout by attach points, not bounding boxes.* A part must be placed so its
+   bottom attach point meets the top attach point of the part below. Summing
+   heights leaves gaps, and a joint stretched over a gap tears apart under
+   load. Engines and parachutes attach at their own origin rather than offset
+   by half their height; the reference rocket's tank sits at y=-0.32 with a
+   half-length of 2.5 and its engine at exactly -2.82. Our spacing now matches
+   the stock rocket's tank-to-engine distance exactly.
+
+   *The interstage encloses the engine.* Details below.
+
+2. **Get off the pad.** The current blocker. A tall vehicle spawns already
+   tilted — `pitch -19.3°` on the pad — and cannot climb; a shorter one
+   spawned at `pitch 0.3°`, which is still not the `90°` a stock rocket shows.
+   Something about how the craft's orientation is derived is wrong, and it
+   scales with length. Compare a generated craft against a stock one in the
+   designer to see which axis is off before writing more flight code.
+
+   Note the units: a stock rocket on the pad reports `pitch 90`, ours report
+   near `0`, so the nose is being treated as pointing along a different axis.
+
+### Why the interstage matters (kept for reference)
 
    `Detacher1 → RocketEngine1` does not occur in any of the 61 stock craft: a
    decoupler never joins an engine directly. `Detacher1` carries a
