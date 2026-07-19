@@ -31,7 +31,7 @@ namespace JunoBridge.Net
             };
         }
 
-        /// Успешный конверт: { ok, apiVersion, gameTime, data: <фрагмент> }.
+        /// Success envelope: { ok, apiVersion, gameTime, data: <fragment> }.
         public static BridgeResponse Ok(string dataJson, int statusCode = 200)
         {
             var w = new JsonWriter(dataJson != null ? dataJson.Length + 128 : 256);

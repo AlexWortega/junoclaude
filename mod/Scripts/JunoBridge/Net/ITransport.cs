@@ -2,8 +2,8 @@ using System;
 
 namespace JunoBridge.Net
 {
-    /// Транспорт отделён от маршрутизации, чтобы падение HttpListener под Mono
-    /// не требовало переписывать обработчики — достаточно другой реализации.
+    /// The transport is separated from routing so that HttpListener failing under Mono does
+    /// not require rewriting the handlers — a different implementation is enough.
     internal interface ITransport
     {
         bool IsRunning { get; }

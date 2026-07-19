@@ -145,8 +145,8 @@ namespace JunoBridge.Core
             }
         }
 
-        /// Основной канал вывода Vizzy — записи FlightLog категории Vizzy. Дублирование
-        /// в дев-консоль включается как запасной путь, если категория окажется пустой.
+        /// The primary Vizzy output channel is FlightLog entries of category Vizzy. Mirroring
+        /// to the dev console is enabled as a fallback in case that category turns out empty.
         private static void ForceVizzyConsoleOutput()
         {
             try
@@ -182,8 +182,8 @@ namespace JunoBridge.Core
                     .EndObject().ToString());
         }
 
-        /// ICraftScript.CraftStructureChanged — это SimpleNotificationDelegate, без аргументов:
-        /// изменившийся корабль всегда текущий.
+        /// ICraftScript.CraftStructureChanged is a SimpleNotificationDelegate, with no arguments:
+        /// the craft that changed is always the current one.
         private static void OnCraftStructureChanged()
         {
             EventLog.Record(EventKind.CraftStructureChanged, "Craft structure changed.");
@@ -231,9 +231,9 @@ namespace JunoBridge.Core
                 return;
             }
 
-            // Дев-консольный вывод Vizzy приходит сюда же обычным Debug.Log.
-            // TODO(проверить): формат префикса выяснить эмпирически; пока помечаем
-            // как обычный лог, чтобы не выдавать посторонние строки за вывод программы.
+            // Vizzy's dev-console output arrives here too, as a plain Debug.Log.
+            // TODO(verify): work out the prefix format empirically; for now treat it as an
+            // ordinary log so that unrelated lines are not passed off as program output.
         }
     }
 }

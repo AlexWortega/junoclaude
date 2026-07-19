@@ -2,9 +2,9 @@ using System.Threading;
 
 namespace JunoBridge.Core
 {
-    /// Во время смены сцены главный поток может не прокачивать очередь несколько секунд,
-    /// а объектный граф наполовину разобран. Поэтому запрос отбивается ещё на HTTP-потоке,
-    /// до постановки в очередь.
+    /// During a scene change the main thread may stop pumping the queue for several seconds,
+    /// and the object graph is half torn down. So the request is rejected on the HTTP thread,
+    /// before it is even enqueued.
     internal static class SceneGate
     {
         private static int _transitionDepth;
@@ -21,7 +21,7 @@ namespace JunoBridge.Core
 
         public static void Exit()
         {
-            // Событий завершения может прийти больше, чем начал; ниже нуля не опускаемся.
+            // More completion events may arrive than start events; never go below zero.
             int current;
             do
             {

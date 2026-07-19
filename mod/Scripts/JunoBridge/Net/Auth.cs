@@ -1,6 +1,6 @@
 using System;
-// Не «using System.Diagnostics»: он тянет System.Diagnostics.EventLog,
-// который конфликтует с JunoBridge.Core.EventLog.
+// Not "using System.Diagnostics": it pulls in System.Diagnostics.EventLog,
+// which collides with JunoBridge.Core.EventLog.
 using Diag = System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
@@ -10,9 +10,9 @@ using ModApi;
 
 namespace JunoBridge.Net
 {
-    /// Привязка к 127.0.0.1 отсекает удалённых, но не другие локальные процессы
-    /// и не страницу в браузере пользователя. Токен в файле с правами 0600 —
-    /// тот же приём, что у Jupyter, и MCP-серверу он доступен даром.
+    /// Binding to 127.0.0.1 keeps remote callers out, but not other local processes and not
+    /// a page in the user's browser. A token in a 0600 file is the same trick Jupyter uses,
+    /// and the MCP server gets it for free.
     internal static class Auth
     {
         public const string TokenFileName = "junobridge.token";
@@ -45,8 +45,8 @@ namespace JunoBridge.Net
             }
         }
 
-        /// Токен генерируется заново на каждый запуск игры, чтобы утёкший файл
-        /// не давал доступ к следующей сессии.
+        /// The token is regenerated on every game launch so that a leaked file does not grant
+        /// access to the next session.
         public static void Initialize(int port)
         {
             var raw = new byte[32];
@@ -87,8 +87,8 @@ namespace JunoBridge.Net
             return FixedTimeEquals(_tokenBytes, Encoding.ASCII.GetBytes(presented));
         }
 
-        /// DNS-rebinding: страница в браузере может слать запросы на localhost.
-        /// CORS-заголовков нет вовсе, а запросы с Origin отбиваются явно.
+        /// DNS rebinding: a page in a browser can send requests to localhost. There are no CORS
+        /// headers at all, and requests carrying an Origin are rejected explicitly.
         public static bool LooksLikeBrowser(BridgeRequest request)
         {
             return !string.IsNullOrEmpty(request.Header("Origin"));
@@ -96,7 +96,7 @@ namespace JunoBridge.Net
 
         private static bool FixedTimeEquals(byte[] a, byte[] b)
         {
-            // CryptographicOperations.FixedTimeEquals может отсутствовать в этой Mono.
+            // CryptographicOperations.FixedTimeEquals may be absent in this Mono.
             int diff = a.Length ^ b.Length;
             for (int i = 0; i < a.Length && i < b.Length; i++)
                 diff |= a[i] ^ b[i];

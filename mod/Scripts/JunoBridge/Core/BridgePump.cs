@@ -8,10 +8,11 @@ using UnityEngine;
 
 namespace JunoBridge.Core
 {
-    /// Прокачка очереди зарегистрирована и в игровых циклах, и в собственном Update
-    /// объекта DontDestroyOnLoad — иначе /status и /events молчали бы в меню и на переходах.
-    /// Игровые хуки нужны отдельно ради порядка относительно физики: удержание тяги
-    /// должно попасть в CraftControls до ближайшего FixedUpdate.
+    /// The queue pump is registered both in the game loops and in the Update of a
+    /// DontDestroyOnLoad object — otherwise /status and /events would go silent in the menu
+    /// and during scene transitions. The game hooks are needed separately for ordering
+    /// relative to physics: a throttle hold must reach CraftControls before the next
+    /// FixedUpdate.
     internal sealed class BridgePump : MonoBehaviour,
         IGameLoopItem,
         IFlightUpdate,
@@ -33,8 +34,8 @@ namespace JunoBridge.Core
             _instance = go.AddComponent<BridgePump>();
         }
 
-        /// Регистрация в цикле активной сцены. Вызывать после каждой смены сцены:
-        /// у полёта и конструктора собственные реестры.
+        /// Registers with the active scene's loop. Call after every scene change:
+        /// flight and designer have their own registries.
         public static void RegisterWithSceneLoops()
         {
             if (_instance == null) return;
@@ -44,8 +45,9 @@ namespace JunoBridge.Core
                 var game = GameContext.Game;
                 if (game == null || game.SceneManager == null) return;
 
-                // TODO(проверить): типы IFlightScene.GameLoop / IDesigner.GameLoop в XML-доках
-                // не раскрыты; предполагается IFlightGameLoop / IDesignerGameLoop с Register().
+                // TODO(verify): the types of IFlightScene.GameLoop / IDesigner.GameLoop are not
+                // spelled out in the XML docs; assumed to be IFlightGameLoop / IDesignerGameLoop
+                // with Register().
                 if (game.SceneManager.InFlightScene && game.FlightScene != null)
                     game.FlightScene.GameLoop.Register(_instance);
 
@@ -54,7 +56,7 @@ namespace JunoBridge.Core
             }
             catch (Exception ex)
             {
-                // Update() продолжит работать в любом случае — теряется лишь точный порядок.
+                // Update() keeps working either way — only the exact ordering is lost.
                 EventLog.Record(EventKind.Exception, "RegisterWithSceneLoops failed: " + ex);
             }
         }
@@ -72,7 +74,7 @@ namespace JunoBridge.Core
 
         private void LateUpdate()
         {
-            // LateUpdate у DontDestroyOnLoad-объекта выполняется всегда, поэтому флаг не залипнет.
+            // LateUpdate on a DontDestroyOnLoad object always runs, so the flag cannot get stuck.
             _pumpedThisFrame = false;
         }
 
@@ -104,8 +106,8 @@ namespace JunoBridge.Core
             PumpOnce();
         }
 
-        /// Отдельная очередь: захват кадра на Metal даёт чёрную или рваную картинку,
-        /// если снимать его не после отрисовки.
+        /// A separate queue: frame capture on Metal yields a black or torn image if taken
+        /// anywhere other than after rendering.
         private IEnumerator EndOfFramePump()
         {
             var wait = new WaitForEndOfFrame();

@@ -1,7 +1,8 @@
-// Доступ к сгенерированным каталогам деталей и рецептов соединений.
+// Access to the generated catalogs of parts and connection recipes.
 //
-// Каталоги собираются скриптами из scripts/ и коммитятся в репозиторий:
-// установка плагина не запускает сборку, а без каталога билдер бесполезен.
+// The catalogs are built by the scripts in scripts/ and committed to the
+// repository: installing the plugin does not run a build, and without a catalog
+// the builder is useless.
 
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -11,7 +12,7 @@ export interface AttachPoint {
   index: number;
   name: string;
   display?: string;
-  /** surface — крепление к боку, load — торцевая нагрузка, shell — обшивка, rotate — служебная. */
+  /** surface — side attachment, load — end-on load, shell — skin, rotate — internal. */
   kind: 'surface' | 'load' | 'shell' | 'rotate';
   tag?: string;
   position?: number[];
@@ -35,7 +36,7 @@ export interface PartType {
   id: string;
   name: string;
   prefabPath?: string;
-  /** У процедурных деталей всегда 0 — массу игра выводит из модификаторов. */
+  /** Always 0 for procedural parts — the game derives mass from the modifiers. */
   mass?: number;
   price?: number;
   defaultMaterials?: string;
@@ -78,8 +79,9 @@ export interface ConnectionsCatalog {
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Корень плагина. При запуске из Claude Code передаётся через JUNO_PLUGIN_ROOT;
- * иначе поднимаемся от dist/ — так работает и `node src/index.ts` в разработке.
+ * The plugin root. When launched from Claude Code it arrives via
+ * JUNO_PLUGIN_ROOT; otherwise we walk up from dist/ — which also makes
+ * `node src/index.ts` work during development.
  */
 function pluginRoot(): string {
   return process.env.JUNO_PLUGIN_ROOT ?? join(HERE, '..', '..');
@@ -94,8 +96,8 @@ async function load<T>(file: string): Promise<T> {
     return JSON.parse(await readFile(path, 'utf8')) as T;
   } catch (e) {
     throw new Error(
-      `Не удалось прочитать каталог ${path}: ${(e as Error).message}. ` +
-        `Соберите его командой \`npm run catalog\` в корне плагина.`
+      `Could not read the catalog ${path}: ${(e as Error).message}. ` +
+        `Build it with \`npm run catalog\` in the plugin root.`
     );
   }
 }
@@ -114,7 +116,7 @@ export async function partType(id: string): Promise<PartType | undefined> {
   return (await parts()).parts[id];
 }
 
-/** Точки крепления по индексам из атрибута attachPointsA/B (это список!). */
+/** Attach points by the indices in the attachPointsA/B attribute (it is a list!). */
 export async function resolvePoints(
   typeId: string,
   list: string
@@ -132,15 +134,15 @@ export async function resolvePoints(
 }
 
 /**
- * Сторона детали, к которой относится точка крепления. Атрибут `tag` заполнен
- * лишь у части деталей, зато имя точки называет сторону почти всегда:
- * `AttachPointBottomLoad`, `AttachPointTop`. Опираться только на `tag` значит
- * не состыковать командный модуль вообще ни с чем.
+ * The side of the part an attach point belongs to. The `tag` attribute is only
+ * filled in on some parts, whereas the point's name names the side almost
+ * always: `AttachPointBottomLoad`, `AttachPointTop`. Relying on `tag` alone
+ * means failing to connect a command pod to anything at all.
  */
 function sideOf(point: AttachPoint): 'Top' | 'Bottom' | undefined {
   if (point.tag === 'Top' || point.tag === 'Bottom') return point.tag;
   const name = point.name;
-  // Порядок важен: BottomLoad содержит и Bottom, и Load, но не Top.
+  // Order matters: BottomLoad contains both Bottom and Load, but not Top.
   if (/bottom/i.test(name)) return 'Bottom';
   if (/top/i.test(name)) return 'Top';
   return undefined;
@@ -149,19 +151,19 @@ function sideOf(point: AttachPoint): 'Top' | 'Bottom' | undefined {
 export interface ResolvedConnection {
   a: string;
   b: string;
-  /** known — рецепт добыт из готовых крафтов, inferred — выведен по тегам. */
+  /** known — recipe mined from existing crafts, inferred — derived from tags. */
   confidence: 'known' | 'inferred';
   seen?: number;
 }
 
 /**
- * Подбирает точки крепления для стыковки: `lower` стоит снизу, `upper` сверху.
+ * Picks the attach points for a stack joint: `lower` sits below, `upper` above.
  *
- * Сначала ищем добытый рецепт — это ground truth из файлов, которые игра
- * написала сама. Игра пишет соединение в обоих направлениях в зависимости от
- * того, как деталь ставили в редакторе, поэтому проверяем и обратную форму.
- * Только если рецепта нет — выводим пару по тегам, и такой результат
- * помечается как inferred, чтобы валидатор о нём предупредил.
+ * First look for a mined recipe — that is ground truth from files the game
+ * wrote itself. The game records a connection in either direction depending on
+ * how the part was placed in the designer, so we check the inverted form too.
+ * Only when there is no recipe do we derive a pair from the tags, and such a
+ * result is marked inferred so the validator can warn about it.
  */
 export async function resolveStackConnection(
   lower: string,
@@ -172,7 +174,7 @@ export async function resolveStackConnection(
   const direct = cat.connections[lower]?.[upper]?.stack;
   if (direct) return { a: direct.a, b: direct.b, confidence: 'known', seen: direct.seen };
 
-  // Обратная форма: в файле записано (upper, lower), где A — верхняя деталь.
+  // Inverted form: the file records (upper, lower), where A is the upper part.
   const inverted = cat.connections[upper]?.[lower]?.stack_inverted;
   if (inverted)
     return { a: inverted.b, b: inverted.a, confidence: 'known', seen: inverted.seen };
@@ -180,10 +182,11 @@ export async function resolveStackConnection(
   const lowerPt = await partType(lower);
   const upperPt = await partType(upper);
   if (lowerPt === undefined || upperPt === undefined)
-    throw new Error(`Неизвестный тип детали: ${lowerPt === undefined ? lower : upper}`);
+    throw new Error(`Unknown part type: ${lowerPt === undefined ? lower : upper}`);
 
-  // Нижняя деталь стыкуется верхом, верхняя — низом. Берём пару Load и пару
-  // Shell: только Load даст сегментированный корпус с неверным сопротивлением.
+  // The lower part joins with its top, the upper one with its bottom. Take both
+  // a Load pair and a Shell pair: Load alone gives a segmented hull with the
+  // wrong drag.
   const pick = (
     pt: PartType,
     side: 'Top' | 'Bottom',
@@ -202,8 +205,8 @@ export async function resolveStackConnection(
     }
   }
 
-  // Мелкие детали вроде парашюта имеют единственную безымянную точку —
-  // выбирать там не из чего, и это нормальная стыковка, а не отказ.
+  // Small parts such as a parachute have a single unnamed point — there is
+  // nothing to choose between, and that is a valid joint, not a failure.
   if (aIdx.length === 0) {
     const soleLoad = (pt: PartType): AttachPoint | undefined => {
       const loads = pt.attachPoints.filter((p) => p.kind === 'load');
@@ -215,15 +218,15 @@ export async function resolveStackConnection(
       return { a: String(a.index), b: String(b.index), confidence: 'inferred' };
 
     throw new Error(
-      `Нет совместимых точек крепления: ${lower} (верх) → ${upper} (низ). ` +
-        `Посмотрите part_lookup для обеих деталей.`
+      `No compatible attach points: ${lower} (top) → ${upper} (bottom). ` +
+        `Check part_lookup for both parts.`
     );
   }
 
   return { a: aIdx.join(','), b: bIdx.join(','), confidence: 'inferred' };
 }
 
-/** Точки для крепления детали к боковой поверхности другой. */
+/** Points for attaching a part to the side surface of another. */
 export async function resolveSurfaceConnection(
   attached: string,
   host: string
@@ -235,16 +238,16 @@ export async function resolveSurfaceConnection(
   const attachedPt = await partType(attached);
   const hostPt = await partType(host);
   if (attachedPt === undefined || hostPt === undefined)
-    throw new Error(`Неизвестный тип детали: ${attachedPt === undefined ? attached : host}`);
+    throw new Error(`Unknown part type: ${attachedPt === undefined ? attached : host}`);
 
-  // Прилепляемая деталь «тыкается» служебной точкой rotate, принимающая
-  // подставляет surface.
+  // The part being attached pokes with its internal rotate point, the receiving
+  // one offers a surface point.
   const a =
     attachedPt.attachPoints.find((p) => p.kind === 'rotate') ??
     attachedPt.attachPoints.find((p) => p.kind === 'load');
   const b = hostPt.attachPoints.find((p) => p.kind === 'surface');
   if (a === undefined || b === undefined)
-    throw new Error(`Нельзя прикрепить ${attached} к поверхности ${host}: нет подходящих точек.`);
+    throw new Error(`Cannot attach ${attached} to the surface of ${host}: no suitable points.`);
 
   return { a: String(a.index), b: String(b.index), confidence: 'inferred' };
 }

@@ -14,8 +14,8 @@ namespace JunoBridge.Handlers
             "screenshot", "planets", "launch-locations", "jobs"
         };
 
-        /// Единственная ручка, которая обязана отвечать всегда: по ней MCP отличает
-        /// «мост жив, но сцена не та» от «мост мёртв».
+        /// The one endpoint that must always answer: the MCP server uses it to tell
+        /// "bridge alive, but wrong scene" from "bridge dead".
         public static BridgeResponse Get()
         {
             var game = GameContext.Game;
@@ -38,8 +38,8 @@ namespace JunoBridge.Handlers
              .Bool("hasCraft", node != null)
              .Num("craftNodeId", node == null ? -1 : node.NodeId)
              .Bool("supportsCodeExecution", game != null && game.ModManager != null && game.ModManager.SupportsCodeExecution)
-             // Дешёвый детектор изменений: MCP опрашивает /status и лезет в /events,
-             // только когда счётчик сдвинулся.
+             // A cheap change detector: the MCP server polls /status and only goes to
+             // /events when the counter has moved.
              .Num("eventSeq", EventLog.LatestSeq)
              .Num("pendingJobs", MainThreadDispatcher.PendingCount);
 

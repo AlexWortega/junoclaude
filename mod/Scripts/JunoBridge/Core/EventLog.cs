@@ -33,12 +33,12 @@ namespace JunoBridge.Core
 
     internal static class EventLog
     {
-        private const int Capacity = 512; // степень двойки — маска вместо деления
+        private const int Capacity = 512; // power of two — mask instead of division
         private static readonly BridgeEvent[] _buffer = new BridgeEvent[Capacity];
         private static readonly object _gate = new object();
         private static long _seq;
 
-        /// Безопасно из любого потока.
+        /// Safe from any thread.
         public static void Record(EventKind kind, string message, string detailJson = null)
         {
             lock (_gate)
@@ -61,8 +61,8 @@ namespace JunoBridge.Core
             get { lock (_gate) return _seq; }
         }
 
-        /// Возвращает события с Seq >= since. dropped > 0 означает, что клиент отстал
-        /// и должен перечитать полное состояние, а не достраивать своё.
+        /// Returns events with Seq >= since. dropped > 0 means the client fell behind and
+        /// must re-read the full state instead of patching its own.
         public static List<BridgeEvent> Since(long since, int limit, out long dropped, out long newest)
         {
             var result = new List<BridgeEvent>();

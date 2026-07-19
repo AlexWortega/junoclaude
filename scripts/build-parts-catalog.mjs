@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Строит catalog/parts.json из Assets/ModTools/Parts/Parts.xml внутри ModTools.
+// Builds catalog/parts.json from Assets/ModTools/Parts/Parts.xml inside ModTools.
 //
-// Главный вклад скрипта — не сырой дамп атрибутов, а выведение поля `kind`
-// у каждой точки крепления. Именно на него опирается tag-fallback в билдере,
-// когда для пары деталей нет добытого рецепта.
+// The script's main contribution is not a raw dump of attributes but deriving
+// the `kind` field of each attach point. That is exactly what the builder's
+// tag fallback relies on when a pair of parts has no mined recipe.
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -15,9 +15,9 @@ import { gamePaths } from './paths.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
- * Классифицирует точку крепления. Порядок проверок важен:
- * поверхностные и Shell-точки опознаются по явным атрибутам, а всё
- * остальное, что не принимает подключений, — служебное (rotate).
+ * Classifies an attach point. The order of the checks matters: surface and
+ * Shell points are recognised by explicit attributes, and everything else that
+ * accepts no connections is internal (rotate).
  */
 function classifyAttachPoint(a) {
   if (a.surface) return 'surface';
@@ -30,7 +30,7 @@ const num = (v) => (v === undefined ? undefined : Number(v));
 const bool = (v) => v === 'true' || v === true;
 const vec = (v) => (typeof v === 'string' ? v.split(',').map(Number) : undefined);
 
-/** Приводит значение fast-xml-parser к массиву (одиночный узел приходит объектом). */
+/** Coerces a fast-xml-parser value to an array (a single node arrives as an object). */
 const arr = (v) => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
 
 function buildPart(partNode) {
@@ -56,8 +56,8 @@ function buildPart(partNode) {
     return point;
   });
 
-  // Модификаторы — это дочерние элементы <Modifiers>, где имя тега и есть
-  // имя модификатора, а атрибуты — его значения по умолчанию.
+  // Modifiers are the child elements of <Modifiers>, where the tag name is the
+  // modifier name and the attributes are its default values.
   const modifiers = {};
   for (const [tag, node] of Object.entries(pt.Modifiers ?? {})) {
     const first = Array.isArray(node) ? node[0] : node;
@@ -71,9 +71,9 @@ function buildPart(partNode) {
     showInDesigner: bool(d.showInDesigner ?? 'true'),
   }));
 
-  // Процедурная деталь = её геометрия задаётся модификатором, а не префабом.
-  // Такие детали игра всегда пересчитывает при загрузке, поэтому mass/price
-  // в определении типа стоят нулями и полагаться на них нельзя.
+  // A procedural part = its geometry comes from a modifier rather than a
+  // prefab. The game always recomputes such parts on load, so mass/price in the
+  // type definition are zeros and cannot be relied on.
   const procedural = 'Fuselage' in modifiers || 'Wing' in modifiers;
 
   return {
@@ -99,8 +99,8 @@ async function main() {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
-    // Атрибуты оставляем строками: в них встречаются векторы ("0,-1,0"),
-    // которые числовой парсер испортил бы.
+    // Keep attributes as strings: they contain vectors ("0,-1,0") that a
+    // numeric parser would corrupt.
     parseAttributeValue: false,
     trimValues: true,
   });
@@ -129,10 +129,10 @@ async function main() {
   for (const p of Object.values(parts))
     for (const a of p.attachPoints) kinds[a.kind] = (kinds[a.kind] ?? 0) + 1;
 
-  console.error(`${catalog.partCount} типов деталей → catalog/parts.json`);
-  console.error(`точки крепления по видам: ${JSON.stringify(kinds)}`);
+  console.error(`${catalog.partCount} part types → catalog/parts.json`);
+  console.error(`attach points by kind: ${JSON.stringify(kinds)}`);
   const proc = Object.values(parts).filter((p) => p.procedural).map((p) => p.id);
-  console.error(`процедурных: ${proc.length} — ${proc.join(', ')}`);
+  console.error(`procedural: ${proc.length} — ${proc.join(', ')}`);
 }
 
 main().catch((e) => {

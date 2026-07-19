@@ -23,8 +23,9 @@ namespace JunoBridge.Core
         public double CompletedRealTime;
     }
 
-    /// Операции, меняющие сцену, нельзя ждать синхронно: на время загрузки главный поток
-    /// перестаёт прокачивать очередь. Они возвращают 202 + jobId, статус опрашивается отдельно.
+    /// Scene-changing operations cannot be awaited synchronously: while loading, the main
+    /// thread stops pumping the queue. They return 202 + jobId, and the status is polled
+    /// separately.
     internal static class JobRegistry
     {
         private const int MaxRetained = 64;
@@ -77,8 +78,8 @@ namespace JunoBridge.Core
                     .Bool("success", success).Str("message", message).EndObject().ToString());
         }
 
-        /// Завершает все ещё не закрытые задачи данного вида — используется, когда
-        /// подтверждением служит внешнее событие (например, SceneTransitionCompleted).
+        /// Completes every still-open job of the given kind — used when the confirmation
+        /// comes from an external event (for example, SceneTransitionCompleted).
         public static void CompleteAllOfKind(string kind, bool success, string message)
         {
             List<BridgeJob> pending = new List<BridgeJob>();

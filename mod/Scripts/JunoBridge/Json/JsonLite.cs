@@ -15,8 +15,8 @@ namespace JunoBridge.Json
         Object
     }
 
-    /// Минимальный рекурсивный парсер. Тела запросов моста плоские и небольшие,
-    /// поэтому дерево из словарей дешевле, чем тянуть внешнюю библиотеку.
+    /// A minimal recursive parser. The bridge's request bodies are flat and small, so a tree
+    /// of dictionaries is cheaper than pulling in an external library.
     internal sealed class JsonValue
     {
         public JsonKind Kind;

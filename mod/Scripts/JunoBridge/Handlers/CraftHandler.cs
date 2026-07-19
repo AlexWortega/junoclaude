@@ -25,7 +25,7 @@ namespace JunoBridge.Handlers
              .Num("partCount", CountParts(data))
              .Num("currentStage", pod == null ? -1 : pod.CurrentStage)
              .Num("numStages", pod == null ? 0 : pod.NumStages)
-             // CenterOfMass — Transform, ориентированный по пилотской оси командного модуля.
+             // CenterOfMass is a Transform oriented along the command pod's piloting axis.
              .Vec("centerOfMass", craft.CenterOfMass.position)
              .EndObject();
 
@@ -107,8 +107,8 @@ namespace JunoBridge.Handlers
             return BridgeResponse.Ok(w.ToString());
         }
 
-        /// Тип коллекции Parts в документации не раскрыт — считаем через IEnumerable,
-        /// чтобы не зависеть от наличия Count.
+        /// The type of the Parts collection is not spelled out in the docs — we count via
+        /// IEnumerable so as not to depend on a Count being there.
         private static int CountParts(ModApi.Craft.CraftData data)
         {
             if (data == null || data.Assembly == null || data.Assembly.Parts == null) return 0;

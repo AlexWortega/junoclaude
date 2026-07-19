@@ -1,8 +1,9 @@
-// Слой безопасности записи.
+// The write safety layer.
 //
-// Плагин пишет в каталог, где лежат сотни часов чужой работы. Три защиты:
-// снапшот перед каждой записью, отказ писать при запущенной игре и атомарная
-// подмена файла. Ни одна из них не должна быть необязательной по умолчанию.
+// The plugin writes into a directory holding hundreds of hours of someone
+// else's work. Three defences: a snapshot before every write, a refusal to
+// write while the game is running, and an atomic file swap. None of them may
+// be optional by default.
 
 import { mkdir, writeFile, readFile, rename, rm, readdir, stat, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -12,7 +13,7 @@ import { gamePaths } from './paths.js';
 
 const execAsync = promisify(exec);
 
-/** Ошибка, которую тул отдаёт моделью как значение, а не как исключение. */
+/** An error a tool returns to the model as a value rather than throwing. */
 export class ToolError extends Error {
   constructor(
     public code: string,
@@ -24,19 +25,19 @@ export class ToolError extends Error {
   }
 }
 
-/** PID запущенной игры, если она работает. */
+/** PID of the running game, if it is up. */
 export async function gamePid(): Promise<number | undefined> {
   try {
     const { stdout } = await execAsync('pgrep -f "SimpleRockets2.app/Contents/MacOS"');
     const pid = Number(stdout.trim().split('\n')[0]);
     return Number.isInteger(pid) ? pid : undefined;
   } catch {
-    // pgrep выходит с кодом 1, когда совпадений нет — это не ошибка.
+    // pgrep exits with code 1 when there are no matches — that is not an error.
     return undefined;
   }
 }
 
-/** Директории, в которые вообще разрешено писать. */
+/** The directories writing is permitted into at all. */
 async function writableRoots(): Promise<string[]> {
   const p = await gamePaths();
   return [
@@ -48,7 +49,7 @@ async function writableRoots(): Promise<string[]> {
   ].map((x) => resolve(x));
 }
 
-/** Путь должен лежать внутри разрешённого корня. */
+/** The path must lie inside a permitted root. */
 export async function assertWritablePath(target: string): Promise<void> {
   const abs = resolve(target);
   const roots = await writableRoots();
@@ -56,24 +57,25 @@ export async function assertWritablePath(target: string): Promise<void> {
   if (!ok)
     throw new ToolError(
       'path_not_allowed',
-      `Запись за пределы каталога игры запрещена: ${abs}`,
+      `Writing outside the game directory is not allowed: ${abs}`,
       { allowedRoots: roots }
     );
 }
 
 export interface WriteGuardOptions {
-  /** Явное согласие писать при запущенной игре. Скилл запрещает без спроса. */
+  /** Explicit consent to write while the game runs. The skill forbids it unasked. */
   force?: boolean;
 }
 
 /**
- * Файлы, которые игра переписывает сама. Правка их на живую либо потеряется,
- * либо затрёт состояние пользователя.
+ * Files the game rewrites itself. Editing them live either gets lost or
+ * clobbers the user's state.
  *
- * Каталоги конструкций и программ полёта сюда намеренно не входят: проверено
- * на практике, что игра не кэширует их список — записанный при запущенной игре
- * новый крафт сразу виден в редакторе и открывается. Блокировать такую запись
- * значило бы требовать перезапуска игры без всякой на то причины.
+ * The craft design and flight program directories are deliberately left out:
+ * it has been verified in practice that the game does not cache their listing —
+ * a craft written while the game is running shows up in the designer right away
+ * and opens fine. Blocking such a write would mean demanding a game restart for
+ * no reason at all.
  */
 const LIVE_STATE_PATTERNS = [/\/GameStates\//, /Settings\.xml$/, /\/Career\//];
 
@@ -88,24 +90,24 @@ export async function assertSafeToWrite(
   if (pid !== undefined && LIVE_STATE_PATTERNS.some((re) => re.test(target)))
     throw new ToolError(
       'game_running',
-      `Juno запущена (pid ${pid}), а ${target} игра переписывает сама — правка будет потеряна ` +
-        `или затрёт текущее состояние.`,
-      { pid, fix: 'Вызовите game_quit или попросите пользователя выйти из игры.' }
+      `Juno is running (pid ${pid}) and ${target} is rewritten by the game itself — the edit will be lost ` +
+        `or will clobber the current state.`,
+      { pid, fix: 'Call game_quit or ask the user to exit the game.' }
     );
 
-  // Свежая правка означает, что файл прямо сейчас кто-то пишет.
+  // A very recent edit means someone is writing the file right now.
   try {
     const st = await stat(target);
     const ageMs = Date.now() - st.mtimeMs;
     if (ageMs < 3000)
       throw new ToolError(
         'file_busy',
-        `${target} изменён ${Math.round(ageMs)} мс назад — возможно, идёт другая запись.`,
+        `${target} was modified ${Math.round(ageMs)} ms ago — another write may be in progress.`,
         { ageMs }
       );
   } catch (e) {
     if (e instanceof ToolError) throw e;
-    // Файла нет — создаём новый, это нормально.
+    // The file does not exist — we are creating a new one, which is fine.
   }
 }
 
@@ -124,8 +126,8 @@ export interface SnapshotManifest {
 }
 
 /**
- * Сохраняет копии файлов перед изменением. Внутри снапшота повторяется
- * относительный путь оригинала, поэтому восстановление — обычное копирование.
+ * Stores copies of files before modifying them. Inside a snapshot the original's
+ * relative path is reproduced, so restoring is a plain copy.
  */
 export async function snapshot(tool: string, targets: string[]): Promise<SnapshotManifest> {
   const p = await gamePaths();
@@ -141,7 +143,8 @@ export async function snapshot(tool: string, targets: string[]): Promise<Snapsho
       await cp(target, dest, { recursive: true });
       files.push({ path: target, created: false });
     } catch {
-      // Файла ещё нет: помечаем, чтобы откат его удалил, а не «восстановил».
+      // The file does not exist yet: mark it so a rollback deletes it rather
+      // than "restoring" it.
       files.push({ path: target, created: true });
     }
   }
@@ -175,7 +178,7 @@ async function pruneSnapshots(): Promise<void> {
       const st = await stat(join(p.backups, e));
       if (st.mtimeMs < cutoff) doomed.add(e);
     } catch {
-      /* уже исчез */
+      /* already gone */
     }
   }
   for (const e of doomed) await rm(join(p.backups, e), { recursive: true, force: true });
@@ -194,13 +197,13 @@ export async function listSnapshots(): Promise<SnapshotManifest[]> {
     try {
       out.push(JSON.parse(await readFile(join(p.backups, e, 'manifest.json'), 'utf8')));
     } catch {
-      /* каталог без манифеста игнорируем */
+      /* a directory without a manifest is ignored */
     }
   }
   return out;
 }
 
-/** Возвращает файлы из снапшота на место; созданные с нуля — удаляет. */
+/** Puts the files from a snapshot back; the ones created from scratch are deleted. */
 export async function restoreSnapshot(id: string): Promise<SnapshotManifest> {
   const p = await gamePaths();
   const dir = join(p.backups, id);
@@ -222,8 +225,8 @@ export async function restoreSnapshot(id: string): Promise<SnapshotManifest> {
 }
 
 /**
- * Атомарная запись: временный файл рядом с целевым, затем rename. Игра никогда
- * не увидит наполовину записанный XML, даже если процесс умрёт посередине.
+ * Atomic write: a temporary file next to the target, then a rename. The game
+ * will never see half-written XML, even if the process dies midway.
  */
 export async function writeAtomic(target: string, content: string): Promise<void> {
   await mkdir(dirname(target), { recursive: true });
@@ -232,7 +235,7 @@ export async function writeAtomic(target: string, content: string): Promise<void
   await rename(tmp, target);
 }
 
-/** Снапшот + запись — обычный путь для любого изменяющего тула. */
+/** Snapshot + write — the normal path for any mutating tool. */
 export async function guardedWrite(
   tool: string,
   target: string,

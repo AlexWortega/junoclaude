@@ -7,12 +7,12 @@ using ModApi.Scenes;
 
 namespace JunoBridge.Core
 {
-    /// Единая точка доступа к объектам игры. Только главный поток.
+    /// Single access point to the game objects. Main thread only.
     internal static class GameContext
     {
-        /// ModApi.Game внутренний: он продублирован в namespace Common именно для модов
-        /// («Modders and other code must use 'Common' namespace» — док к типу).
-        /// Единственная точка входа к IGame во всём мосте.
+        /// ModApi.Game is internal: it is mirrored in the Common namespace specifically for
+        /// mods ("Modders and other code must use 'Common' namespace" — the type's doc).
+        /// The single entry point to IGame in the whole bridge.
         public static IGame Game
         {
             get { return ModApi.Common.Game.Instance; }
@@ -99,7 +99,7 @@ namespace JunoBridge.Core
             }
         }
 
-        /// Разрешает деталь по её PartData.Id в активном корабле (полёт или конструктор).
+        /// Resolves a part by its PartData.Id in the active craft (flight or designer).
         public static PartData FindPart(int partId)
         {
             var craft = PlayerCraftScript;

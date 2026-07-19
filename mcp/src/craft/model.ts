@@ -1,8 +1,8 @@
-// Модель крафта поверх XML-дерева.
+// A craft model on top of the XML tree.
 //
-// Дерево намеренно остаётся источником истины: крафты доходят до 2 МБ и несут
-// десятки модификаторов, которые мы не моделируем и не имеем права потерять
-// при перезаписи. Модель — это индекс поверх дерева, а не его замена.
+// The tree deliberately remains the source of truth: crafts reach 2 MB and
+// carry dozens of modifiers we do not model and have no right to lose when
+// rewriting. The model is an index over the tree, not a replacement for it.
 
 import {
   type XmlNode,
@@ -23,7 +23,7 @@ export interface PartRef {
   activationGroup?: number;
   isRoot: boolean;
   commandPodId?: number;
-  /** Имена модификаторов: FuelTank, RocketEngine, Wing, FlightProgram и т.п. */
+  /** Modifier names: FuelTank, RocketEngine, Wing, FlightProgram and so on. */
   modifiers: string[];
   node: XmlNode;
 }
@@ -47,7 +47,7 @@ export class Craft {
   static parse(text: string): Craft {
     const { root, format } = parseXmlDocument(text, 'Craft');
     const assembly = childNamed(root, 'Assembly');
-    if (assembly === undefined) throw new Error('В крафте нет элемента <Assembly>');
+    if (assembly === undefined) throw new Error('The craft has no <Assembly> element');
 
     const partsNode = childNamed(assembly, 'Parts');
     const parts: PartRef[] = [];
@@ -60,7 +60,7 @@ export class Craft {
         name: node.attrs['name'],
         position: vec(node.attrs['position']),
         rotation: vec(node.attrs['rotation']),
-        // Отсутствие атрибута означает нулевую ступень — так игра экономит место.
+        // A missing attribute means stage zero — that is how the game saves space.
         activationStage: Number(node.attrs['activationStage'] ?? '0') || 0,
         activationGroup: node.attrs['activationGroup']
           ? Number(node.attrs['activationGroup'])
@@ -109,7 +109,7 @@ export class Craft {
     return buildXml(this.root, this.format);
   }
 
-  /** Соседи детали по графу соединений — обход дерева идёт по ним. */
+  /** A part's neighbours in the connection graph — the tree walk follows them. */
   neighbours(id: number): number[] {
     const out: number[] = [];
     for (const c of this.connections) {
@@ -119,7 +119,7 @@ export class Craft {
     return out;
   }
 
-  /** Детали, достижимые от корня. Всё остальное игра при загрузке отбросит. */
+  /** Parts reachable from the root. The game drops everything else on load. */
   reachableFromRoot(): Set<number> {
     const seen = new Set<number>();
     const start = this.rootPart ?? this.parts[0];
@@ -155,7 +155,7 @@ function vec(raw: string | undefined): number[] {
   return parts.every(Number.isFinite) ? parts : [0, 0, 0];
 }
 
-/** Значение атрибута модификатора детали, если такой модификатор есть. */
+/** The value of a part modifier's attribute, if that modifier is present. */
 export function modifierAttr(
   part: PartRef,
   modifier: string,

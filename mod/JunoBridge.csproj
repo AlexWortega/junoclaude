@@ -1,11 +1,11 @@
 <!--
-  ВНИМАНИЕ: этот проект существует только ради IntelliSense и навигации в IDE.
-  Поставляемую сборку мода собирает Unity (Mod Builder), а не dotnet build.
-  DLL, собранная здесь, попадёт в GetPrecompiledAssemblies и НЕ является
-  поддерживаемым способом сборки мода.
+  WARNING: this project exists only for IntelliSense and IDE navigation.
+  The shipped mod assembly is built by Unity (Mod Builder), not by dotnet build.
+  A DLL built here would end up in GetPrecompiledAssemblies and is NOT a
+  supported way to build the mod.
 
-  Перед открытием: скопируйте (или симлинкуйте) Assets/ModTools из Unity-проекта
-  рядом с этим файлом, чтобы HintPath разрешались.
+  Before opening: copy (or symlink) Assets/ModTools from the Unity project next
+  to this file so that the HintPaths resolve.
 -->
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Игра и ModApi: рядом с DLL лежат .xml, поэтому в IDE работают подсказки из документации. -->
+    <!-- Game and ModApi: the .xml files sit next to the DLLs, so doc tooltips work in the IDE. -->
     <Reference Include="ModApi">
       <HintPath>$(ModToolsPath)/ModApi.dll</HintPath>
     </Reference>

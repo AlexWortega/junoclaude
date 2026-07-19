@@ -1,13 +1,13 @@
-// XML-слой поверх fast-xml-parser.
+// The XML layer on top of fast-xml-parser.
 //
-// Работаем в режиме preserveOrder: игра различает порядок элементов
-// (инструкции Vizzy — это последовательность, а не множество), и любая
-// нормализация порядка молча сломала бы программу.
+// We work in preserveOrder mode: the game distinguishes element order (Vizzy
+// instructions are a sequence, not a set), and any normalisation of that order
+// would silently break the program.
 //
-// Сериализатор воспроизводит форматирование .NET XmlWriter, которым пишет
-// игра: два пробела отступа, самозакрывающийся тег с пробелом перед `/>`.
-// Это нужно, чтобы round-trip не порождал шумных диффов при сравнении
-// нашего вывода с тем, что игра сохранила сама.
+// The serialiser reproduces the .NET XmlWriter formatting the game writes with:
+// two-space indent, a self-closing tag with a space before `/>`. This is needed
+// so a round-trip does not produce noisy diffs when comparing our output with
+// what the game saved itself.
 
 import { XMLParser } from 'fast-xml-parser';
 
@@ -15,13 +15,13 @@ export interface XmlNode {
   tag: string;
   attrs: Record<string, string>;
   children: XmlNode[];
-  /** Текстовое содержимое — в форматах игры встречается редко. */
+  /** Text content — rare in the game's formats. */
   text?: string;
-  /** Содержимое XML-комментария; тег тогда равен COMMENT_TAG. */
+  /** The contents of an XML comment; the tag is then COMMENT_TAG. */
   comment?: string;
 }
 
-/** Псевдотег для узлов-комментариев. */
+/** Pseudo-tag for comment nodes. */
 export const COMMENT_TAG = '#comment';
 
 const ATTR_KEY = ':@';
@@ -30,24 +30,25 @@ const TEXT_KEY = '#text';
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '',
-  // attributesGroupName намеренно не задаём: вместе с пустым attributeNamePrefix
-  // fast-xml-parser заворачивает атрибуты в ':@' дважды. Дефолт даёт ':@'
-  // с атрибутами напрямую.
+  // attributesGroupName is deliberately left unset: together with an empty
+  // attributeNamePrefix, fast-xml-parser wraps attributes in ':@' twice. The
+  // default gives ':@' with the attributes directly.
   preserveOrder: true,
   parseAttributeValue: false,
   parseTagValue: false,
-  // Не обрезаем: в Vizzy пробел на конце значим. `text="T - "` — часть строки,
-  // которую программа выводит на экран, и обрезка её молча испортит.
+  // Do not trim: in Vizzy a trailing space is significant. `text="T - "` is
+  // part of the string the program prints on screen, and trimming silently
+  // corrupts it.
   trimValues: false,
-  // Пустой тег должен остаться узлом, а не превратиться в пустую строку,
-  // иначе `<Variables />` потеряется при разборе.
+  // An empty tag must stay a node rather than turn into an empty string,
+  // otherwise `<Variables />` is lost on parse.
   alwaysCreateTextNode: false,
-  // Стоковые сценарии-туториалы содержат пояснительные комментарии; терять их
-  // при правке файла было бы невежливо по отношению к их авторам.
+  // The stock tutorial scenarios contain explanatory comments; losing them
+  // when editing a file would be discourteous to their authors.
   commentPropName: COMMENT_TAG,
 });
 
-/** Преобразует форму preserveOrder (массив одноключевых объектов) в XmlNode[]. */
+/** Converts the preserveOrder form (an array of single-key objects) into XmlNode[]. */
 function convert(raw: unknown[]): XmlNode[] {
   const out: XmlNode[] = [];
   for (const item of raw) {
@@ -55,7 +56,7 @@ function convert(raw: unknown[]): XmlNode[] {
     const rec = item as Record<string, unknown>;
     const tag = Object.keys(rec).find((k) => k !== ATTR_KEY);
     if (tag === undefined) continue;
-    if (tag === TEXT_KEY) continue; // текст подхватывается родителем
+    if (tag === TEXT_KEY) continue; // text is picked up by the parent
 
     const attrsRaw = (rec[ATTR_KEY] ?? {}) as Record<string, unknown>;
     const attrs: Record<string, string> = {};
@@ -95,18 +96,18 @@ function convert(raw: unknown[]): XmlNode[] {
 }
 
 /**
- * Как именно отформатирован файл. Игра пишет CRLF + BOM + два пробела, но
- * шаблонные файлы в поставке отформатированы иначе (например `__new__.xml`
- * использует три пробела, а `MFD Stats.xml` идёт без BOM). Запоминаем профиль
- * при разборе и воспроизводим при записи, чтобы правка одного атрибута не
- * приводила к переформатированию всего файла.
+ * How exactly a file is formatted. The game writes CRLF + BOM + two spaces, but
+ * the template files it ships are formatted differently (for example
+ * `__new__.xml` uses three spaces, and `MFD Stats.xml` comes without a BOM). We
+ * record the profile on parse and replay it on write, so that editing a single
+ * attribute does not reformat the whole file.
  */
 export interface XmlFormat {
   bom: boolean;
   eol: string;
   indent: string;
   declaration: boolean;
-  /** Файл заканчивается переводом строки. */
+  /** The file ends with a newline. */
   trailingNewline: boolean;
 }
 
@@ -115,7 +116,7 @@ export function detectFormat(text: string): XmlFormat {
   const body = bom ? text.slice(1) : text;
   const eol = body.includes('\r\n') ? '\r\n' : '\n';
   const lines = body.split(eol);
-  // Первая строка с ведущими пробелами задаёт шаг отступа.
+  // The first line with leading whitespace defines the indent step.
   const indented = lines.find((l) => /^\s+\S/.test(l));
   const indent = indented ? (/^\s+/.exec(indented)?.[0] ?? '  ') : '  ';
   return {
@@ -127,23 +128,23 @@ export function detectFormat(text: string): XmlFormat {
   };
 }
 
-/** Разбирает документ, отбрасывая BOM и XML-декларацию (их восстановит сериализатор). */
+/** Parses a document, dropping the BOM and XML declaration (the serialiser restores them). */
 export function parseXml(text: string): XmlNode[] {
   const clean = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   return convert(parser.parse(clean) as unknown[]).filter((n) => n.tag !== '?xml');
 }
 
-/** Разбирает документ и возвращает единственный корневой элемент. */
+/** Parses a document and returns its single root element. */
 export function parseXmlRoot(text: string, expectedTag?: string): XmlNode {
   const nodes = parseXml(text);
   const root = nodes[0];
-  if (root === undefined) throw new Error('XML не содержит корневого элемента');
+  if (root === undefined) throw new Error('The XML has no root element');
   if (expectedTag !== undefined && root.tag !== expectedTag)
-    throw new Error(`Ожидался корневой элемент <${expectedTag}>, получен <${root.tag}>`);
+    throw new Error(`Expected root element <${expectedTag}>, got <${root.tag}>`);
   return root;
 }
 
-/** Разбор вместе с профилем форматирования — для правок, сохраняющих файл как был. */
+/** Parse together with the format profile — for edits that keep the file as it was. */
 export function parseXmlDocument(
   text: string,
   expectedTag?: string
@@ -159,8 +160,9 @@ const ESCAPES: Record<string, string> = {
 };
 
 /**
- * Экранирует значение атрибута так же, как .NET XmlWriter: одинарная кавычка
- * не трогается (атрибуты пишутся в двойных), перевод строки — числовой ссылкой.
+ * Escapes an attribute value the way .NET XmlWriter does: a single quote is
+ * left alone (attributes are written in double quotes), a newline becomes a
+ * numeric reference.
  */
 function escapeAttr(value: string): string {
   return value
@@ -200,7 +202,7 @@ function writeNode(node: XmlNode, indent: string, step: string, out: string[]): 
   out.push(`${indent}</${node.tag}>`);
 }
 
-/** Профиль по умолчанию — так пишет сама игра. */
+/** The default profile — this is how the game itself writes. */
 export const GAME_FORMAT: XmlFormat = {
   bom: true,
   eol: '\r\n',
@@ -210,9 +212,9 @@ export const GAME_FORMAT: XmlFormat = {
 };
 
 /**
- * Сериализует дерево. При передаче профиля, полученного из `parseXmlDocument`,
- * разбор и обратная сборка стоковых файлов дают побайтово исходный текст —
- * это и есть проверка, что мы ничего не потеряли.
+ * Serialises the tree. Given a profile obtained from `parseXmlDocument`,
+ * parsing and rebuilding a stock file reproduces the original text byte for
+ * byte — which is exactly the check that we lost nothing.
  */
 export function buildXml(root: XmlNode, format: Partial<XmlFormat> = {}): string {
   const f = { ...GAME_FORMAT, ...format };
@@ -222,7 +224,7 @@ export function buildXml(root: XmlNode, format: Partial<XmlFormat> = {}): string
   return (f.bom ? '﻿' : '') + out.join(f.eol) + (f.trailingNewline ? f.eol : '');
 }
 
-// --- Мелкие помощники обхода ---
+// --- Small traversal helpers ---
 
 export const childrenNamed = (node: XmlNode, tag: string): XmlNode[] =>
   node.children.filter((c) => c.tag === tag);
@@ -230,7 +232,7 @@ export const childrenNamed = (node: XmlNode, tag: string): XmlNode[] =>
 export const childNamed = (node: XmlNode, tag: string): XmlNode | undefined =>
   node.children.find((c) => c.tag === tag);
 
-/** Число из атрибута; undefined, если атрибута нет или он не число. */
+/** A number from an attribute; undefined if the attribute is absent or not a number. */
 export function attrNum(node: XmlNode, name: string): number | undefined {
   const raw = node.attrs[name];
   if (raw === undefined) return undefined;
@@ -238,7 +240,7 @@ export function attrNum(node: XmlNode, name: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-/** Вектор вида "1,2,3" → [1,2,3]. */
+/** A vector of the form "1,2,3" → [1,2,3]. */
 export function attrVec(node: XmlNode, name: string): number[] | undefined {
   const raw = node.attrs[name];
   if (raw === undefined) return undefined;

@@ -5,9 +5,9 @@ using JunoBridge.Net;
 
 namespace JunoBridge.Handlers
 {
-    /// Работа с сохранёнными чертежами. craftId здесь — идентификатор дизайна
-    /// (он же основа имени файла в UserData/CraftDesigns), именно его ждёт
-    /// FlightSceneLoadParameters.NewCraft.
+    /// Working with saved blueprints. craftId here is the design identifier (also the base
+    /// of the file name under UserData/CraftDesigns), and it is exactly what
+    /// FlightSceneLoadParameters.NewCraft expects.
     internal static class CraftFileHandler
     {
         public static BridgeResponse List()

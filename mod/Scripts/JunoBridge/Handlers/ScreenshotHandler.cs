@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace JunoBridge.Handlers
 {
-    /// Выполняется исключительно из очереди конца кадра: на Metal захват до
-    /// завершения отрисовки даёт чёрный или рваный кадр.
+    /// Runs exclusively from the end-of-frame queue: on Metal, capturing before rendering
+    /// finishes yields a black or torn frame.
     internal static class ScreenshotHandler
     {
         private const int DefaultWidth = 1280;

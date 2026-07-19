@@ -15,7 +15,7 @@ namespace JunoBridge.Net
         public readonly Dictionary<string, string> Headers =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        /// Сегменты пути без пустых элементов: "/vizzy/12" -> ["vizzy", "12"].
+        /// Path segments with empty entries removed: "/vizzy/12" -> ["vizzy", "12"].
         public string[] Segments = new string[0];
 
         public string Header(string name)

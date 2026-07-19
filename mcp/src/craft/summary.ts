@@ -1,8 +1,8 @@
-// Человекочитаемые сводки крафта.
+// Human-readable craft summaries.
 //
-// Крафты доходят до 2 МБ — отдать их модели целиком значит сжечь контекст на
-// первом же вызове. Сводка и дерево рассчитаны так, чтобы самый большой
-// стоковый крафт уложился в несколько килобайт.
+// Crafts reach 2 MB — handing one to the model whole burns the context on the
+// very first call. The summary and the tree are sized so that the largest stock
+// craft fits into a few kilobytes.
 
 import { type Craft, type PartRef, modifierAttr } from './model.js';
 import { partType } from '../catalog.js';
@@ -10,13 +10,15 @@ import { partType } from '../catalog.js';
 const fmt = (n: number, digits = 1): string =>
   Number.isFinite(n) ? n.toFixed(digits).replace(/\.0+$/, '') : '?';
 
-/** Двигатели описываем типом сопла: игра различает их только им. */
+const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/** Engines are described by nozzle type: that is all the game distinguishes them by. */
 function engineLabel(p: PartRef): string {
   const nozzle = modifierAttr(p, 'RocketEngine', 'nozzleTypeId');
-  if (nozzle !== undefined) return `ракетный (${nozzle})`;
-  if (p.modifiers.includes('JetEngine')) return 'реактивный';
-  if (p.partType === 'IonEngine1') return 'ионный';
-  return 'двигатель';
+  if (nozzle !== undefined) return `rocket (${nozzle})`;
+  if (p.modifiers.includes('JetEngine')) return 'jet';
+  if (p.partType === 'IonEngine1') return 'ion';
+  return 'engine';
 }
 
 export interface CraftSummary {
@@ -50,7 +52,7 @@ export async function summarize(craft: Craft, sizeBytes: number): Promise<CraftS
   let totalCapacity = 0;
   for (const t of tanks) {
     const cap = Number(modifierAttr(t, 'FuelTank', 'capacity') ?? '0');
-    // Пустой fuelType означает обычное ракетное топливо.
+    // An empty fuelType means ordinary rocket fuel.
     const kind = modifierAttr(t, 'FuelTank', 'fuelType') ?? 'Rocket';
     if (Number.isFinite(cap)) {
       totalCapacity += cap;
@@ -66,7 +68,7 @@ export async function summarize(craft: Craft, sizeBytes: number): Promise<CraftS
     const instructions = program.children.find((c) => c.tag === 'Instructions');
     flightPrograms.push({
       partId: p.id,
-      name: program.attrs['name'] ?? '(без имени)',
+      name: program.attrs['name'] ?? '(unnamed)',
       instructionCount: countInstructions(instructions),
     });
   }
@@ -82,19 +84,19 @@ export async function summarize(craft: Craft, sizeBytes: number): Promise<CraftS
   const warnings: string[] = [];
   if (orphans.length > 0)
     warnings.push(
-      `${orphans.length} деталей не связаны с корневой — игра отбросит их при загрузке: ${orphans
+      `${plural(orphans.length, 'part')} not connected to the root — the game will drop them on load: ${orphans
         .slice(0, 10)
         .join(', ')}`
     );
-  if (craft.rootPart === undefined) warnings.push('Ни одна деталь не помечена rootPart="true"');
-  if (engines.length === 0) warnings.push('В крафте нет двигателей');
+  if (craft.rootPart === undefined) warnings.push('No part is marked rootPart="true"');
+  if (engines.length === 0) warnings.push('The craft has no engines');
 
   const unknown: string[] = [];
   for (const id of new Set(craft.parts.map((p) => p.partType)))
     if ((await partType(id)) === undefined) unknown.push(id);
   if (unknown.length > 0)
     warnings.push(
-      `Типы деталей отсутствуют в каталоге (возможно, из мода): ${unknown.join(', ')}`
+      `Part types missing from the catalog (possibly from a mod): ${unknown.join(', ')}`
     );
 
   return {
@@ -135,28 +137,28 @@ function countInstructions(node: { children: Array<{ tag: string; children: unkn
   return n;
 }
 
-/** Текстовая сводка — то, что видит модель. */
+/** The text summary — this is what the model sees. */
 export function renderSummary(s: CraftSummary): string {
   const lines: string[] = [];
-  lines.push(`Крафт «${s.name}» — ${s.partCount} деталей, ${(s.sizeBytes / 1024).toFixed(0)} КБ, xmlVersion=${s.xmlVersion}`);
-  if (s.rootPart !== undefined) lines.push(`Корневая деталь: ${s.rootPart}`);
+  lines.push(`Craft "${s.name}" — ${plural(s.partCount, 'part')}, ${(s.sizeBytes / 1024).toFixed(0)} KB, xmlVersion=${s.xmlVersion}`);
+  if (s.rootPart !== undefined) lines.push(`Root part: ${s.rootPart}`);
 
   if (s.stages.length > 0) {
-    lines.push('', 'Ступени:');
+    lines.push('', 'Stages:');
     for (const st of s.stages) {
-      const bits = [`${st.parts} дет.`];
-      if (st.engines > 0) bits.push(`${st.engines} двиг.`);
-      if (st.decouplers > 0) bits.push(`${st.decouplers} отделитель`);
+      const bits = [plural(st.parts, 'part')];
+      if (st.engines > 0) bits.push(`${st.engines} eng.`);
+      if (st.decouplers > 0) bits.push(plural(st.decouplers, 'decoupler'));
       lines.push(`  ${st.stage}: ${bits.join(', ')}`);
     }
   }
 
   if (s.engines.length > 0) {
-    lines.push('', `Двигатели (${s.engines.length}):`);
-    // Группируем: у крупных крафтов десятки одинаковых двигателей.
+    lines.push('', `Engines (${s.engines.length}):`);
+    // Group them: large crafts carry dozens of identical engines.
     const grouped = new Map<string, number>();
     for (const e of s.engines) {
-      const key = `${e.type}, ступень ${e.stage}`;
+      const key = `${e.type}, stage ${e.stage}`;
       grouped.set(key, (grouped.get(key) ?? 0) + 1);
     }
     for (const [key, n] of grouped) lines.push(`  ${n}× ${key}`);
@@ -166,37 +168,37 @@ export function renderSummary(s: CraftSummary): string {
     const types = Object.entries(s.fuel.byType)
       .map(([k, v]) => `${k}: ${fmt(v, 0)}`)
       .join(', ');
-    lines.push('', `Топливо: ${s.fuel.tanks} баков, всего ${fmt(s.fuel.totalCapacity, 0)} (${types})`);
+    lines.push('', `Fuel: ${plural(s.fuel.tanks, 'tank')}, ${fmt(s.fuel.totalCapacity, 0)} total (${types})`);
   }
 
   const bits: string[] = [];
-  if (s.wings > 0) bits.push(`крыльев ${s.wings}`);
-  if (s.controlSurfaces > 0) bits.push(`рулевых поверхностей ${s.controlSurfaces}`);
-  if (s.landingGear > 0) bits.push(`шасси ${s.landingGear}`);
-  if (bits.length > 0) lines.push(`Аэродинамика: ${bits.join(', ')}`);
+  if (s.wings > 0) bits.push(`wings ${s.wings}`);
+  if (s.controlSurfaces > 0) bits.push(`control surfaces ${s.controlSurfaces}`);
+  if (s.landingGear > 0) bits.push(`landing gear ${s.landingGear}`);
+  if (bits.length > 0) lines.push(`Aerodynamics: ${bits.join(', ')}`);
 
   if (s.commandPods.length > 0)
     lines.push(
-      `Командные модули: ${s.commandPods.map((c) => `${c.id} (${c.partType})`).join(', ')}`
+      `Command pods: ${s.commandPods.map((c) => `${c.id} (${c.partType})`).join(', ')}`
     );
 
   if (s.flightPrograms.length > 0) {
-    lines.push('', 'Программы полёта:');
+    lines.push('', 'Flight programs:');
     for (const fp of s.flightPrograms)
-      lines.push(`  деталь ${fp.partId}: «${fp.name}», ${fp.instructionCount} блоков`);
+      lines.push(`  part ${fp.partId}: "${fp.name}", ${fp.instructionCount} blocks`);
   }
 
   if (s.warnings.length > 0) {
-    lines.push('', 'Предупреждения:');
+    lines.push('', 'Warnings:');
     for (const w of s.warnings) lines.push(`  ! ${w}`);
   }
   return lines.join('\n');
 }
 
-/** Дерево деталей от корня — обход по графу соединений. */
+/** The part tree from the root — a walk over the connection graph. */
 export function renderTree(craft: Craft, maxDepth = 99, maxLines = 400): string {
   const start = craft.rootPart ?? craft.parts[0];
-  if (start === undefined) return '(крафт без деталей)';
+  if (start === undefined) return '(craft with no parts)';
 
   const lines: string[] = [];
   const seen = new Set<number>([start.id]);
@@ -204,8 +206,8 @@ export function renderTree(craft: Craft, maxDepth = 99, maxLines = 400): string 
 
   const label = (p: PartRef): string => {
     const bits = [`${p.id}`, p.partType];
-    if (p.name !== undefined && p.name !== '') bits.push(`«${p.name}»`);
-    if (p.activationStage > 0) bits.push(`ст.${p.activationStage}`);
+    if (p.name !== undefined && p.name !== '') bits.push(`"${p.name}"`);
+    if (p.activationStage > 0) bits.push(`st.${p.activationStage}`);
     const interesting = p.modifiers.filter(
       (m) => !['Drag', 'Config', 'PartConnections'].includes(m)
     );
@@ -232,10 +234,10 @@ export function renderTree(craft: Craft, maxDepth = 99, maxLines = 400): string 
 
   const orphans = craft.parts.filter((p) => !seen.has(p.id));
   if (orphans.length > 0) {
-    lines.push('', `Не связаны с корнем (${orphans.length}):`);
+    lines.push('', `Not connected to the root (${orphans.length}):`);
     for (const p of orphans.slice(0, 20)) lines.push(`  ${label(p)}`);
-    if (orphans.length > 20) lines.push(`  … ещё ${orphans.length - 20}`);
+    if (orphans.length > 20) lines.push(`  … ${orphans.length - 20} more`);
   }
-  if (truncated) lines.push('', `… вывод обрезан на ${maxLines} строках`);
+  if (truncated) lines.push('', `… output truncated at ${maxLines} lines`);
   return lines.join('\n');
 }

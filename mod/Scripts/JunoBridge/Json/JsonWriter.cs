@@ -4,8 +4,8 @@ using System.Text;
 
 namespace JunoBridge.Json
 {
-    /// Newtonsoft.Json нет в наборе ссылок ModTools, поэтому сериализатор свой.
-    /// Пишем только вперёд, без промежуточного дерева объектов.
+    /// Newtonsoft.Json is not in the ModTools reference set, hence our own serializer.
+    /// Forward-only writing, with no intermediate object tree.
     internal sealed class JsonWriter
     {
         private readonly StringBuilder _sb;
@@ -84,8 +84,8 @@ namespace JunoBridge.Json
             return this;
         }
 
-        /// NaN и Infinity не являются валидным JSON и роняют парсер на стороне MCP,
-        /// поэтому вырождаются в null.
+        /// NaN and Infinity are not valid JSON and break the parser on the MCP side,
+        /// so they degrade to null.
         public JsonWriter Num(string key, double value)
         {
             if (double.IsNaN(value) || double.IsInfinity(value)) return Null(key);
@@ -165,7 +165,7 @@ namespace JunoBridge.Json
             return this;
         }
 
-        /// Вставка уже сериализованного фрагмента. Вызывающая сторона отвечает за валидность.
+        /// Inserts an already serialized fragment. The caller is responsible for its validity.
         public JsonWriter Raw(string key, string json)
         {
             if (string.IsNullOrEmpty(json)) return Null(key);
@@ -193,7 +193,7 @@ namespace JunoBridge.Json
             return EndArray();
         }
 
-        /// Порядок [x,y,z,w] — как у полей Quaterniond, а не [w,x,y,z].
+        /// Order [x,y,z,w] — matching Quaterniond's fields, not [w,x,y,z].
         public JsonWriter Quat(string key, UnityEngine.Quaterniond q)
         {
             BeginArray(key);
@@ -243,7 +243,7 @@ namespace JunoBridge.Json
                     case '\r': _sb.Append("\\r"); break;
                     case '\t': _sb.Append("\\t"); break;
                     default:
-                        // U+2028/U+2029 ломают JSON, встроенный в JS-контекст на стороне MCP.
+                        // U+2028/U+2029 break JSON embedded in a JS context on the MCP side.
                         if (c < ' ' || c == '\u2028' || c == '\u2029')
                             _sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
                         else

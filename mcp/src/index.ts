@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// MCP-сервер JunoClaude: инструменты для чтения, генерации и запуска
-// содержимого Juno: New Origins.
+// JunoClaude MCP server: tools for reading, generating and running
+// Juno: New Origins content.
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -21,23 +21,23 @@ import { decompileProgram } from './vizzy/decompile.js';
 
 const server = new McpServer({ name: 'juno', version: '0.1.0' });
 
-/** Ответ тула — всегда текст; ошибки возвращаются значением, а не исключением. */
+/** A tool reply is always text; errors are returned as values, not thrown. */
 const text = (s: string) => ({ content: [{ type: 'text' as const, text: s }] });
 
 const fail = (e: unknown) => {
   if (e instanceof ToolError)
     return text(
-      `Ошибка (${e.code}): ${e.message}` +
+      `Error (${e.code}): ${e.message}` +
         (Object.keys(e.details).length > 0
           ? `\n${JSON.stringify(e.details, null, 2)}`
           : '')
     );
   if (e instanceof CompileError)
-    return text(`Ошибка компиляции в ${e.path}: ${e.message}` + (e.hint ? `\n${e.hint}` : ''));
-  return text(`Ошибка: ${(e as Error).message}`);
+    return text(`Compile error at ${e.path}: ${e.message}` + (e.hint ? `\n${e.hint}` : ''));
+  return text(`Error: ${(e as Error).message}`);
 };
 
-/** Оборачивает обработчик, чтобы исключение не роняло соединение. */
+/** Wraps a handler so a thrown error does not take down the connection. */
 const guard =
   <A>(fn: (args: A) => Promise<ReturnType<typeof text>>) =>
   async (args: A) => {
@@ -49,51 +49,51 @@ const guard =
   };
 
 const craftPath = async (name: string): Promise<string> =>
-  join((await gamePaths()).craftDesigns, `${assertSafeName(name, 'Имя крафта')}.xml`);
+  join((await gamePaths()).craftDesigns, `${assertSafeName(name, 'Craft name')}.xml`);
 
-// --- Состояние игры ---
+// --- Game state ---
 
 server.registerTool(
   'game_state',
   {
-    title: 'Состояние игры',
+    title: 'Game state',
     description:
-      'Проверяет установку Juno: New Origins, запущена ли игра, активное сохранение и ключевые настройки. ' +
-      'Вызывайте перед любой записью: писать при запущенной игре нельзя.',
+      'Checks the Juno: New Origins installation, whether the game is running, the active save and key settings. ' +
+      'Call this before any write: writing while the game is running is not allowed.',
     inputSchema: {},
   },
   guard(async () => {
     const s = await gameStatus();
     const lines = [
-      s.installed ? `Игра установлена, версия ${s.gameVersion} (Unity ${s.unityVersion})` : 'Игра НЕ найдена',
-      s.running ? `Запущена (pid ${s.pid}) — запись запрещена` : 'Не запущена — запись разрешена',
+      s.installed ? `Game installed, version ${s.gameVersion} (Unity ${s.unityVersion})` : 'Game NOT found',
+      s.running ? `Running (pid ${s.pid}) — writing is blocked` : 'Not running — writing is allowed',
     ];
-    if (s.craftCount !== undefined) lines.push(`Крафтов в сохранении: ${s.craftCount}`);
-    if (s.activeGameStateId !== undefined) lines.push(`Активное сохранение: ${s.activeGameStateId}`);
+    if (s.craftCount !== undefined) lines.push(`Crafts in the save: ${s.craftCount}`);
+    if (s.activeGameStateId !== undefined) lines.push(`Active save: ${s.activeGameStateId}`);
     if (s.optimizeCraftXML !== undefined)
       lines.push(
-        `optimizeCraftXML: ${s.optimizeCraftXML} ${s.optimizeCraftXML ? '(игра минифицирует крафты; для сверки диффов выключите)' : ''}`
+        `optimizeCraftXML: ${s.optimizeCraftXML} ${s.optimizeCraftXML ? '(the game minifies crafts; turn this off to compare diffs)' : ''}`
       );
-    if (s.modSupportEnabled !== undefined) lines.push(`Поддержка модов: ${s.modSupportEnabled}`);
+    if (s.modSupportEnabled !== undefined) lines.push(`Mod support: ${s.modSupportEnabled}`);
     lines.push(
       s.installedMods.length > 0
-        ? `Установленные моды: ${s.installedMods.join(', ')}`
-        : 'Моды не установлены — мост недоступен, работаем через файлы'
+        ? `Installed mods: ${s.installedMods.join(', ')}`
+        : 'No mods installed — the bridge is unavailable, working through files'
     );
-    if (s.logLastWrite !== undefined) lines.push(`Player.log обновлён: ${s.logLastWrite}`);
-    if (s.warnings.length > 0) lines.push('', 'Предупреждения:', ...s.warnings.map((w) => `  ! ${w}`));
+    if (s.logLastWrite !== undefined) lines.push(`Player.log last written: ${s.logLastWrite}`);
+    if (s.warnings.length > 0) lines.push('', 'Warnings:', ...s.warnings.map((w) => `  ! ${w}`));
     return text(lines.join('\n'));
   })
 );
 
-// --- Крафты ---
+// --- Crafts ---
 
 server.registerTool(
   'craft_list',
   {
-    title: 'Список крафтов',
-    description: 'Перечисляет сохранённые конструкции с размером и числом деталей.',
-    inputSchema: { pattern: z.string().optional().describe('Подстрока для фильтра по имени') },
+    title: 'List crafts',
+    description: 'Lists saved designs with their size and part count.',
+    inputSchema: { pattern: z.string().optional().describe('Substring to filter names by') },
   },
   guard(async ({ pattern }: { pattern?: string }) => {
     const p = await gamePaths();
@@ -106,14 +106,14 @@ server.registerTool(
       if (pattern !== undefined && !name.toLowerCase().includes(pattern.toLowerCase())) continue;
       const full = join(p.craftDesigns, f);
       const st = await stat(full);
-      // Деталей считаем дешёвым способом: полный разбор 2-мегабайтного файла
-      // ради одной цифры не оправдан.
+      // Count parts the cheap way: fully parsing a 2 MB file for a single
+      // number is not worth it.
       const partCount = (await readFile(full, 'utf8')).split('<Part ').length - 1;
       rows.push(
-        `  ${name.padEnd(40)} ${String(partCount).padStart(4)} дет.  ${(st.size / 1024).toFixed(0).padStart(5)} КБ`
+        `  ${name.padEnd(40)} ${String(partCount).padStart(4)} parts  ${(st.size / 1024).toFixed(0).padStart(5)} KB`
       );
     }
-    return text(rows.length > 0 ? `Крафты (${rows.length}):\n${rows.join('\n')}` : 'Крафтов не найдено');
+    return text(rows.length > 0 ? `Crafts (${rows.length}):\n${rows.join('\n')}` : 'No crafts found');
   })
 );
 
@@ -123,16 +123,16 @@ const MAX_XML_BYTES = 200_000;
 server.registerTool(
   'craft_read',
   {
-    title: 'Прочитать крафт',
+    title: 'Read a craft',
     description:
-      'Читает конструкцию. По умолчанию отдаёт сводку: ступени, двигатели, топливо, программы полёта. ' +
-      'Режим tree показывает дерево деталей, xml — сырой XML только для указанных деталей ' +
-      '(крафты доходят до 2 МБ, поэтому целиком XML не отдаётся никогда).',
+      'Reads a design. By default returns a summary: stages, engines, fuel, flight programs. ' +
+      'Mode tree shows the part tree, xml returns raw XML for the listed parts only ' +
+      '(crafts reach 2 MB, so the full XML is never returned).',
     inputSchema: {
-      name: z.string().describe('Имя крафта без .xml'),
+      name: z.string().describe('Craft name without .xml'),
       mode: z.enum(['summary', 'tree', 'xml']).default('summary'),
-      part_ids: z.array(z.number()).optional().describe('Обязателен для mode=xml'),
-      max_depth: z.number().optional().describe('Глубина дерева для mode=tree'),
+      part_ids: z.array(z.number()).optional().describe('Required for mode=xml'),
+      max_depth: z.number().optional().describe('Tree depth for mode=tree'),
     },
   },
   guard(
@@ -157,13 +157,13 @@ server.registerTool(
       if (part_ids === undefined || part_ids.length === 0)
         throw new ToolError(
           'part_ids_required',
-          'Для mode=xml нужно указать part_ids. Найдите нужные детали через mode=tree или mode=summary.',
+          'mode=xml requires part_ids. Find the parts you need via mode=tree or mode=summary.',
           { partCount: craft.parts.length }
         );
       if (part_ids.length > MAX_XML_PARTS)
         throw new ToolError(
           'too_many_parts',
-          `Запрошено ${part_ids.length} деталей, максимум ${MAX_XML_PARTS}.`,
+          `Requested ${part_ids.length} parts, the maximum is ${MAX_XML_PARTS}.`,
           {}
         );
 
@@ -182,8 +182,8 @@ server.registerTool(
           chunks.push(buildXml(c.node, { ...GAME_FORMAT, declaration: false, bom: false }));
 
       let out = chunks.join('\n');
-      if (out.length > MAX_XML_BYTES) out = `${out.slice(0, MAX_XML_BYTES)}\n… обрезано`;
-      if (missing.length > 0) out = `(деталей нет в крафте: ${missing.join(', ')})\n${out}`;
+      if (out.length > MAX_XML_BYTES) out = `${out.slice(0, MAX_XML_BYTES)}\n… truncated`;
+      if (missing.length > 0) out = `(parts not present in the craft: ${missing.join(', ')})\n${out}`;
       return text(out);
     }
   )
@@ -192,25 +192,25 @@ server.registerTool(
 server.registerTool(
   'craft_build',
   {
-    title: 'Собрать конструкцию',
+    title: 'Build a design',
     description:
-      'Собирает аппарат из декларативной спецификации: стек деталей снизу вверх. ' +
-      'Сам считает координаты, подбирает точки крепления по добытым рецептам, ' +
-      'вычисляет ёмкость баков и разбивает детали на физические тела по отделителям. ' +
-      'Виды элементов: pod, tank, engine, decoupler, nosecone, parachute, raw.',
+      'Builds a vehicle from a declarative spec: a stack of parts from the bottom up. ' +
+      'It works out the coordinates itself, picks attach points from mined recipes, ' +
+      'computes tank capacity and splits parts into physical bodies at the decouplers. ' +
+      'Item kinds: pod, tank, engine, decoupler, nosecone, parachute, raw.',
     inputSchema: {
       spec: z
         .object({
           name: z.string(),
           type: z.enum(['rocket', 'plane']).optional(),
-          stack: z.array(z.any()).describe('Снизу вверх: элемент 0 стоит на площадке'),
+          stack: z.array(z.any()).describe('Bottom-up: item 0 sits on the launch pad'),
           activation_groups: z.array(z.string()).optional(),
         })
         .describe(
-          'Пример: { "name":"Зонд", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, ' +
+          'Example: { "name":"Probe", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, ' +
             '{"kind":"tank","length":5,"diameter":2}, {"kind":"pod"}, {"kind":"parachute","stage":1} ] }'
         ),
-      dry_run: z.boolean().optional().describe('Только показать результат, не записывая'),
+      dry_run: z.boolean().optional().describe('Only show the result, without writing'),
       force: z.boolean().optional(),
     },
   },
@@ -226,16 +226,16 @@ server.registerTool(
     }) => {
       const result = await buildCraft(spec);
       const lines = [
-        `Собрано: «${spec.name}», ${result.partCount} деталей`,
+        `Built: "${spec.name}", ${result.partCount} parts`,
         '',
-        'Раскладка (снизу вверх, координата центра по Y):',
+        'Layout (bottom-up, Y coordinate of the centre):',
         ...result.layout.map(
           (l) =>
-            `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  ступень ${l.stage}` : ''}`
+            `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  stage ${l.stage}` : ''}`
         ),
       ];
       if (result.warnings.length > 0)
-        lines.push('', 'Предупреждения:', ...result.warnings.map((w) => `  ! ${w.message}`));
+        lines.push('', 'Warnings:', ...result.warnings.map((w) => `  ! ${w.message}`));
 
       if (dry_run === true) {
         lines.push('', '--- XML ---', result.xml.replace(/\r/g, ''));
@@ -244,24 +244,24 @@ server.registerTool(
 
       const path = await craftPath(spec.name);
       const snap = await guardedWrite('craft_build', path, result.xml, { force });
-      lines.push('', `Записано: ${path}`, `Снимок для отката: ${snap.id}`);
+      lines.push('', `Written: ${path}`, `Snapshot to roll back to: ${snap.id}`);
       return text(lines.join('\n'));
     }
   )
 );
 
-// --- Справочник деталей ---
+// --- Part reference ---
 
 server.registerTool(
   'part_lookup',
   {
-    title: 'Справка по деталям',
+    title: 'Part reference',
     description:
-      'Ищет типы деталей и показывает их точки крепления, модификаторы и добытые из готовых ' +
-      'крафтов рецепты соединений. Вызывайте перед ручной правкой <Connection>.',
+      'Searches part types and shows their attach points, modifiers and the connection recipes ' +
+      'mined from existing crafts. Call this before editing a <Connection> by hand.',
     inputSchema: {
-      query: z.string().optional().describe('Подстрока имени или id'),
-      id: z.string().optional().describe('Точный partType, например Fuselage1'),
+      query: z.string().optional().describe('Substring of the name or id'),
+      id: z.string().optional().describe('Exact partType, for example Fuselage1'),
       category: z.string().optional(),
     },
   },
@@ -275,39 +275,39 @@ server.registerTool(
           const near = Object.keys(cat.parts)
             .filter((k) => k.toLowerCase().includes(id.toLowerCase().slice(0, 5)))
             .slice(0, 5);
-          throw new ToolError('unknown_part_type', `Тип детали «${id}» не найден.`, {
+          throw new ToolError('unknown_part_type', `Part type "${id}" not found.`, {
             suggestions: near,
           });
         }
         const lines = [
-          `${pt.id} — ${pt.name}${pt.procedural ? ' (процедурная: геометрия задаётся модификатором)' : ''}`,
-          pt.categories.length > 0 ? `Категории: ${pt.categories.join(', ')}` : '',
+          `${pt.id} — ${pt.name}${pt.procedural ? ' (procedural: geometry comes from a modifier)' : ''}`,
+          pt.categories.length > 0 ? `Categories: ${pt.categories.join(', ')}` : '',
           '',
-          'Точки крепления (индексы для attachPointsA/B):',
+          'Attach points (indices for attachPointsA/B):',
           ...pt.attachPoints.map(
             (a) =>
-              `  ${a.index}  ${a.kind.padEnd(8)} ${a.name}${a.tag !== undefined ? ` тег=${a.tag}` : ''}` +
-              `${a.position !== undefined ? ` поз=${a.position.join(',')}` : ''}`
+              `  ${a.index}  ${a.kind.padEnd(8)} ${a.name}${a.tag !== undefined ? ` tag=${a.tag}` : ''}` +
+              `${a.position !== undefined ? ` pos=${a.position.join(',')}` : ''}`
           ),
           '',
-          `Модификаторы: ${Object.keys(pt.modifiers).join(', ')}`,
+          `Modifiers: ${Object.keys(pt.modifiers).join(', ')}`,
         ];
 
         const conn = (await connections()).connections[pt.id];
         if (conn !== undefined) {
-          lines.push('', 'Известные рецепты соединений (добыты из готовых крафтов):');
+          lines.push('', 'Known connection recipes (mined from existing crafts):');
           for (const [other, entry] of Object.entries(conn).slice(0, 14)) {
             const bits: string[] = [];
-            if (entry.stack) bits.push(`стек a="${entry.stack.a}" b="${entry.stack.b}" (${entry.stack.seen}×)`);
+            if (entry.stack) bits.push(`stack a="${entry.stack.a}" b="${entry.stack.b}" (${entry.stack.seen}×)`);
             if (entry.surface)
-              bits.push(`поверхность a="${entry.surface.a}" b="${entry.surface.b}" (${entry.surface.seen}×)`);
+              bits.push(`surface a="${entry.surface.a}" b="${entry.surface.b}" (${entry.surface.seen}×)`);
             if (bits.length > 0) lines.push(`  → ${other}: ${bits.join('; ')}`);
           }
         }
         if (pt.designerParts.length > 0)
           lines.push(
             '',
-            `Пресеты в редакторе: ${pt.designerParts.map((d) => d.name).slice(0, 12).join(', ')}`
+            `Designer presets: ${pt.designerParts.map((d) => d.name).slice(0, 12).join(', ')}`
           );
         return text(lines.filter((l) => l !== '').join('\n'));
       }
@@ -322,11 +322,11 @@ server.registerTool(
           pt.designerParts.some((d) => d.name.toLowerCase().includes(q))
         );
       });
-      if (matches.length === 0) return text(`Ничего не найдено по запросу «${query ?? category}»`);
+      if (matches.length === 0) return text(`Nothing found for "${query ?? category}"`);
       return text(
-        `Найдено ${matches.length}:\n` +
+        `Found ${matches.length}:\n` +
           matches
-            .map((pt) => `  ${pt.id.padEnd(22)} ${pt.name}${pt.procedural ? ' [процедурная]' : ''}`)
+            .map((pt) => `  ${pt.id.padEnd(22)} ${pt.name}${pt.procedural ? ' [procedural]' : ''}`)
             .join('\n')
       );
     }
@@ -346,33 +346,33 @@ async function craftPropertySet(): Promise<Set<string>> {
 server.registerTool(
   'vizzy_read',
   {
-    title: 'Прочитать программу полёта',
+    title: 'Read a flight program',
     description:
-      'Читает Vizzy-программу — из отдельного файла или встроенную в деталь крафта — ' +
-      'и отдаёт её в компактном DSL вместо многословного XML.',
+      'Reads a Vizzy program — either from a standalone file or embedded in a craft part — ' +
+      'and returns it in a compact DSL instead of verbose XML.',
     inputSchema: {
-      file: z.string().optional().describe('Имя файла в UserData/FlightPrograms без .xml'),
-      craft: z.string().optional().describe('Имя крафта со встроенной программой'),
-      part_id: z.number().optional().describe('Деталь крафта, несущая программу'),
+      file: z.string().optional().describe('File name in UserData/FlightPrograms without .xml'),
+      craft: z.string().optional().describe('Name of the craft with the embedded program'),
+      part_id: z.number().optional().describe('The craft part carrying the program'),
     },
   },
   guard(
     async ({ file, craft, part_id }: { file?: string; craft?: string; part_id?: number }) => {
       const p = await gamePaths();
       if (file !== undefined) {
-        const path = join(p.flightPrograms, `${assertSafeName(file, 'Имя программы')}.xml`);
+        const path = join(p.flightPrograms, `${assertSafeName(file, 'Program name')}.xml`);
         const program = parseXmlRoot(await readFile(path, 'utf8'), 'Program');
         return text(JSON.stringify(decompileProgram(program), null, 2));
       }
       if (craft === undefined)
-        throw new ToolError('missing_source', 'Укажите file или craft + part_id.', {});
+        throw new ToolError('missing_source', 'Specify either file, or craft + part_id.', {});
 
       const parsed = Craft.parse(await readFile(await craftPath(craft), 'utf8'));
       const candidates = parsed.parts.filter((x) => x.modifiers.includes('FlightProgram'));
       const target =
         part_id !== undefined ? parsed.part(part_id) : candidates[0];
       if (target === undefined)
-        throw new ToolError('no_program', 'В крафте нет детали с программой полёта.', {
+        throw new ToolError('no_program', 'The craft has no part with a flight program.', {
           candidates: candidates.map((c) => c.id),
         });
 
@@ -380,7 +380,7 @@ server.registerTool(
         .find((c) => c.tag === 'FlightProgram')
         ?.children.find((c) => c.tag === 'Program');
       if (program === undefined)
-        throw new ToolError('empty_program', `У детали ${target.id} есть вычислитель, но программа пуста.`, {});
+        throw new ToolError('empty_program', `Part ${target.id} has a computer, but the program is empty.`, {});
       return text(JSON.stringify(decompileProgram(program), null, 2));
     }
   )
@@ -396,24 +396,24 @@ const dslSchema = z
     requiresMfd: z.boolean().optional(),
   })
   .describe(
-    'Программа в DSL: { name, on: { FlightStart: [ ["set-input","throttle",1], ["stage"] ] } }. ' +
-      'Выражения — массивы: ["<", ["prop","Altitude.ASL"], 1000]. "$имя" ссылается на переменную.'
+    'A program in the DSL: { name, on: { FlightStart: [ ["set-input","throttle",1], ["stage"] ] } }. ' +
+      'Expressions are arrays: ["<", ["prop","Altitude.ASL"], 1000]. "$name" refers to a variable.'
   );
 
 server.registerTool(
   'vizzy_write',
   {
-    title: 'Записать программу полёта',
+    title: 'Write a flight program',
     description:
-      'Компилирует программу из DSL в Vizzy XML и сохраняет — отдельным файлом или встроив в деталь крафта. ' +
-      'Сам расставляет id и style. Перед записью делает снапшот.',
+      'Compiles a program from the DSL into Vizzy XML and saves it — as a standalone file or embedded in a craft part. ' +
+      'It assigns ids and styles itself. Takes a snapshot before writing.',
     inputSchema: {
       program: dslSchema,
-      file: z.string().optional().describe('Сохранить как отдельный файл'),
-      craft: z.string().optional().describe('Встроить в крафт'),
-      part_id: z.number().optional().describe('Деталь-вычислитель; по умолчанию активный командный модуль'),
-      dry_run: z.boolean().optional().describe('Только скомпилировать и показать XML'),
-      force: z.boolean().optional().describe('Писать даже при запущенной игре — не используйте без разрешения'),
+      file: z.string().optional().describe('Save as a standalone file'),
+      craft: z.string().optional().describe('Embed into a craft'),
+      part_id: z.number().optional().describe('The computer part; defaults to the active command pod'),
+      dry_run: z.boolean().optional().describe('Only compile and show the XML'),
+      force: z.boolean().optional().describe('Write even while the game is running — do not use without permission'),
     },
   },
   guard(
@@ -441,13 +441,13 @@ server.registerTool(
       const p = await gamePaths();
 
       if (file !== undefined) {
-        const path = join(p.flightPrograms, `${assertSafeName(file, 'Имя программы')}.xml`);
+        const path = join(p.flightPrograms, `${assertSafeName(file, 'Program name')}.xml`);
         const snap = await guardedWrite('vizzy_write', path, buildXml(compiled, GAME_FORMAT), { force });
-        return text(`Программа «${program.name}» записана в ${path}\nСнимок для отката: ${snap.id}`);
+        return text(`Program "${program.name}" written to ${path}\nSnapshot to roll back to: ${snap.id}`);
       }
 
       if (craft === undefined)
-        throw new ToolError('missing_target', 'Укажите file или craft.', {});
+        throw new ToolError('missing_target', 'Specify either file or craft.', {});
 
       const path = await craftPath(craft);
       const parsed = Craft.parse(await readFile(path, 'utf8'));
@@ -459,7 +459,7 @@ server.registerTool(
       if (target === undefined)
         throw new ToolError(
           'no_computer',
-          'В крафте нет детали, способной нести программу (командный модуль, диск, чип или MFD).',
+          'The craft has no part able to carry a program (command pod, disk, chip or MFD).',
           {}
         );
 
@@ -473,30 +473,30 @@ server.registerTool(
 
       const snap = await guardedWrite('vizzy_write', path, parsed.serialize(), { force });
       return text(
-        `Программа «${program.name}» встроена в деталь ${target.id} (${target.partType}) крафта «${craft}».\n` +
-          `Снимок для отката: ${snap.id}`
+        `Program "${program.name}" embedded into part ${target.id} (${target.partType}) of craft "${craft}".\n` +
+          `Snapshot to roll back to: ${snap.id}`
       );
     }
   )
 );
 
-// --- Запуск игры и лог ---
+// --- Launching the game and reading the log ---
 
 server.registerTool(
   'game_launch',
   {
-    title: 'Запустить игру',
-    description: 'Запускает Juno и ждёт появления процесса.',
+    title: 'Launch the game',
+    description: 'Launches Juno and waits for the process to appear.',
     inputSchema: {},
   },
   guard(async () => {
     const r = await launchGame();
     return text(
       r.alreadyRunning
-        ? `Игра уже запущена (pid ${r.pid})`
+        ? `The game is already running (pid ${r.pid})`
         : r.pid !== undefined
-          ? `Игра запущена (pid ${r.pid})`
-          : 'Команда запуска отправлена, но процесс не появился за 15 с'
+          ? `Game launched (pid ${r.pid})`
+          : 'Launch command sent, but the process did not appear within 15 s'
     );
   })
 );
@@ -504,23 +504,23 @@ server.registerTool(
 server.registerTool(
   'game_quit',
   {
-    title: 'Закрыть игру',
-    description: 'Просит игру завершиться. Нужно перед любой записью в файлы сохранения.',
-    inputSchema: { force: z.boolean().optional().describe('Убить процесс вместо вежливого выхода') },
+    title: 'Quit the game',
+    description: 'Asks the game to quit. Required before any write to the save files.',
+    inputSchema: { force: z.boolean().optional().describe('Kill the process instead of quitting politely') },
   },
   guard(async ({ force }: { force?: boolean }) => {
     const r = await quitGame(force ?? false);
-    return text(r.wasRunning ? 'Игра закрыта' : 'Игра не была запущена');
+    return text(r.wasRunning ? 'Game quit' : 'The game was not running');
   })
 );
 
 server.registerTool(
   'log_read',
   {
-    title: 'Прочитать Player.log',
+    title: 'Read Player.log',
     description:
-      'Читает лог игры. По умолчанию показывает только ошибки со стеками, схлопывая повторы — ' +
-      'это основной канал обратной связи, пока не установлен мод-мост.',
+      'Reads the game log. By default shows only errors with their stacks, collapsing repeats — ' +
+      'this is the main feedback channel until the bridge mod is installed.',
     inputSchema: {
       lines: z.number().optional(),
       filter: z.enum(['all', 'errors', 'mods']).optional(),
@@ -528,32 +528,32 @@ server.registerTool(
   },
   guard(async ({ lines, filter }: { lines?: number; filter?: 'all' | 'errors' | 'mods' }) => {
     const r = await readLog({ lines, filter });
-    return text(`${r.path} (${r.totalLines} строк)\n\n${r.returned}`);
+    return text(`${r.path} (${r.totalLines} lines)\n\n${r.returned}`);
   })
 );
 
-// --- Откат ---
+// --- Rollback ---
 
 server.registerTool(
   'junoclaude_restore',
   {
-    title: 'Откатить изменения',
-    description: 'Показывает снимки, сделанные перед записями, и восстанавливает выбранный.',
-    inputSchema: { snapshot_id: z.string().optional().describe('Без него — только список') },
+    title: 'Roll back changes',
+    description: 'Lists the snapshots taken before writes and restores the one you pick.',
+    inputSchema: { snapshot_id: z.string().optional().describe('Without it — list only') },
   },
   guard(async ({ snapshot_id }: { snapshot_id?: string }) => {
     if (snapshot_id === undefined) {
       const all = await listSnapshots();
-      if (all.length === 0) return text('Снимков нет — записей ещё не было.');
+      if (all.length === 0) return text('No snapshots — nothing has been written yet.');
       return text(
-        `Снимки (новые сверху):\n${all
+        `Snapshots (newest first):\n${all
           .slice(0, 25)
           .map((s) => `  ${s.id}\n      ${s.files.map((f) => f.path).join(', ')}`)
           .join('\n')}`
       );
     }
     const m = await restoreSnapshot(snapshot_id);
-    return text(`Восстановлено из ${m.id}:\n${m.files.map((f) => `  ${f.path}`).join('\n')}`);
+    return text(`Restored from ${m.id}:\n${m.files.map((f) => `  ${f.path}`).join('\n')}`);
   })
 );
 

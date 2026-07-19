@@ -14,8 +14,8 @@ namespace JunoBridge.Serialization
 
             if (orbit == null || !orbit.IsValid)
             {
-                // На стартовом столе орбита вырождена. Числовые поля опускаются целиком:
-                // NaN не является валидным JSON и уронил бы парсер на стороне MCP.
+                // On the launch pad the orbit is degenerate. The numeric fields are omitted
+                // entirely: NaN is not valid JSON and would break the parser on the MCP side.
                 w.Bool("valid", false).EndObject();
                 return;
             }
@@ -27,14 +27,14 @@ namespace JunoBridge.Serialization
              .Num("eccentricity", orbit.Eccentricity)
              .Num("inclination", orbit.Inclination * RadToDeg)
              .Num("longitudeOfAscendingNode", orbit.RightAscensionOfAscendingNode * RadToDeg)
-             // TODO(проверить): PeriapsisAngle задокументирован как "periapsis angle";
-             // подтвердить, что это аргумент перицентра, а не долгота перицентра.
+             // TODO(verify): PeriapsisAngle is documented as "periapsis angle"; confirm that
+             // it is the argument of periapsis and not the longitude of periapsis.
              .Num("periapsisAngle", orbit.PeriapsisAngle * RadToDeg)
              .Num("trueAnomaly", orbit.TrueAnomaly * RadToDeg)
              .Num("meanAnomaly", orbit.MeanAnomaly * RadToDeg)
              .Num("eccentricAnomaly", orbit.EccentricAnomaly * RadToDeg)
-             // IOrbit.Periapsis/Apoapsis — это векторы положения апсид, а не расстояния;
-             // скаляры лежат ниже в *Distance. Имена с суффиксом Vector, чтобы не путать.
+             // IOrbit.Periapsis/Apoapsis are the apsides' position vectors, not distances;
+             // the scalars are below as *Distance. Named with a Vector suffix to avoid confusion.
              .Vec("periapsisVector", orbit.Periapsis)
              .Vec("apoapsisVector", orbit.Apoapsis)
              .Num("periapsisDistance", orbit.PeriapsisDistance)

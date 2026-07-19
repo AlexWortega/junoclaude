@@ -1,6 +1,6 @@
-// Резолв путей установки Juno: New Origins.
-// Скрипты сборки каталога и MCP-сервер должны видеть одни и те же пути,
-// поэтому логика живёт здесь, а не дублируется.
+// Resolving the paths of a Juno: New Origins installation.
+// The catalog build scripts and the MCP server must see the same paths, so the
+// logic lives here rather than being duplicated.
 
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -21,7 +21,7 @@ const exists = (p) =>
     () => false
   );
 
-/** Достаёт версию игры и Unity из Info.plist внутри .app. */
+/** Pulls the game and Unity versions out of Info.plist inside the .app. */
 async function readVersions(installDir) {
   const plist = join(installDir, 'SimpleRockets2.app/Contents/Info.plist');
   try {
@@ -35,8 +35,8 @@ async function readVersions(installDir) {
 }
 
 /**
- * @returns пути игры. Переопределяются через JUNO_INSTALL_DIR / JUNO_USER_DIR /
- * JUNO_LOG_PATH — это нужно и для тестов, и для нестандартных установок Steam.
+ * @returns the game's paths. Overridable via JUNO_INSTALL_DIR / JUNO_USER_DIR /
+ * JUNO_LOG_PATH — needed both for tests and for non-standard Steam installs.
  */
 export async function gamePaths() {
   const installDir = process.env.JUNO_INSTALL_DIR || DEFAULT_INSTALL;

@@ -1,13 +1,13 @@
-// Таблица блоков Vizzy: удобные имена DSL → тег и style в XML.
+// The Vizzy block table: friendly DSL names → tag and style in the XML.
 //
-// Строки style взяты из catalog/vizzy-blocks.json, добытого из программ,
-// написанных самой игрой. Угадывать их нельзя: у одного тега SetCraftProperty
-// больше десятка разных style, и подстановка неверного даёт программу,
-// которую игра откажется открывать.
+// The style strings come from catalog/vizzy-blocks.json, mined from programs
+// the game wrote itself. They cannot be guessed: the single tag
+// SetCraftProperty has over a dozen different styles, and substituting the
+// wrong one produces a program the game refuses to open.
 
 export interface ArgSpec {
   name: string;
-  /** Подсказка при ошибке; проверку типов Vizzy делает сам. */
+  /** A hint shown on error; Vizzy does the type checking itself. */
   kind?: 'number' | 'text' | 'bool' | 'any';
 }
 
@@ -15,13 +15,13 @@ export interface InstructionSpec {
   tag: string;
   style: string;
   args: ArgSpec[];
-  /** Блок содержит вложенное тело <Instructions>. */
+  /** The block contains a nested <Instructions> body. */
   body?: boolean;
-  /** Второе тело — ветка else у If. */
+  /** A second body — the else branch of If. */
   elseBody?: boolean;
-  /** Постоянные атрибуты, например input="throttle" у SetInput. */
+  /** Constant attributes, for example input="throttle" on SetInput. */
   fixedAttrs?: Record<string, string>;
-  /** Атрибуты, берущиеся из именованных полей вызова. */
+  /** Attributes taken from the named fields of the call. */
   namedAttrs?: string[];
 }
 
@@ -36,57 +36,57 @@ const n = (name: string): ArgSpec => ({ name, kind: 'number' });
 const any = (name: string): ArgSpec => ({ name, kind: 'any' });
 
 export const INSTRUCTIONS: Record<string, InstructionSpec> = {
-  'wait-seconds': { tag: 'WaitSeconds', style: 'wait-seconds', args: [n('секунды')] },
-  'wait-until': { tag: 'WaitUntil', style: 'wait-until', args: [any('условие')] },
+  'wait-seconds': { tag: 'WaitSeconds', style: 'wait-seconds', args: [n('seconds')] },
+  'wait-until': { tag: 'WaitUntil', style: 'wait-until', args: [any('condition')] },
   stage: { tag: 'ActivateStage', style: 'activate-stage', args: [] },
   display: {
     tag: 'DisplayMessage',
     style: 'display',
-    args: [any('текст'), n('секунды')],
+    args: [any('text'), n('seconds')],
   },
   'set-input': {
     tag: 'SetInput',
     style: 'set-input',
-    args: [any('значение')],
+    args: [any('value')],
     namedAttrs: ['input'],
   },
   'set-var': {
     tag: 'SetVariable',
     style: 'set-variable',
-    args: [any('имя'), any('значение')],
+    args: [any('name'), any('value')],
   },
   'change-var': {
     tag: 'ChangeVariable',
     style: 'change-variable',
-    args: [any('имя'), any('дельта')],
+    args: [any('name'), any('delta')],
   },
   'set-activation-group': {
     tag: 'SetActivationGroup',
     style: 'set-activation-group',
-    args: [n('группа'), any('состояние')],
+    args: [n('group'), any('state')],
   },
   'set-craft-property': {
     tag: 'SetCraftProperty',
     style: 'set-craft-property',
-    args: [any('значение')],
+    args: [any('value')],
     namedAttrs: ['property'],
   },
-  'set-target': { tag: 'SetTarget', style: 'set-target', args: [any('цель')] },
-  'lock-nav': { tag: 'LockNavSphere', style: 'lock-nav-sphere', args: [any('направление')] },
+  'set-target': { tag: 'SetTarget', style: 'set-target', args: [any('target')] },
+  'lock-nav': { tag: 'LockNavSphere', style: 'lock-nav-sphere', args: [any('direction')] },
   broadcast: {
     tag: 'BroadcastMessage',
     style: 'broadcast-msg',
-    args: [any('сообщение'), any('данные')],
+    args: [any('message'), any('data')],
   },
-  comment: { tag: 'Comment', style: 'comment', args: [any('текст')] },
-  if: { tag: 'If', style: 'if', args: [any('условие')], body: true },
-  'if-else': { tag: 'If', style: 'if-else', args: [any('условие')], body: true, elseBody: true },
-  while: { tag: 'While', style: 'while', args: [any('условие')], body: true },
-  repeat: { tag: 'Repeat', style: 'repeat', args: [n('раз')], body: true },
+  comment: { tag: 'Comment', style: 'comment', args: [any('text')] },
+  if: { tag: 'If', style: 'if', args: [any('condition')], body: true },
+  'if-else': { tag: 'If', style: 'if-else', args: [any('condition')], body: true, elseBody: true },
+  while: { tag: 'While', style: 'while', args: [any('condition')], body: true },
+  repeat: { tag: 'Repeat', style: 'repeat', args: [n('times')], body: true },
   for: {
     tag: 'For',
     style: 'for',
-    args: [any('от'), any('до'), any('шаг')],
+    args: [any('from'), any('to'), any('step')],
     body: true,
     namedAttrs: ['var'],
   },
@@ -100,7 +100,7 @@ export const INSTRUCTIONS: Record<string, InstructionSpec> = {
 };
 
 export const EXPRESSIONS: Record<string, ExpressionSpec> = {
-  // Арифметика
+  // Arithmetic
   '+': { tag: 'BinaryOp', style: 'op-add', args: [any('a'), any('b')], fixedAttrs: { op: '+' } },
   '-': { tag: 'BinaryOp', style: 'op-sub', args: [any('a'), any('b')], fixedAttrs: { op: '-' } },
   '*': { tag: 'BinaryOp', style: 'op-mul', args: [any('a'), any('b')], fixedAttrs: { op: '*' } },
@@ -111,35 +111,35 @@ export const EXPRESSIONS: Record<string, ExpressionSpec> = {
   rand: {
     tag: 'BinaryOp',
     style: 'op-rand',
-    args: [any('от'), any('до')],
+    args: [any('from'), any('to')],
     fixedAttrs: { op: 'rand' },
   },
 
-  // Сравнения. Vizzy кодирует их односимвольно: = g l.
+  // Comparisons. Vizzy encodes them as single characters: = g l.
   '=': { tag: 'Comparison', style: 'op-eq', args: [any('a'), any('b')], fixedAttrs: { op: '=' } },
   '>': { tag: 'Comparison', style: 'op-gt', args: [any('a'), any('b')], fixedAttrs: { op: 'g' } },
   '<': { tag: 'Comparison', style: 'op-lt', args: [any('a'), any('b')], fixedAttrs: { op: 'l' } },
 
   and: { tag: 'BoolOp', style: 'op-and', args: [any('a'), any('b')], fixedAttrs: { op: 'and' } },
   or: { tag: 'BoolOp', style: 'op-or', args: [any('a'), any('b')], fixedAttrs: { op: 'or' } },
-  not: { tag: 'Not', style: 'op-not', args: [any('значение')] },
+  not: { tag: 'Not', style: 'op-not', args: [any('value')] },
 
   cond: {
     tag: 'Conditional',
     style: 'conditional',
-    args: [any('условие'), any('тогда'), any('иначе')],
+    args: [any('condition'), any('then'), any('else')],
   },
   join: { tag: 'StringOp', style: 'join', args: [any('a'), any('b')], fixedAttrs: { op: 'join' } },
   contains: {
     tag: 'StringOp',
     style: 'contains',
-    args: [any('строка'), any('подстрока')],
+    args: [any('string'), any('substring')],
     fixedAttrs: { op: 'contains' },
   },
   vector: { tag: 'Vector', style: 'vector', args: [n('x'), n('y'), n('z')] },
 };
 
-/** Математические функции идут одним тегом с разным атрибутом function. */
+/** Math functions share a single tag and differ by the function attribute. */
 export const MATH_FUNCTIONS = [
   'abs',
   'floor',
@@ -161,12 +161,12 @@ export function mathFunctionSpec(fn: string): ExpressionSpec {
   return {
     tag: 'MathFunction',
     style: `math-${fn}`,
-    args: [any('значение')],
+    args: [any('value')],
     fixedAttrs: { function: fn },
   };
 }
 
-/** Событие → style; верхний уровень программы всегда начинается с события. */
+/** Event → style; the top level of a program always starts with an event. */
 export const EVENTS: Record<string, string> = {
   FlightStart: 'flight-start',
   ChangeSoi: 'change-soi',
@@ -176,7 +176,7 @@ export const EVENTS: Record<string, string> = {
   Collision: 'collision',
 };
 
-/** Похожие имена — для подсказки «возможно, вы имели в виду». */
+/** Similar names — for the "did you mean" hint. */
 export function suggest(name: string, candidates: string[], limit = 3): string[] {
   const distance = (a: string, b: string): number => {
     const dp: number[] = Array.from({ length: b.length + 1 }, (_, i) => i);

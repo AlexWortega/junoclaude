@@ -23253,14 +23253,14 @@ async function gamePaths(refresh = false) {
   };
   return cached2;
 }
-function assertSafeName(name, what = "\u0438\u043C\u044F") {
-  if (name.length === 0) throw new Error(`${what} \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0431\u044B\u0442\u044C \u043F\u0443\u0441\u0442\u044B\u043C`);
+function assertSafeName(name, what = "Name") {
+  if (name.length === 0) throw new Error(`${what} cannot be empty`);
   if (name.includes("/") || name.includes("\\"))
-    throw new Error(`${what} \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u044C \u0440\u0430\u0437\u0434\u0435\u043B\u0438\u0442\u0435\u043B\u0438 \u043F\u0443\u0442\u0438: ${JSON.stringify(name)}`);
+    throw new Error(`${what} cannot contain path separators: ${JSON.stringify(name)}`);
   if (name === "." || name === ".." || name.startsWith("."))
-    throw new Error(`${what} \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u043D\u0430\u0447\u0438\u043D\u0430\u0442\u044C\u0441\u044F \u0441 \u0442\u043E\u0447\u043A\u0438: ${JSON.stringify(name)}`);
+    throw new Error(`${what} cannot start with a dot: ${JSON.stringify(name)}`);
   if (/[\0<>:"|?*]/.test(name))
-    throw new Error(`${what} \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0435 \u0441\u0438\u043C\u0432\u043E\u043B\u044B: ${JSON.stringify(name)}`);
+    throw new Error(`${what} contains invalid characters: ${JSON.stringify(name)}`);
   return name;
 }
 
@@ -23304,7 +23304,7 @@ async function assertWritablePath(target) {
   if (!ok)
     throw new ToolError(
       "path_not_allowed",
-      `\u0417\u0430\u043F\u0438\u0441\u044C \u0437\u0430 \u043F\u0440\u0435\u0434\u0435\u043B\u044B \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0430 \u0438\u0433\u0440\u044B \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D\u0430: ${abs}`,
+      `Writing outside the game directory is not allowed: ${abs}`,
       { allowedRoots: roots }
     );
 }
@@ -23316,8 +23316,8 @@ async function assertSafeToWrite(target, opts = {}) {
   if (pid !== void 0 && LIVE_STATE_PATTERNS.some((re) => re.test(target)))
     throw new ToolError(
       "game_running",
-      `Juno \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${pid}), \u0430 ${target} \u0438\u0433\u0440\u0430 \u043F\u0435\u0440\u0435\u043F\u0438\u0441\u044B\u0432\u0430\u0435\u0442 \u0441\u0430\u043C\u0430 \u2014 \u043F\u0440\u0430\u0432\u043A\u0430 \u0431\u0443\u0434\u0435\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u0430 \u0438\u043B\u0438 \u0437\u0430\u0442\u0440\u0451\u0442 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435.`,
-      { pid, fix: "\u0412\u044B\u0437\u043E\u0432\u0438\u0442\u0435 game_quit \u0438\u043B\u0438 \u043F\u043E\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F \u0432\u044B\u0439\u0442\u0438 \u0438\u0437 \u0438\u0433\u0440\u044B." }
+      `Juno is running (pid ${pid}) and ${target} is rewritten by the game itself \u2014 the edit will be lost or will clobber the current state.`,
+      { pid, fix: "Call game_quit or ask the user to exit the game." }
     );
   try {
     const st = await stat(target);
@@ -23325,7 +23325,7 @@ async function assertSafeToWrite(target, opts = {}) {
     if (ageMs < 3e3)
       throw new ToolError(
         "file_busy",
-        `${target} \u0438\u0437\u043C\u0435\u043D\u0451\u043D ${Math.round(ageMs)} \u043C\u0441 \u043D\u0430\u0437\u0430\u0434 \u2014 \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E, \u0438\u0434\u0451\u0442 \u0434\u0440\u0443\u0433\u0430\u044F \u0437\u0430\u043F\u0438\u0441\u044C.`,
+        `${target} was modified ${Math.round(ageMs)} ms ago \u2014 another write may be in progress.`,
         { ageMs }
       );
   } catch (e) {
@@ -23440,20 +23440,21 @@ var TEXT_KEY = "#text";
 var parser = new import_fast_xml_parser.XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "",
-  // attributesGroupName намеренно не задаём: вместе с пустым attributeNamePrefix
-  // fast-xml-parser заворачивает атрибуты в ':@' дважды. Дефолт даёт ':@'
-  // с атрибутами напрямую.
+  // attributesGroupName is deliberately left unset: together with an empty
+  // attributeNamePrefix, fast-xml-parser wraps attributes in ':@' twice. The
+  // default gives ':@' with the attributes directly.
   preserveOrder: true,
   parseAttributeValue: false,
   parseTagValue: false,
-  // Не обрезаем: в Vizzy пробел на конце значим. `text="T - "` — часть строки,
-  // которую программа выводит на экран, и обрезка её молча испортит.
+  // Do not trim: in Vizzy a trailing space is significant. `text="T - "` is
+  // part of the string the program prints on screen, and trimming silently
+  // corrupts it.
   trimValues: false,
-  // Пустой тег должен остаться узлом, а не превратиться в пустую строку,
-  // иначе `<Variables />` потеряется при разборе.
+  // An empty tag must stay a node rather than turn into an empty string,
+  // otherwise `<Variables />` is lost on parse.
   alwaysCreateTextNode: false,
-  // Стоковые сценарии-туториалы содержат пояснительные комментарии; терять их
-  // при правке файла было бы невежливо по отношению к их авторам.
+  // The stock tutorial scenarios contain explanatory comments; losing them
+  // when editing a file would be discourteous to their authors.
   commentPropName: COMMENT_TAG
 });
 function convert(raw) {
@@ -23515,9 +23516,9 @@ function parseXml(text2) {
 function parseXmlRoot(text2, expectedTag) {
   const nodes = parseXml(text2);
   const root = nodes[0];
-  if (root === void 0) throw new Error("XML \u043D\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043A\u043E\u0440\u043D\u0435\u0432\u043E\u0433\u043E \u044D\u043B\u0435\u043C\u0435\u043D\u0442\u0430");
+  if (root === void 0) throw new Error("The XML has no root element");
   if (expectedTag !== void 0 && root.tag !== expectedTag)
-    throw new Error(`\u041E\u0436\u0438\u0434\u0430\u043B\u0441\u044F \u043A\u043E\u0440\u043D\u0435\u0432\u043E\u0439 \u044D\u043B\u0435\u043C\u0435\u043D\u0442 <${expectedTag}>, \u043F\u043E\u043B\u0443\u0447\u0435\u043D <${root.tag}>`);
+    throw new Error(`Expected root element <${expectedTag}>, got <${root.tag}>`);
   return root;
 }
 function parseXmlDocument(text2, expectedTag) {
@@ -23589,7 +23590,7 @@ async function gameStatus() {
   };
   if (!p.installed) {
     warnings.push(
-      `\u0418\u0433\u0440\u0430 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u0430 \u0432 ${p.installDir}. \u0417\u0430\u0434\u0430\u0439\u0442\u0435 JUNO_INSTALL_DIR, \u0435\u0441\u043B\u0438 \u043E\u043D\u0430 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430 \u0432 \u0434\u0440\u0443\u0433\u043E\u043C \u043C\u0435\u0441\u0442\u0435.`
+      `Game not found in ${p.installDir}. Set JUNO_INSTALL_DIR if it is installed elsewhere.`
     );
     return status;
   }
@@ -23604,7 +23605,7 @@ async function gameStatus() {
     const mods = childNamed(root, "Mods");
     status.modSupportEnabled = mods?.attrs["modSupportEnabled"] === "true";
   } catch (e) {
-    warnings.push(`\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C Settings.xml: ${e.message}`);
+    warnings.push(`Could not read Settings.xml: ${e.message}`);
   }
   try {
     const { readdir: readdir3 } = await import("node:fs/promises");
@@ -23621,11 +23622,11 @@ async function gameStatus() {
   try {
     status.logLastWrite = (await stat2(p.logPath)).mtime.toISOString();
   } catch {
-    warnings.push("Player.log \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D \u2014 \u0438\u0433\u0440\u0430 \u0435\u0449\u0451 \u043D\u0438 \u0440\u0430\u0437\u0443 \u043D\u0435 \u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043B\u0430\u0441\u044C.");
+    warnings.push("Player.log not found \u2014 the game has never been launched.");
   }
   if (status.appVersionLastRun !== void 0 && p.gameVersion !== void 0 && !status.appVersionLastRun.startsWith(p.gameVersion))
     warnings.push(
-      `\u041A\u0430\u0442\u0430\u043B\u043E\u0433 \u0441\u043E\u0431\u0438\u0440\u0430\u043B\u0441\u044F \u0434\u043B\u044F \u0432\u0435\u0440\u0441\u0438\u0438 ${p.gameVersion}, \u0430 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0437\u0430\u043F\u0443\u0441\u043A \u0431\u044B\u043B ${status.appVersionLastRun}. \u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E, \u0444\u043E\u0440\u043C\u0430\u0442\u044B \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u0438\u0441\u044C \u2014 \u043F\u0435\u0440\u0435\u0441\u043E\u0431\u0435\u0440\u0438\u0442\u0435 \u043A\u0430\u0442\u0430\u043B\u043E\u0433.`
+      `The catalog was built for version ${p.gameVersion}, but the last run was ${status.appVersionLastRun}. The formats may have changed \u2014 rebuild the catalog.`
     );
   return status;
 }
@@ -23655,7 +23656,7 @@ async function quitGame(force = false) {
     await new Promise((r) => setTimeout(r, 500));
     if (await gamePid() === void 0) return { wasRunning: true };
   }
-  throw new Error(`\u0418\u0433\u0440\u0430 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043B\u0430\u0441\u044C \u0437\u0430 20 \u0441 (pid ${pid}). \u0418\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 force: true.`);
+  throw new Error(`The game did not quit within 20 s (pid ${pid}). Use force: true.`);
 }
 var ERROR_PATTERN = /(Exception|NullReference|Error:|ERROR|Failed to|Could not|Invalid|error CS\d+)/i;
 var STACK_LINES = 12;
@@ -23678,7 +23679,7 @@ async function readLog(opts = {}) {
     return {
       path: p.logPath,
       totalLines: all.length,
-      returned: relevant.length > 0 ? relevant.slice(-lines).join("\n") : "(\u0432 \u043B\u043E\u0433\u0435 \u043D\u0435\u0442 \u0443\u043F\u043E\u043C\u0438\u043D\u0430\u043D\u0438\u0439 \u043C\u043E\u0434\u043E\u0432)",
+      returned: relevant.length > 0 ? relevant.slice(-lines).join("\n") : "(no mentions of mods in the log)",
       truncated: relevant.length > lines
     };
   }
@@ -23703,12 +23704,12 @@ async function readLog(opts = {}) {
   }
   const repeated = [...seen.entries()].filter(([, n2]) => n2 > 1);
   const parts2 = [];
-  if (blocks.length === 0) parts2.push("(\u043E\u0448\u0438\u0431\u043E\u043A \u0432 \u043B\u043E\u0433\u0435 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E)");
+  if (blocks.length === 0) parts2.push("(no errors found in the log)");
   else parts2.push(blocks.slice(-lines).join("\n\n"));
   if (repeated.length > 0)
     parts2.push(
       "",
-      "\u041F\u043E\u0432\u0442\u043E\u0440\u044F\u044E\u0449\u0438\u0435\u0441\u044F \u043E\u0448\u0438\u0431\u043A\u0438:",
+      "Repeated errors:",
       ...repeated.map(([sig, n2]) => `  ${n2}\xD7 ${sig}`)
     );
   return {
@@ -23735,7 +23736,7 @@ async function load(file) {
     return JSON.parse(await readFile4(path, "utf8"));
   } catch (e) {
     throw new Error(
-      `\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u043A\u0430\u0442\u0430\u043B\u043E\u0433 ${path}: ${e.message}. \u0421\u043E\u0431\u0435\u0440\u0438\u0442\u0435 \u0435\u0433\u043E \u043A\u043E\u043C\u0430\u043D\u0434\u043E\u0439 \`npm run catalog\` \u0432 \u043A\u043E\u0440\u043D\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u0430.`
+      `Could not read the catalog ${path}: ${e.message}. Build it with \`npm run catalog\` in the plugin root.`
     );
   }
 }
@@ -23767,7 +23768,7 @@ async function resolveStackConnection(lower, upper) {
   const lowerPt = await partType(lower);
   const upperPt = await partType(upper);
   if (lowerPt === void 0 || upperPt === void 0)
-    throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0442\u0438\u043F \u0434\u0435\u0442\u0430\u043B\u0438: ${lowerPt === void 0 ? lower : upper}`);
+    throw new Error(`Unknown part type: ${lowerPt === void 0 ? lower : upper}`);
   const pick2 = (pt, side, kind) => pt.attachPoints.find((p) => p.kind === kind && sideOf(p) === side);
   const aIdx = [];
   const bIdx = [];
@@ -23789,7 +23790,7 @@ async function resolveStackConnection(lower, upper) {
     if (a !== void 0 && b !== void 0)
       return { a: String(a.index), b: String(b.index), confidence: "inferred" };
     throw new Error(
-      `\u041D\u0435\u0442 \u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u044B\u0445 \u0442\u043E\u0447\u0435\u043A \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F: ${lower} (\u0432\u0435\u0440\u0445) \u2192 ${upper} (\u043D\u0438\u0437). \u041F\u043E\u0441\u043C\u043E\u0442\u0440\u0438\u0442\u0435 part_lookup \u0434\u043B\u044F \u043E\u0431\u0435\u0438\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.`
+      `No compatible attach points: ${lower} (top) \u2192 ${upper} (bottom). Check part_lookup for both parts.`
     );
   }
   return { a: aIdx.join(","), b: bIdx.join(","), confidence: "inferred" };
@@ -23806,7 +23807,7 @@ var Craft = class _Craft {
   static parse(text2) {
     const { root, format } = parseXmlDocument(text2, "Craft");
     const assembly = childNamed(root, "Assembly");
-    if (assembly === void 0) throw new Error("\u0412 \u043A\u0440\u0430\u0444\u0442\u0435 \u043D\u0435\u0442 \u044D\u043B\u0435\u043C\u0435\u043D\u0442\u0430 <Assembly>");
+    if (assembly === void 0) throw new Error("The craft has no <Assembly> element");
     const partsNode = childNamed(assembly, "Parts");
     const parts2 = [];
     for (const node3 of partsNode ? childrenNamed(partsNode, "Part") : []) {
@@ -23818,7 +23819,7 @@ var Craft = class _Craft {
         name: node3.attrs["name"],
         position: vec(node3.attrs["position"]),
         rotation: vec(node3.attrs["rotation"]),
-        // Отсутствие атрибута означает нулевую ступень — так игра экономит место.
+        // A missing attribute means stage zero — that is how the game saves space.
         activationStage: Number(node3.attrs["activationStage"] ?? "0") || 0,
         activationGroup: node3.attrs["activationGroup"] ? Number(node3.attrs["activationGroup"]) : void 0,
         isRoot: node3.attrs["rootPart"] === "true",
@@ -23855,7 +23856,7 @@ var Craft = class _Craft {
   serialize() {
     return buildXml(this.root, this.format);
   }
-  /** Соседи детали по графу соединений — обход дерева идёт по ним. */
+  /** A part's neighbours in the connection graph — the tree walk follows them. */
   neighbours(id) {
     const out = [];
     for (const c of this.connections) {
@@ -23864,7 +23865,7 @@ var Craft = class _Craft {
     }
     return out;
   }
-  /** Детали, достижимые от корня. Всё остальное игра при загрузке отбросит. */
+  /** Parts reachable from the root. The game drops everything else on load. */
   reachableFromRoot() {
     const seen = /* @__PURE__ */ new Set();
     const start = this.rootPart ?? this.parts[0];
@@ -24009,7 +24010,7 @@ function modifiersFor(item) {
     out.push(
       node("Fuselage", {
         bottomScale: `${round6(half)},${round6(half)}`,
-        // Нос сходится в точку — верхний торец нулевой.
+        // A nose cone converges to a point — its top face is zero.
         topScale: "0,0",
         offset: fuselageOffset(item.length ?? item.diameter),
         version: "3"
@@ -24091,18 +24092,18 @@ function estimateGroupMass(partIds, stack) {
 }
 async function buildCraft(spec) {
   const warnings = [];
-  if (spec.stack.length === 0) throw new Error("\u0421\u0442\u0435\u043A \u043F\u0443\u0441\u0442: \u043D\u0443\u0436\u043D\u0430 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u0430 \u0434\u0435\u0442\u0430\u043B\u044C");
+  if (spec.stack.length === 0) throw new Error("The stack is empty: at least one part is required");
   const podIndex = spec.stack.findIndex((i) => i.kind === "pod");
   if (podIndex < 0)
     warnings.push({
       code: "no_command_pod",
-      message: "\u0412 \u0441\u0442\u0435\u043A\u0435 \u043D\u0435\u0442 \u043A\u043E\u043C\u0430\u043D\u0434\u043D\u043E\u0433\u043E \u043C\u043E\u0434\u0443\u043B\u044F \u2014 \u0430\u043F\u043F\u0430\u0440\u0430\u0442 \u0431\u0443\u0434\u0435\u0442 \u043D\u0435\u0443\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u043C\u044B\u043C."
+      message: "The stack has no command pod \u2014 the vehicle will be uncontrollable."
     });
   const rootIndex = podIndex >= 0 ? podIndex : 0;
   for (const item of spec.stack) {
     const id = partTypeOf(item);
     if (await partType(id) === void 0)
-      throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0442\u0438\u043F \u0434\u0435\u0442\u0430\u043B\u0438 \xAB${id}\xBB. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 part_lookup.`);
+      throw new Error(`Unknown part type "${id}". Check it with part_lookup.`);
   }
   const layout = [];
   const parts2 = [];
@@ -24150,13 +24151,13 @@ async function buildCraft(spec) {
       resolved = await resolveStackConnection(lower, upper);
     } catch (e) {
       throw new Error(
-        `\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0441\u0442\u044B\u043A\u043E\u0432\u0430\u0442\u044C ${lower} (\u043F\u043E\u0437\u0438\u0446\u0438\u044F ${i}) \u0441 ${upper} (\u043F\u043E\u0437\u0438\u0446\u0438\u044F ${i + 1}): ${e.message}`
+        `Could not join ${lower} (position ${i}) to ${upper} (position ${i + 1}): ${e.message}`
       );
     }
     if (resolved.confidence === "inferred")
       warnings.push({
         code: "inferred_connection",
-        message: `\u0421\u0442\u044B\u043A\u043E\u0432\u043A\u0430 ${lower} \u2192 ${upper} \u0432\u044B\u0432\u0435\u0434\u0435\u043D\u0430 \u043F\u043E \u0442\u0435\u0433\u0430\u043C, \u0430 \u043D\u0435 \u0432\u0437\u044F\u0442\u0430 \u0438\u0437 \u0433\u043E\u0442\u043E\u0432\u044B\u0445 \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u0439. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0435\u0451 \u0432 \u0440\u0435\u0434\u0430\u043A\u0442\u043E\u0440\u0435: \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E, \u0434\u0435\u0442\u0430\u043B\u0438 \u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0442\u0441\u044F \u043D\u0435 \u0442\u0430\u043A, \u043A\u0430\u043A \u0437\u0430\u0434\u0443\u043C\u0430\u043D\u043E.`
+        message: `The joint ${lower} \u2192 ${upper} was derived from tags rather than taken from existing designs. Check it in the designer: the parts may connect differently than intended.`
       });
     connections2.push(
       node("Connection", {
@@ -24184,8 +24185,8 @@ async function buildCraft(spec) {
     (partIds, i) => node("Body", {
       id: String(i + 1),
       partIds: partIds.join(","),
-      // Массу игра пересчитывает при загрузке, но ноль трактуется физикой как
-      // вырожденное тело: аппарат с нулевой массой выбрасывает при спавне.
+      // The game recomputes mass on load, but the physics treats zero as a
+      // degenerate body: a vehicle with zero mass is thrown out on spawn.
       mass: String(round6(estimateGroupMass(partIds, spec.stack))),
       position: "0,0,0",
       rotation: "0,0,0",
@@ -24203,7 +24204,7 @@ async function buildCraft(spec) {
     {
       name: spec.name,
       parent: "",
-      // Габариты и стоимость игра пересчитает; даём разумную оценку.
+      // The game recomputes bounds and price; give a sensible estimate.
       initialBoundsMin: vecStr([-maxRadius, 0, -maxRadius]),
       initialBoundsMax: vecStr([maxRadius, y, maxRadius]),
       price: "0",
@@ -24234,12 +24235,13 @@ async function buildCraft(spec) {
 
 // src/craft/summary.ts
 var fmt = (n2, digits = 1) => Number.isFinite(n2) ? n2.toFixed(digits).replace(/\.0+$/, "") : "?";
+var plural = (n2, word) => `${n2} ${word}${n2 === 1 ? "" : "s"}`;
 function engineLabel(p) {
   const nozzle = modifierAttr(p, "RocketEngine", "nozzleTypeId");
-  if (nozzle !== void 0) return `\u0440\u0430\u043A\u0435\u0442\u043D\u044B\u0439 (${nozzle})`;
-  if (p.modifiers.includes("JetEngine")) return "\u0440\u0435\u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439";
-  if (p.partType === "IonEngine1") return "\u0438\u043E\u043D\u043D\u044B\u0439";
-  return "\u0434\u0432\u0438\u0433\u0430\u0442\u0435\u043B\u044C";
+  if (nozzle !== void 0) return `rocket (${nozzle})`;
+  if (p.modifiers.includes("JetEngine")) return "jet";
+  if (p.partType === "IonEngine1") return "ion";
+  return "engine";
 }
 async function summarize(craft, sizeBytes) {
   const reachable = craft.reachableFromRoot();
@@ -24264,7 +24266,7 @@ async function summarize(craft, sizeBytes) {
     const instructions = program.children.find((c) => c.tag === "Instructions");
     flightPrograms.push({
       partId: p.id,
-      name: program.attrs["name"] ?? "(\u0431\u0435\u0437 \u0438\u043C\u0435\u043D\u0438)",
+      name: program.attrs["name"] ?? "(unnamed)",
       instructionCount: countInstructions(instructions)
     });
   }
@@ -24277,16 +24279,16 @@ async function summarize(craft, sizeBytes) {
   const warnings = [];
   if (orphans.length > 0)
     warnings.push(
-      `${orphans.length} \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u043D\u0435 \u0441\u0432\u044F\u0437\u0430\u043D\u044B \u0441 \u043A\u043E\u0440\u043D\u0435\u0432\u043E\u0439 \u2014 \u0438\u0433\u0440\u0430 \u043E\u0442\u0431\u0440\u043E\u0441\u0438\u0442 \u0438\u0445 \u043F\u0440\u0438 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0435: ${orphans.slice(0, 10).join(", ")}`
+      `${plural(orphans.length, "part")} not connected to the root \u2014 the game will drop them on load: ${orphans.slice(0, 10).join(", ")}`
     );
-  if (craft.rootPart === void 0) warnings.push('\u041D\u0438 \u043E\u0434\u043D\u0430 \u0434\u0435\u0442\u0430\u043B\u044C \u043D\u0435 \u043F\u043E\u043C\u0435\u0447\u0435\u043D\u0430 rootPart="true"');
-  if (engines.length === 0) warnings.push("\u0412 \u043A\u0440\u0430\u0444\u0442\u0435 \u043D\u0435\u0442 \u0434\u0432\u0438\u0433\u0430\u0442\u0435\u043B\u0435\u0439");
+  if (craft.rootPart === void 0) warnings.push('No part is marked rootPart="true"');
+  if (engines.length === 0) warnings.push("The craft has no engines");
   const unknown2 = [];
   for (const id of new Set(craft.parts.map((p) => p.partType)))
     if (await partType(id) === void 0) unknown2.push(id);
   if (unknown2.length > 0)
     warnings.push(
-      `\u0422\u0438\u043F\u044B \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u043E\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u044E\u0442 \u0432 \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0435 (\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E, \u0438\u0437 \u043C\u043E\u0434\u0430): ${unknown2.join(", ")}`
+      `Part types missing from the catalog (possibly from a mod): ${unknown2.join(", ")}`
     );
   return {
     name: craft.name,
@@ -24324,60 +24326,60 @@ function countInstructions(node3) {
 }
 function renderSummary(s) {
   const lines = [];
-  lines.push(`\u041A\u0440\u0430\u0444\u0442 \xAB${s.name}\xBB \u2014 ${s.partCount} \u0434\u0435\u0442\u0430\u043B\u0435\u0439, ${(s.sizeBytes / 1024).toFixed(0)} \u041A\u0411, xmlVersion=${s.xmlVersion}`);
-  if (s.rootPart !== void 0) lines.push(`\u041A\u043E\u0440\u043D\u0435\u0432\u0430\u044F \u0434\u0435\u0442\u0430\u043B\u044C: ${s.rootPart}`);
+  lines.push(`Craft "${s.name}" \u2014 ${plural(s.partCount, "part")}, ${(s.sizeBytes / 1024).toFixed(0)} KB, xmlVersion=${s.xmlVersion}`);
+  if (s.rootPart !== void 0) lines.push(`Root part: ${s.rootPart}`);
   if (s.stages.length > 0) {
-    lines.push("", "\u0421\u0442\u0443\u043F\u0435\u043D\u0438:");
+    lines.push("", "Stages:");
     for (const st of s.stages) {
-      const bits2 = [`${st.parts} \u0434\u0435\u0442.`];
-      if (st.engines > 0) bits2.push(`${st.engines} \u0434\u0432\u0438\u0433.`);
-      if (st.decouplers > 0) bits2.push(`${st.decouplers} \u043E\u0442\u0434\u0435\u043B\u0438\u0442\u0435\u043B\u044C`);
+      const bits2 = [plural(st.parts, "part")];
+      if (st.engines > 0) bits2.push(`${st.engines} eng.`);
+      if (st.decouplers > 0) bits2.push(plural(st.decouplers, "decoupler"));
       lines.push(`  ${st.stage}: ${bits2.join(", ")}`);
     }
   }
   if (s.engines.length > 0) {
-    lines.push("", `\u0414\u0432\u0438\u0433\u0430\u0442\u0435\u043B\u0438 (${s.engines.length}):`);
+    lines.push("", `Engines (${s.engines.length}):`);
     const grouped = /* @__PURE__ */ new Map();
     for (const e of s.engines) {
-      const key = `${e.type}, \u0441\u0442\u0443\u043F\u0435\u043D\u044C ${e.stage}`;
+      const key = `${e.type}, stage ${e.stage}`;
       grouped.set(key, (grouped.get(key) ?? 0) + 1);
     }
     for (const [key, n2] of grouped) lines.push(`  ${n2}\xD7 ${key}`);
   }
   if (s.fuel.tanks > 0) {
     const types = Object.entries(s.fuel.byType).map(([k, v]) => `${k}: ${fmt(v, 0)}`).join(", ");
-    lines.push("", `\u0422\u043E\u043F\u043B\u0438\u0432\u043E: ${s.fuel.tanks} \u0431\u0430\u043A\u043E\u0432, \u0432\u0441\u0435\u0433\u043E ${fmt(s.fuel.totalCapacity, 0)} (${types})`);
+    lines.push("", `Fuel: ${plural(s.fuel.tanks, "tank")}, ${fmt(s.fuel.totalCapacity, 0)} total (${types})`);
   }
   const bits = [];
-  if (s.wings > 0) bits.push(`\u043A\u0440\u044B\u043B\u044C\u0435\u0432 ${s.wings}`);
-  if (s.controlSurfaces > 0) bits.push(`\u0440\u0443\u043B\u0435\u0432\u044B\u0445 \u043F\u043E\u0432\u0435\u0440\u0445\u043D\u043E\u0441\u0442\u0435\u0439 ${s.controlSurfaces}`);
-  if (s.landingGear > 0) bits.push(`\u0448\u0430\u0441\u0441\u0438 ${s.landingGear}`);
-  if (bits.length > 0) lines.push(`\u0410\u044D\u0440\u043E\u0434\u0438\u043D\u0430\u043C\u0438\u043A\u0430: ${bits.join(", ")}`);
+  if (s.wings > 0) bits.push(`wings ${s.wings}`);
+  if (s.controlSurfaces > 0) bits.push(`control surfaces ${s.controlSurfaces}`);
+  if (s.landingGear > 0) bits.push(`landing gear ${s.landingGear}`);
+  if (bits.length > 0) lines.push(`Aerodynamics: ${bits.join(", ")}`);
   if (s.commandPods.length > 0)
     lines.push(
-      `\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0435 \u043C\u043E\u0434\u0443\u043B\u0438: ${s.commandPods.map((c) => `${c.id} (${c.partType})`).join(", ")}`
+      `Command pods: ${s.commandPods.map((c) => `${c.id} (${c.partType})`).join(", ")}`
     );
   if (s.flightPrograms.length > 0) {
-    lines.push("", "\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B \u043F\u043E\u043B\u0451\u0442\u0430:");
+    lines.push("", "Flight programs:");
     for (const fp of s.flightPrograms)
-      lines.push(`  \u0434\u0435\u0442\u0430\u043B\u044C ${fp.partId}: \xAB${fp.name}\xBB, ${fp.instructionCount} \u0431\u043B\u043E\u043A\u043E\u0432`);
+      lines.push(`  part ${fp.partId}: "${fp.name}", ${fp.instructionCount} blocks`);
   }
   if (s.warnings.length > 0) {
-    lines.push("", "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F:");
+    lines.push("", "Warnings:");
     for (const w of s.warnings) lines.push(`  ! ${w}`);
   }
   return lines.join("\n");
 }
 function renderTree(craft, maxDepth = 99, maxLines = 400) {
   const start = craft.rootPart ?? craft.parts[0];
-  if (start === void 0) return "(\u043A\u0440\u0430\u0444\u0442 \u0431\u0435\u0437 \u0434\u0435\u0442\u0430\u043B\u0435\u0439)";
+  if (start === void 0) return "(craft with no parts)";
   const lines = [];
   const seen = /* @__PURE__ */ new Set([start.id]);
   let truncated = false;
   const label = (p) => {
     const bits = [`${p.id}`, p.partType];
-    if (p.name !== void 0 && p.name !== "") bits.push(`\xAB${p.name}\xBB`);
-    if (p.activationStage > 0) bits.push(`\u0441\u0442.${p.activationStage}`);
+    if (p.name !== void 0 && p.name !== "") bits.push(`"${p.name}"`);
+    if (p.activationStage > 0) bits.push(`st.${p.activationStage}`);
     const interesting = p.modifiers.filter(
       (m) => !["Drag", "Config", "PartConnections"].includes(m)
     );
@@ -24402,11 +24404,11 @@ function renderTree(craft, maxDepth = 99, maxLines = 400) {
   walk(start, 0, "");
   const orphans = craft.parts.filter((p) => !seen.has(p.id));
   if (orphans.length > 0) {
-    lines.push("", `\u041D\u0435 \u0441\u0432\u044F\u0437\u0430\u043D\u044B \u0441 \u043A\u043E\u0440\u043D\u0435\u043C (${orphans.length}):`);
+    lines.push("", `Not connected to the root (${orphans.length}):`);
     for (const p of orphans.slice(0, 20)) lines.push(`  ${label(p)}`);
-    if (orphans.length > 20) lines.push(`  \u2026 \u0435\u0449\u0451 ${orphans.length - 20}`);
+    if (orphans.length > 20) lines.push(`  \u2026 ${orphans.length - 20} more`);
   }
-  if (truncated) lines.push("", `\u2026 \u0432\u044B\u0432\u043E\u0434 \u043E\u0431\u0440\u0435\u0437\u0430\u043D \u043D\u0430 ${maxLines} \u0441\u0442\u0440\u043E\u043A\u0430\u0445`);
+  if (truncated) lines.push("", `\u2026 output truncated at ${maxLines} lines`);
   return lines.join("\n");
 }
 
@@ -24414,57 +24416,57 @@ function renderTree(craft, maxDepth = 99, maxLines = 400) {
 var n = (name) => ({ name, kind: "number" });
 var any = (name) => ({ name, kind: "any" });
 var INSTRUCTIONS = {
-  "wait-seconds": { tag: "WaitSeconds", style: "wait-seconds", args: [n("\u0441\u0435\u043A\u0443\u043D\u0434\u044B")] },
-  "wait-until": { tag: "WaitUntil", style: "wait-until", args: [any("\u0443\u0441\u043B\u043E\u0432\u0438\u0435")] },
+  "wait-seconds": { tag: "WaitSeconds", style: "wait-seconds", args: [n("seconds")] },
+  "wait-until": { tag: "WaitUntil", style: "wait-until", args: [any("condition")] },
   stage: { tag: "ActivateStage", style: "activate-stage", args: [] },
   display: {
     tag: "DisplayMessage",
     style: "display",
-    args: [any("\u0442\u0435\u043A\u0441\u0442"), n("\u0441\u0435\u043A\u0443\u043D\u0434\u044B")]
+    args: [any("text"), n("seconds")]
   },
   "set-input": {
     tag: "SetInput",
     style: "set-input",
-    args: [any("\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435")],
+    args: [any("value")],
     namedAttrs: ["input"]
   },
   "set-var": {
     tag: "SetVariable",
     style: "set-variable",
-    args: [any("\u0438\u043C\u044F"), any("\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435")]
+    args: [any("name"), any("value")]
   },
   "change-var": {
     tag: "ChangeVariable",
     style: "change-variable",
-    args: [any("\u0438\u043C\u044F"), any("\u0434\u0435\u043B\u044C\u0442\u0430")]
+    args: [any("name"), any("delta")]
   },
   "set-activation-group": {
     tag: "SetActivationGroup",
     style: "set-activation-group",
-    args: [n("\u0433\u0440\u0443\u043F\u043F\u0430"), any("\u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435")]
+    args: [n("group"), any("state")]
   },
   "set-craft-property": {
     tag: "SetCraftProperty",
     style: "set-craft-property",
-    args: [any("\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435")],
+    args: [any("value")],
     namedAttrs: ["property"]
   },
-  "set-target": { tag: "SetTarget", style: "set-target", args: [any("\u0446\u0435\u043B\u044C")] },
-  "lock-nav": { tag: "LockNavSphere", style: "lock-nav-sphere", args: [any("\u043D\u0430\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435")] },
+  "set-target": { tag: "SetTarget", style: "set-target", args: [any("target")] },
+  "lock-nav": { tag: "LockNavSphere", style: "lock-nav-sphere", args: [any("direction")] },
   broadcast: {
     tag: "BroadcastMessage",
     style: "broadcast-msg",
-    args: [any("\u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435"), any("\u0434\u0430\u043D\u043D\u044B\u0435")]
+    args: [any("message"), any("data")]
   },
-  comment: { tag: "Comment", style: "comment", args: [any("\u0442\u0435\u043A\u0441\u0442")] },
-  if: { tag: "If", style: "if", args: [any("\u0443\u0441\u043B\u043E\u0432\u0438\u0435")], body: true },
-  "if-else": { tag: "If", style: "if-else", args: [any("\u0443\u0441\u043B\u043E\u0432\u0438\u0435")], body: true, elseBody: true },
-  while: { tag: "While", style: "while", args: [any("\u0443\u0441\u043B\u043E\u0432\u0438\u0435")], body: true },
-  repeat: { tag: "Repeat", style: "repeat", args: [n("\u0440\u0430\u0437")], body: true },
+  comment: { tag: "Comment", style: "comment", args: [any("text")] },
+  if: { tag: "If", style: "if", args: [any("condition")], body: true },
+  "if-else": { tag: "If", style: "if-else", args: [any("condition")], body: true, elseBody: true },
+  while: { tag: "While", style: "while", args: [any("condition")], body: true },
+  repeat: { tag: "Repeat", style: "repeat", args: [n("times")], body: true },
   for: {
     tag: "For",
     style: "for",
-    args: [any("\u043E\u0442"), any("\u0434\u043E"), any("\u0448\u0430\u0433")],
+    args: [any("from"), any("to"), any("step")],
     body: true,
     namedAttrs: ["var"]
   },
@@ -24477,7 +24479,7 @@ var INSTRUCTIONS = {
   }
 };
 var EXPRESSIONS = {
-  // Арифметика
+  // Arithmetic
   "+": { tag: "BinaryOp", style: "op-add", args: [any("a"), any("b")], fixedAttrs: { op: "+" } },
   "-": { tag: "BinaryOp", style: "op-sub", args: [any("a"), any("b")], fixedAttrs: { op: "-" } },
   "*": { tag: "BinaryOp", style: "op-mul", args: [any("a"), any("b")], fixedAttrs: { op: "*" } },
@@ -24488,26 +24490,26 @@ var EXPRESSIONS = {
   rand: {
     tag: "BinaryOp",
     style: "op-rand",
-    args: [any("\u043E\u0442"), any("\u0434\u043E")],
+    args: [any("from"), any("to")],
     fixedAttrs: { op: "rand" }
   },
-  // Сравнения. Vizzy кодирует их односимвольно: = g l.
+  // Comparisons. Vizzy encodes them as single characters: = g l.
   "=": { tag: "Comparison", style: "op-eq", args: [any("a"), any("b")], fixedAttrs: { op: "=" } },
   ">": { tag: "Comparison", style: "op-gt", args: [any("a"), any("b")], fixedAttrs: { op: "g" } },
   "<": { tag: "Comparison", style: "op-lt", args: [any("a"), any("b")], fixedAttrs: { op: "l" } },
   and: { tag: "BoolOp", style: "op-and", args: [any("a"), any("b")], fixedAttrs: { op: "and" } },
   or: { tag: "BoolOp", style: "op-or", args: [any("a"), any("b")], fixedAttrs: { op: "or" } },
-  not: { tag: "Not", style: "op-not", args: [any("\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435")] },
+  not: { tag: "Not", style: "op-not", args: [any("value")] },
   cond: {
     tag: "Conditional",
     style: "conditional",
-    args: [any("\u0443\u0441\u043B\u043E\u0432\u0438\u0435"), any("\u0442\u043E\u0433\u0434\u0430"), any("\u0438\u043D\u0430\u0447\u0435")]
+    args: [any("condition"), any("then"), any("else")]
   },
   join: { tag: "StringOp", style: "join", args: [any("a"), any("b")], fixedAttrs: { op: "join" } },
   contains: {
     tag: "StringOp",
     style: "contains",
-    args: [any("\u0441\u0442\u0440\u043E\u043A\u0430"), any("\u043F\u043E\u0434\u0441\u0442\u0440\u043E\u043A\u0430")],
+    args: [any("string"), any("substring")],
     fixedAttrs: { op: "contains" }
   },
   vector: { tag: "Vector", style: "vector", args: [n("x"), n("y"), n("z")] }
@@ -24532,7 +24534,7 @@ function mathFunctionSpec(fn) {
   return {
     tag: "MathFunction",
     style: `math-${fn}`,
-    args: [any("\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435")],
+    args: [any("value")],
     fixedAttrs: { function: fn }
   };
 }
@@ -24580,7 +24582,7 @@ var node2 = (tag, attrs = {}, children = []) => ({
   children
 });
 function numText(v) {
-  if (!Number.isFinite(v)) throw new Error(`\u041D\u0435\u0447\u0438\u0441\u043B\u043E\u0432\u043E\u0435 \u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435: ${v}`);
+  if (!Number.isFinite(v)) throw new Error(`Non-numeric value: ${v}`);
   return Number.isInteger(v) ? String(v) : String(v);
 }
 var Compiler = class {
@@ -24590,7 +24592,7 @@ var Compiler = class {
   nextId = 0;
   topY = -20;
   TOP_SPACING = 60;
-  /** Выражения не нумеруются — это правило проверено на стоковых программах. */
+  /** Expressions are not numbered — a rule verified against stock programs. */
   expr(e, path) {
     if (typeof e === "number") return node2("Constant", { number: numText(e) });
     if (typeof e === "boolean") return node2("Constant", { bool: String(e) });
@@ -24600,26 +24602,26 @@ var Compiler = class {
       return node2("Constant", { text: e });
     }
     if (!Array.isArray(e) || e.length === 0)
-      throw new CompileError(`\u041F\u0443\u0441\u0442\u043E\u0435 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435`, path);
+      throw new CompileError(`Empty expression`, path);
     const [op, ...args] = e;
     if (typeof op !== "string")
-      throw new CompileError(`\u041E\u043F\u0435\u0440\u0430\u0442\u043E\u0440 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u0441\u0442\u0440\u043E\u043A\u043E\u0439`, path);
+      throw new CompileError(`An expression operator must be a string`, path);
     if (op === "var") {
       const name = args[0];
       if (typeof name !== "string")
-        throw new CompileError(`var \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0438\u043C\u044F \u043F\u0435\u0440\u0435\u043C\u0435\u043D\u043D\u043E\u0439`, path);
+        throw new CompileError(`var requires a variable name`, path);
       return node2("Variable", { list: "false", local: "true", variableName: name });
     }
     if (op === "prop") {
       const property = args[0];
       if (typeof property !== "string")
-        throw new CompileError(`prop \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0438\u043C\u044F \u0441\u0432\u043E\u0439\u0441\u0442\u0432\u0430`, path);
+        throw new CompileError(`prop requires a property name`, path);
       if (!this.craftProperties.has(property)) {
         const near = suggest(property, [...this.craftProperties]);
         throw new CompileError(
-          `\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u043E\u0435 \u0441\u0432\u043E\u0439\u0441\u0442\u0432\u043E \u043A\u0440\u0430\u0444\u0442\u0430 \xAB${property}\xBB`,
+          `Unknown craft property "${property}"`,
           path,
-          near.length > 0 ? `\u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E: ${near.join(", ")}` : `\u0421\u043F\u0438\u0441\u043E\u043A \u0441\u0432\u043E\u0439\u0441\u0442\u0432 \u2014 \u0432 \u0441\u043F\u0440\u0430\u0432\u043E\u0447\u043D\u0438\u043A\u0435 vizzy-blocks.`
+          near.length > 0 ? `Did you mean: ${near.join(", ")}` : `The list of properties is in the vizzy-blocks reference.`
         );
       }
       return node2("CraftProperty", { property, style: this.propStyle(property) });
@@ -24630,9 +24632,9 @@ var Compiler = class {
     if (spec === void 0) {
       const near = suggest(op, [...Object.keys(EXPRESSIONS), ...MATH_FUNCTIONS, "var", "prop"]);
       throw new CompileError(
-        `\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u044F \xAB${op}\xBB`,
+        `Unknown operation "${op}"`,
         path,
-        near.length > 0 ? `\u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E: ${near.join(", ")}` : void 0
+        near.length > 0 ? `Did you mean: ${near.join(", ")}` : void 0
       );
     }
     return this.applySpec(spec, args, path, op);
@@ -24640,9 +24642,9 @@ var Compiler = class {
   applySpec(spec, args, path, op) {
     if (args.length !== spec.args.length)
       throw new CompileError(
-        `\xAB${op}\xBB \u043E\u0436\u0438\u0434\u0430\u0435\u0442 ${spec.args.length} \u0430\u0440\u0433\u0443\u043C\u0435\u043D\u0442(\u043E\u0432), \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u043E ${args.length}`,
+        `"${op}" expects ${spec.args.length} argument(s), got ${args.length}`,
         path,
-        `\u0410\u0440\u0433\u0443\u043C\u0435\u043D\u0442\u044B: ${spec.args.map((a) => a.name).join(", ")}`
+        `Arguments: ${spec.args.map((a) => a.name).join(", ")}`
       );
     const attrs = { ...spec.fixedAttrs };
     if (spec.style !== "") attrs["style"] = spec.style;
@@ -24658,17 +24660,17 @@ var Compiler = class {
   }
   stmt(s, path, top) {
     if (!Array.isArray(s) || s.length === 0)
-      throw new CompileError(`\u041F\u0443\u0441\u0442\u0430\u044F \u0438\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044F`, path);
+      throw new CompileError(`Empty instruction`, path);
     const [op, ...rest] = s;
     if (typeof op !== "string")
-      throw new CompileError(`\u0418\u043C\u044F \u0438\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u0438 \u0434\u043E\u043B\u0436\u043D\u043E \u0431\u044B\u0442\u044C \u0441\u0442\u0440\u043E\u043A\u043E\u0439`, path);
+      throw new CompileError(`An instruction name must be a string`, path);
     const spec = INSTRUCTIONS[op];
     if (spec === void 0) {
       const near = suggest(op, Object.keys(INSTRUCTIONS));
       throw new CompileError(
-        `\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u0430\u044F \u0438\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044F \xAB${op}\xBB`,
+        `Unknown instruction "${op}"`,
         path,
-        near.length > 0 ? `\u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E: ${near.join(", ")}` : void 0
+        near.length > 0 ? `Did you mean: ${near.join(", ")}` : void 0
       );
     }
     const attrs = { ...spec.fixedAttrs };
@@ -24678,9 +24680,9 @@ var Compiler = class {
       const value = positional.shift();
       if (typeof value !== "string" && typeof value !== "number")
         throw new CompileError(
-          `\xAB${op}\xBB \u0442\u0440\u0435\u0431\u0443\u0435\u0442 ${attrName} \u043F\u0435\u0440\u0432\u044B\u043C \u0430\u0440\u0433\u0443\u043C\u0435\u043D\u0442\u043E\u043C`,
+          `"${op}" requires ${attrName} as its first argument`,
           path,
-          `\u041D\u0430\u043F\u0440\u0438\u043C\u0435\u0440: ["${op}", "${attrName === "input" ? "throttle" : "\u0438\u043C\u044F"}", \u2026]`
+          `For example: ["${op}", "${attrName === "input" ? "throttle" : "name"}", \u2026]`
         );
       attrs[attrName] = String(value);
     }
@@ -24690,14 +24692,14 @@ var Compiler = class {
     if (spec.body === true) {
       const last = positional.pop();
       if (!Array.isArray(last))
-        throw new CompileError(`\xAB${op}\xBB \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0442\u0435\u043B\u043E \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u043C \u0430\u0440\u0433\u0443\u043C\u0435\u043D\u0442\u043E\u043C (\u043C\u0430\u0441\u0441\u0438\u0432 \u0438\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u0439)`, path);
+        throw new CompileError(`"${op}" requires a body as its last argument (an array of instructions)`, path);
       body = last;
     }
     if (positional.length !== spec.args.length)
       throw new CompileError(
-        `\xAB${op}\xBB \u043E\u0436\u0438\u0434\u0430\u0435\u0442 ${spec.args.length} \u0430\u0440\u0433\u0443\u043C\u0435\u043D\u0442(\u043E\u0432) \u0434\u043E \u0442\u0435\u043B\u0430, \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u043E ${positional.length}`,
+        `"${op}" expects ${spec.args.length} argument(s) before the body, got ${positional.length}`,
         path,
-        `\u0410\u0440\u0433\u0443\u043C\u0435\u043D\u0442\u044B: ${spec.args.map((a) => a.name).join(", ")}`
+        `Arguments: ${spec.args.map((a) => a.name).join(", ")}`
       );
     attrs["id"] = String(this.nextId++);
     attrs["style"] = spec.style;
@@ -24747,18 +24749,18 @@ var Compiler = class {
     const events = Object.entries(program.on);
     if (events.length === 0)
       throw new CompileError(
-        `\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0430 \u043D\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442 \u043D\u0438 \u043E\u0434\u043D\u043E\u0433\u043E \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0447\u0438\u043A\u0430 \u0441\u043E\u0431\u044B\u0442\u0438\u044F`,
+        `The program contains no event handlers at all`,
         "on",
-        `\u0414\u043E\u0431\u0430\u0432\u044C\u0442\u0435 \u0445\u043E\u0442\u044F \u0431\u044B { "on": { "FlightStart": [...] } }`
+        `Add at least { "on": { "FlightStart": [...] } }`
       );
     for (const [eventName, body] of events) {
       const style = EVENTS[eventName];
       if (style === void 0) {
         const near = suggest(eventName, Object.keys(EVENTS));
         throw new CompileError(
-          `\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u043E\u0435 \u0441\u043E\u0431\u044B\u0442\u0438\u0435 \xAB${eventName}\xBB`,
+          `Unknown event "${eventName}"`,
           `on.${eventName}`,
-          `\u0414\u043E\u0441\u0442\u0443\u043F\u043D\u044B: ${Object.keys(EVENTS).join(", ")}${near.length > 0 ? `. \u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E: ${near[0]}` : ""}`
+          `Available: ${Object.keys(EVENTS).join(", ")}${near.length > 0 ? `. Did you mean: ${near[0]}` : ""}`
         );
       }
       instructions.push(
@@ -24871,7 +24873,7 @@ function decompileProgram(program) {
     }
     (current ?? orphans).push(decompileStmt(child));
   }
-  if (orphans.length > 0) on["(\u0431\u0435\u0437 \u0441\u043E\u0431\u044B\u0442\u0438\u044F)"] = orphans;
+  if (orphans.length > 0) on["(no event)"] = orphans;
   const result = { name: program.attrs["name"] ?? "", on };
   if (variables.length > 0) result.variables = variables;
   if (program.attrs["requiresMfd"] === "true") result.requiresMfd = true;
@@ -24884,13 +24886,13 @@ var text = (s) => ({ content: [{ type: "text", text: s }] });
 var fail = (e) => {
   if (e instanceof ToolError)
     return text(
-      `\u041E\u0448\u0438\u0431\u043A\u0430 (${e.code}): ${e.message}` + (Object.keys(e.details).length > 0 ? `
+      `Error (${e.code}): ${e.message}` + (Object.keys(e.details).length > 0 ? `
 ${JSON.stringify(e.details, null, 2)}` : "")
     );
   if (e instanceof CompileError)
-    return text(`\u041E\u0448\u0438\u0431\u043A\u0430 \u043A\u043E\u043C\u043F\u0438\u043B\u044F\u0446\u0438\u0438 \u0432 ${e.path}: ${e.message}` + (e.hint ? `
+    return text(`Compile error at ${e.path}: ${e.message}` + (e.hint ? `
 ${e.hint}` : ""));
-  return text(`\u041E\u0448\u0438\u0431\u043A\u0430: ${e.message}`);
+  return text(`Error: ${e.message}`);
 };
 var guard = (fn) => async (args) => {
   try {
@@ -24899,41 +24901,41 @@ var guard = (fn) => async (args) => {
     return fail(e);
   }
 };
-var craftPath = async (name) => join4((await gamePaths()).craftDesigns, `${assertSafeName(name, "\u0418\u043C\u044F \u043A\u0440\u0430\u0444\u0442\u0430")}.xml`);
+var craftPath = async (name) => join4((await gamePaths()).craftDesigns, `${assertSafeName(name, "Craft name")}.xml`);
 server.registerTool(
   "game_state",
   {
-    title: "\u0421\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u0438\u0433\u0440\u044B",
-    description: "\u041F\u0440\u043E\u0432\u0435\u0440\u044F\u0435\u0442 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443 Juno: New Origins, \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 \u043B\u0438 \u0438\u0433\u0440\u0430, \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435 \u0438 \u043A\u043B\u044E\u0447\u0435\u0432\u044B\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438. \u0412\u044B\u0437\u044B\u0432\u0430\u0439\u0442\u0435 \u043F\u0435\u0440\u0435\u0434 \u043B\u044E\u0431\u043E\u0439 \u0437\u0430\u043F\u0438\u0441\u044C\u044E: \u043F\u0438\u0441\u0430\u0442\u044C \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u043D\u043E\u0439 \u0438\u0433\u0440\u0435 \u043D\u0435\u043B\u044C\u0437\u044F.",
+    title: "Game state",
+    description: "Checks the Juno: New Origins installation, whether the game is running, the active save and key settings. Call this before any write: writing while the game is running is not allowed.",
     inputSchema: {}
   },
   guard(async () => {
     const s = await gameStatus();
     const lines = [
-      s.installed ? `\u0418\u0433\u0440\u0430 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430, \u0432\u0435\u0440\u0441\u0438\u044F ${s.gameVersion} (Unity ${s.unityVersion})` : "\u0418\u0433\u0440\u0430 \u041D\u0415 \u043D\u0430\u0439\u0434\u0435\u043D\u0430",
-      s.running ? `\u0417\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${s.pid}) \u2014 \u0437\u0430\u043F\u0438\u0441\u044C \u0437\u0430\u043F\u0440\u0435\u0449\u0435\u043D\u0430` : "\u041D\u0435 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 \u2014 \u0437\u0430\u043F\u0438\u0441\u044C \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0430"
+      s.installed ? `Game installed, version ${s.gameVersion} (Unity ${s.unityVersion})` : "Game NOT found",
+      s.running ? `Running (pid ${s.pid}) \u2014 writing is blocked` : "Not running \u2014 writing is allowed"
     ];
-    if (s.craftCount !== void 0) lines.push(`\u041A\u0440\u0430\u0444\u0442\u043E\u0432 \u0432 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0438: ${s.craftCount}`);
-    if (s.activeGameStateId !== void 0) lines.push(`\u0410\u043A\u0442\u0438\u0432\u043D\u043E\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435: ${s.activeGameStateId}`);
+    if (s.craftCount !== void 0) lines.push(`Crafts in the save: ${s.craftCount}`);
+    if (s.activeGameStateId !== void 0) lines.push(`Active save: ${s.activeGameStateId}`);
     if (s.optimizeCraftXML !== void 0)
       lines.push(
-        `optimizeCraftXML: ${s.optimizeCraftXML} ${s.optimizeCraftXML ? "(\u0438\u0433\u0440\u0430 \u043C\u0438\u043D\u0438\u0444\u0438\u0446\u0438\u0440\u0443\u0435\u0442 \u043A\u0440\u0430\u0444\u0442\u044B; \u0434\u043B\u044F \u0441\u0432\u0435\u0440\u043A\u0438 \u0434\u0438\u0444\u0444\u043E\u0432 \u0432\u044B\u043A\u043B\u044E\u0447\u0438\u0442\u0435)" : ""}`
+        `optimizeCraftXML: ${s.optimizeCraftXML} ${s.optimizeCraftXML ? "(the game minifies crafts; turn this off to compare diffs)" : ""}`
       );
-    if (s.modSupportEnabled !== void 0) lines.push(`\u041F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0430 \u043C\u043E\u0434\u043E\u0432: ${s.modSupportEnabled}`);
+    if (s.modSupportEnabled !== void 0) lines.push(`Mod support: ${s.modSupportEnabled}`);
     lines.push(
-      s.installedMods.length > 0 ? `\u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0435 \u043C\u043E\u0434\u044B: ${s.installedMods.join(", ")}` : "\u041C\u043E\u0434\u044B \u043D\u0435 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u044B \u2014 \u043C\u043E\u0441\u0442 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D, \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u043C \u0447\u0435\u0440\u0435\u0437 \u0444\u0430\u0439\u043B\u044B"
+      s.installedMods.length > 0 ? `Installed mods: ${s.installedMods.join(", ")}` : "No mods installed \u2014 the bridge is unavailable, working through files"
     );
-    if (s.logLastWrite !== void 0) lines.push(`Player.log \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D: ${s.logLastWrite}`);
-    if (s.warnings.length > 0) lines.push("", "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F:", ...s.warnings.map((w) => `  ! ${w}`));
+    if (s.logLastWrite !== void 0) lines.push(`Player.log last written: ${s.logLastWrite}`);
+    if (s.warnings.length > 0) lines.push("", "Warnings:", ...s.warnings.map((w) => `  ! ${w}`));
     return text(lines.join("\n"));
   })
 );
 server.registerTool(
   "craft_list",
   {
-    title: "\u0421\u043F\u0438\u0441\u043E\u043A \u043A\u0440\u0430\u0444\u0442\u043E\u0432",
-    description: "\u041F\u0435\u0440\u0435\u0447\u0438\u0441\u043B\u044F\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u0438 \u0441 \u0440\u0430\u0437\u043C\u0435\u0440\u043E\u043C \u0438 \u0447\u0438\u0441\u043B\u043E\u043C \u0434\u0435\u0442\u0430\u043B\u0435\u0439.",
-    inputSchema: { pattern: external_exports.string().optional().describe("\u041F\u043E\u0434\u0441\u0442\u0440\u043E\u043A\u0430 \u0434\u043B\u044F \u0444\u0438\u043B\u044C\u0442\u0440\u0430 \u043F\u043E \u0438\u043C\u0435\u043D\u0438") }
+    title: "List crafts",
+    description: "Lists saved designs with their size and part count.",
+    inputSchema: { pattern: external_exports.string().optional().describe("Substring to filter names by") }
   },
   guard(async ({ pattern }) => {
     const p = await gamePaths();
@@ -24948,11 +24950,11 @@ server.registerTool(
       const st = await stat3(full);
       const partCount = (await readFile5(full, "utf8")).split("<Part ").length - 1;
       rows.push(
-        `  ${name.padEnd(40)} ${String(partCount).padStart(4)} \u0434\u0435\u0442.  ${(st.size / 1024).toFixed(0).padStart(5)} \u041A\u0411`
+        `  ${name.padEnd(40)} ${String(partCount).padStart(4)} parts  ${(st.size / 1024).toFixed(0).padStart(5)} KB`
       );
     }
-    return text(rows.length > 0 ? `\u041A\u0440\u0430\u0444\u0442\u044B (${rows.length}):
-${rows.join("\n")}` : "\u041A\u0440\u0430\u0444\u0442\u043E\u0432 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E");
+    return text(rows.length > 0 ? `Crafts (${rows.length}):
+${rows.join("\n")}` : "No crafts found");
   })
 );
 var MAX_XML_PARTS = 50;
@@ -24960,13 +24962,13 @@ var MAX_XML_BYTES = 2e5;
 server.registerTool(
   "craft_read",
   {
-    title: "\u041F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u043A\u0440\u0430\u0444\u0442",
-    description: "\u0427\u0438\u0442\u0430\u0435\u0442 \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044E. \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u043E\u0442\u0434\u0430\u0451\u0442 \u0441\u0432\u043E\u0434\u043A\u0443: \u0441\u0442\u0443\u043F\u0435\u043D\u0438, \u0434\u0432\u0438\u0433\u0430\u0442\u0435\u043B\u0438, \u0442\u043E\u043F\u043B\u0438\u0432\u043E, \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B \u043F\u043E\u043B\u0451\u0442\u0430. \u0420\u0435\u0436\u0438\u043C tree \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u0434\u0435\u0440\u0435\u0432\u043E \u0434\u0435\u0442\u0430\u043B\u0435\u0439, xml \u2014 \u0441\u044B\u0440\u043E\u0439 XML \u0442\u043E\u043B\u044C\u043A\u043E \u0434\u043B\u044F \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439 (\u043A\u0440\u0430\u0444\u0442\u044B \u0434\u043E\u0445\u043E\u0434\u044F\u0442 \u0434\u043E 2 \u041C\u0411, \u043F\u043E\u044D\u0442\u043E\u043C\u0443 \u0446\u0435\u043B\u0438\u043A\u043E\u043C XML \u043D\u0435 \u043E\u0442\u0434\u0430\u0451\u0442\u0441\u044F \u043D\u0438\u043A\u043E\u0433\u0434\u0430).",
+    title: "Read a craft",
+    description: "Reads a design. By default returns a summary: stages, engines, fuel, flight programs. Mode tree shows the part tree, xml returns raw XML for the listed parts only (crafts reach 2 MB, so the full XML is never returned).",
     inputSchema: {
-      name: external_exports.string().describe("\u0418\u043C\u044F \u043A\u0440\u0430\u0444\u0442\u0430 \u0431\u0435\u0437 .xml"),
+      name: external_exports.string().describe("Craft name without .xml"),
       mode: external_exports.enum(["summary", "tree", "xml"]).default("summary"),
-      part_ids: external_exports.array(external_exports.number()).optional().describe("\u041E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u0435\u043D \u0434\u043B\u044F mode=xml"),
-      max_depth: external_exports.number().optional().describe("\u0413\u043B\u0443\u0431\u0438\u043D\u0430 \u0434\u0435\u0440\u0435\u0432\u0430 \u0434\u043B\u044F mode=tree")
+      part_ids: external_exports.array(external_exports.number()).optional().describe("Required for mode=xml"),
+      max_depth: external_exports.number().optional().describe("Tree depth for mode=tree")
     }
   },
   guard(
@@ -24984,13 +24986,13 @@ server.registerTool(
       if (part_ids === void 0 || part_ids.length === 0)
         throw new ToolError(
           "part_ids_required",
-          "\u0414\u043B\u044F mode=xml \u043D\u0443\u0436\u043D\u043E \u0443\u043A\u0430\u0437\u0430\u0442\u044C part_ids. \u041D\u0430\u0439\u0434\u0438\u0442\u0435 \u043D\u0443\u0436\u043D\u044B\u0435 \u0434\u0435\u0442\u0430\u043B\u0438 \u0447\u0435\u0440\u0435\u0437 mode=tree \u0438\u043B\u0438 mode=summary.",
+          "mode=xml requires part_ids. Find the parts you need via mode=tree or mode=summary.",
           { partCount: craft.parts.length }
         );
       if (part_ids.length > MAX_XML_PARTS)
         throw new ToolError(
           "too_many_parts",
-          `\u0417\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043E ${part_ids.length} \u0434\u0435\u0442\u0430\u043B\u0435\u0439, \u043C\u0430\u043A\u0441\u0438\u043C\u0443\u043C ${MAX_XML_PARTS}.`,
+          `Requested ${part_ids.length} parts, the maximum is ${MAX_XML_PARTS}.`,
           {}
         );
       const chunks = [];
@@ -25008,8 +25010,8 @@ server.registerTool(
           chunks.push(buildXml(c.node, { ...GAME_FORMAT, declaration: false, bom: false }));
       let out = chunks.join("\n");
       if (out.length > MAX_XML_BYTES) out = `${out.slice(0, MAX_XML_BYTES)}
-\u2026 \u043E\u0431\u0440\u0435\u0437\u0430\u043D\u043E`;
-      if (missing.length > 0) out = `(\u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u043D\u0435\u0442 \u0432 \u043A\u0440\u0430\u0444\u0442\u0435: ${missing.join(", ")})
+\u2026 truncated`;
+      if (missing.length > 0) out = `(parts not present in the craft: ${missing.join(", ")})
 ${out}`;
       return text(out);
     }
@@ -25018,18 +25020,18 @@ ${out}`;
 server.registerTool(
   "craft_build",
   {
-    title: "\u0421\u043E\u0431\u0440\u0430\u0442\u044C \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044E",
-    description: "\u0421\u043E\u0431\u0438\u0440\u0430\u0435\u0442 \u0430\u043F\u043F\u0430\u0440\u0430\u0442 \u0438\u0437 \u0434\u0435\u043A\u043B\u0430\u0440\u0430\u0442\u0438\u0432\u043D\u043E\u0439 \u0441\u043F\u0435\u0446\u0438\u0444\u0438\u043A\u0430\u0446\u0438\u0438: \u0441\u0442\u0435\u043A \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0441\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445. \u0421\u0430\u043C \u0441\u0447\u0438\u0442\u0430\u0435\u0442 \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u044B, \u043F\u043E\u0434\u0431\u0438\u0440\u0430\u0435\u0442 \u0442\u043E\u0447\u043A\u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F \u043F\u043E \u0434\u043E\u0431\u044B\u0442\u044B\u043C \u0440\u0435\u0446\u0435\u043F\u0442\u0430\u043C, \u0432\u044B\u0447\u0438\u0441\u043B\u044F\u0435\u0442 \u0451\u043C\u043A\u043E\u0441\u0442\u044C \u0431\u0430\u043A\u043E\u0432 \u0438 \u0440\u0430\u0437\u0431\u0438\u0432\u0430\u0435\u0442 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0430 \u0444\u0438\u0437\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0442\u0435\u043B\u0430 \u043F\u043E \u043E\u0442\u0434\u0435\u043B\u0438\u0442\u0435\u043B\u044F\u043C. \u0412\u0438\u0434\u044B \u044D\u043B\u0435\u043C\u0435\u043D\u0442\u043E\u0432: pod, tank, engine, decoupler, nosecone, parachute, raw.",
+    title: "Build a design",
+    description: "Builds a vehicle from a declarative spec: a stack of parts from the bottom up. It works out the coordinates itself, picks attach points from mined recipes, computes tank capacity and splits parts into physical bodies at the decouplers. Item kinds: pod, tank, engine, decoupler, nosecone, parachute, raw.",
     inputSchema: {
       spec: external_exports.object({
         name: external_exports.string(),
         type: external_exports.enum(["rocket", "plane"]).optional(),
-        stack: external_exports.array(external_exports.any()).describe("\u0421\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445: \u044D\u043B\u0435\u043C\u0435\u043D\u0442 0 \u0441\u0442\u043E\u0438\u0442 \u043D\u0430 \u043F\u043B\u043E\u0449\u0430\u0434\u043A\u0435"),
+        stack: external_exports.array(external_exports.any()).describe("Bottom-up: item 0 sits on the launch pad"),
         activation_groups: external_exports.array(external_exports.string()).optional()
       }).describe(
-        '\u041F\u0440\u0438\u043C\u0435\u0440: { "name":"\u0417\u043E\u043D\u0434", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, {"kind":"tank","length":5,"diameter":2}, {"kind":"pod"}, {"kind":"parachute","stage":1} ] }'
+        'Example: { "name":"Probe", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, {"kind":"tank","length":5,"diameter":2}, {"kind":"pod"}, {"kind":"parachute","stage":1} ] }'
       ),
-      dry_run: external_exports.boolean().optional().describe("\u0422\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442, \u043D\u0435 \u0437\u0430\u043F\u0438\u0441\u044B\u0432\u0430\u044F"),
+      dry_run: external_exports.boolean().optional().describe("Only show the result, without writing"),
       force: external_exports.boolean().optional()
     }
   },
@@ -25041,22 +25043,22 @@ server.registerTool(
     }) => {
       const result = await buildCraft(spec);
       const lines = [
-        `\u0421\u043E\u0431\u0440\u0430\u043D\u043E: \xAB${spec.name}\xBB, ${result.partCount} \u0434\u0435\u0442\u0430\u043B\u0435\u0439`,
+        `Built: "${spec.name}", ${result.partCount} parts`,
         "",
-        "\u0420\u0430\u0441\u043A\u043B\u0430\u0434\u043A\u0430 (\u0441\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445, \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u0430 \u0446\u0435\u043D\u0442\u0440\u0430 \u043F\u043E Y):",
+        "Layout (bottom-up, Y coordinate of the centre):",
         ...result.layout.map(
-          (l) => `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  \u0441\u0442\u0443\u043F\u0435\u043D\u044C ${l.stage}` : ""}`
+          (l) => `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  stage ${l.stage}` : ""}`
         )
       ];
       if (result.warnings.length > 0)
-        lines.push("", "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F:", ...result.warnings.map((w) => `  ! ${w.message}`));
+        lines.push("", "Warnings:", ...result.warnings.map((w) => `  ! ${w.message}`));
       if (dry_run === true) {
         lines.push("", "--- XML ---", result.xml.replace(/\r/g, ""));
         return text(lines.join("\n"));
       }
       const path = await craftPath(spec.name);
       const snap = await guardedWrite("craft_build", path, result.xml, { force });
-      lines.push("", `\u0417\u0430\u043F\u0438\u0441\u0430\u043D\u043E: ${path}`, `\u0421\u043D\u0438\u043C\u043E\u043A \u0434\u043B\u044F \u043E\u0442\u043A\u0430\u0442\u0430: ${snap.id}`);
+      lines.push("", `Written: ${path}`, `Snapshot to roll back to: ${snap.id}`);
       return text(lines.join("\n"));
     }
   )
@@ -25064,11 +25066,11 @@ server.registerTool(
 server.registerTool(
   "part_lookup",
   {
-    title: "\u0421\u043F\u0440\u0430\u0432\u043A\u0430 \u043F\u043E \u0434\u0435\u0442\u0430\u043B\u044F\u043C",
-    description: "\u0418\u0449\u0435\u0442 \u0442\u0438\u043F\u044B \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0438 \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0442\u043E\u0447\u043A\u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F, \u043C\u043E\u0434\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440\u044B \u0438 \u0434\u043E\u0431\u044B\u0442\u044B\u0435 \u0438\u0437 \u0433\u043E\u0442\u043E\u0432\u044B\u0445 \u043A\u0440\u0430\u0444\u0442\u043E\u0432 \u0440\u0435\u0446\u0435\u043F\u0442\u044B \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0439. \u0412\u044B\u0437\u044B\u0432\u0430\u0439\u0442\u0435 \u043F\u0435\u0440\u0435\u0434 \u0440\u0443\u0447\u043D\u043E\u0439 \u043F\u0440\u0430\u0432\u043A\u043E\u0439 <Connection>.",
+    title: "Part reference",
+    description: "Searches part types and shows their attach points, modifiers and the connection recipes mined from existing crafts. Call this before editing a <Connection> by hand.",
     inputSchema: {
-      query: external_exports.string().optional().describe("\u041F\u043E\u0434\u0441\u0442\u0440\u043E\u043A\u0430 \u0438\u043C\u0435\u043D\u0438 \u0438\u043B\u0438 id"),
-      id: external_exports.string().optional().describe("\u0422\u043E\u0447\u043D\u044B\u0439 partType, \u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440 Fuselage1"),
+      query: external_exports.string().optional().describe("Substring of the name or id"),
+      id: external_exports.string().optional().describe("Exact partType, for example Fuselage1"),
       category: external_exports.string().optional()
     }
   },
@@ -25079,36 +25081,36 @@ server.registerTool(
         const pt = await partType(id);
         if (pt === void 0) {
           const near = Object.keys(cat.parts).filter((k) => k.toLowerCase().includes(id.toLowerCase().slice(0, 5))).slice(0, 5);
-          throw new ToolError("unknown_part_type", `\u0422\u0438\u043F \u0434\u0435\u0442\u0430\u043B\u0438 \xAB${id}\xBB \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D.`, {
+          throw new ToolError("unknown_part_type", `Part type "${id}" not found.`, {
             suggestions: near
           });
         }
         const lines = [
-          `${pt.id} \u2014 ${pt.name}${pt.procedural ? " (\u043F\u0440\u043E\u0446\u0435\u0434\u0443\u0440\u043D\u0430\u044F: \u0433\u0435\u043E\u043C\u0435\u0442\u0440\u0438\u044F \u0437\u0430\u0434\u0430\u0451\u0442\u0441\u044F \u043C\u043E\u0434\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440\u043E\u043C)" : ""}`,
-          pt.categories.length > 0 ? `\u041A\u0430\u0442\u0435\u0433\u043E\u0440\u0438\u0438: ${pt.categories.join(", ")}` : "",
+          `${pt.id} \u2014 ${pt.name}${pt.procedural ? " (procedural: geometry comes from a modifier)" : ""}`,
+          pt.categories.length > 0 ? `Categories: ${pt.categories.join(", ")}` : "",
           "",
-          "\u0422\u043E\u0447\u043A\u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F (\u0438\u043D\u0434\u0435\u043A\u0441\u044B \u0434\u043B\u044F attachPointsA/B):",
+          "Attach points (indices for attachPointsA/B):",
           ...pt.attachPoints.map(
-            (a) => `  ${a.index}  ${a.kind.padEnd(8)} ${a.name}${a.tag !== void 0 ? ` \u0442\u0435\u0433=${a.tag}` : ""}${a.position !== void 0 ? ` \u043F\u043E\u0437=${a.position.join(",")}` : ""}`
+            (a) => `  ${a.index}  ${a.kind.padEnd(8)} ${a.name}${a.tag !== void 0 ? ` tag=${a.tag}` : ""}${a.position !== void 0 ? ` pos=${a.position.join(",")}` : ""}`
           ),
           "",
-          `\u041C\u043E\u0434\u0438\u0444\u0438\u043A\u0430\u0442\u043E\u0440\u044B: ${Object.keys(pt.modifiers).join(", ")}`
+          `Modifiers: ${Object.keys(pt.modifiers).join(", ")}`
         ];
         const conn = (await connections()).connections[pt.id];
         if (conn !== void 0) {
-          lines.push("", "\u0418\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0435 \u0440\u0435\u0446\u0435\u043F\u0442\u044B \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u0439 (\u0434\u043E\u0431\u044B\u0442\u044B \u0438\u0437 \u0433\u043E\u0442\u043E\u0432\u044B\u0445 \u043A\u0440\u0430\u0444\u0442\u043E\u0432):");
+          lines.push("", "Known connection recipes (mined from existing crafts):");
           for (const [other, entry] of Object.entries(conn).slice(0, 14)) {
             const bits = [];
-            if (entry.stack) bits.push(`\u0441\u0442\u0435\u043A a="${entry.stack.a}" b="${entry.stack.b}" (${entry.stack.seen}\xD7)`);
+            if (entry.stack) bits.push(`stack a="${entry.stack.a}" b="${entry.stack.b}" (${entry.stack.seen}\xD7)`);
             if (entry.surface)
-              bits.push(`\u043F\u043E\u0432\u0435\u0440\u0445\u043D\u043E\u0441\u0442\u044C a="${entry.surface.a}" b="${entry.surface.b}" (${entry.surface.seen}\xD7)`);
+              bits.push(`surface a="${entry.surface.a}" b="${entry.surface.b}" (${entry.surface.seen}\xD7)`);
             if (bits.length > 0) lines.push(`  \u2192 ${other}: ${bits.join("; ")}`);
           }
         }
         if (pt.designerParts.length > 0)
           lines.push(
             "",
-            `\u041F\u0440\u0435\u0441\u0435\u0442\u044B \u0432 \u0440\u0435\u0434\u0430\u043A\u0442\u043E\u0440\u0435: ${pt.designerParts.map((d) => d.name).slice(0, 12).join(", ")}`
+            `Designer presets: ${pt.designerParts.map((d) => d.name).slice(0, 12).join(", ")}`
           );
         return text(lines.filter((l) => l !== "").join("\n"));
       }
@@ -25118,10 +25120,10 @@ server.registerTool(
         if (q === "") return true;
         return pt.id.toLowerCase().includes(q) || pt.name.toLowerCase().includes(q) || pt.designerParts.some((d) => d.name.toLowerCase().includes(q));
       });
-      if (matches.length === 0) return text(`\u041D\u0438\u0447\u0435\u0433\u043E \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E \u043F\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u0443 \xAB${query ?? category}\xBB`);
+      if (matches.length === 0) return text(`Nothing found for "${query ?? category}"`);
       return text(
-        `\u041D\u0430\u0439\u0434\u0435\u043D\u043E ${matches.length}:
-` + matches.map((pt) => `  ${pt.id.padEnd(22)} ${pt.name}${pt.procedural ? " [\u043F\u0440\u043E\u0446\u0435\u0434\u0443\u0440\u043D\u0430\u044F]" : ""}`).join("\n")
+        `Found ${matches.length}:
+` + matches.map((pt) => `  ${pt.id.padEnd(22)} ${pt.name}${pt.procedural ? " [procedural]" : ""}`).join("\n")
       );
     }
   )
@@ -25136,34 +25138,34 @@ async function craftPropertySet() {
 server.registerTool(
   "vizzy_read",
   {
-    title: "\u041F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443 \u043F\u043E\u043B\u0451\u0442\u0430",
-    description: "\u0427\u0438\u0442\u0430\u0435\u0442 Vizzy-\u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443 \u2014 \u0438\u0437 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430 \u0438\u043B\u0438 \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u0443\u044E \u0432 \u0434\u0435\u0442\u0430\u043B\u044C \u043A\u0440\u0430\u0444\u0442\u0430 \u2014 \u0438 \u043E\u0442\u0434\u0430\u0451\u0442 \u0435\u0451 \u0432 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E\u043C DSL \u0432\u043C\u0435\u0441\u0442\u043E \u043C\u043D\u043E\u0433\u043E\u0441\u043B\u043E\u0432\u043D\u043E\u0433\u043E XML.",
+    title: "Read a flight program",
+    description: "Reads a Vizzy program \u2014 either from a standalone file or embedded in a craft part \u2014 and returns it in a compact DSL instead of verbose XML.",
     inputSchema: {
-      file: external_exports.string().optional().describe("\u0418\u043C\u044F \u0444\u0430\u0439\u043B\u0430 \u0432 UserData/FlightPrograms \u0431\u0435\u0437 .xml"),
-      craft: external_exports.string().optional().describe("\u0418\u043C\u044F \u043A\u0440\u0430\u0444\u0442\u0430 \u0441\u043E \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u043E\u0439 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u043E\u0439"),
-      part_id: external_exports.number().optional().describe("\u0414\u0435\u0442\u0430\u043B\u044C \u043A\u0440\u0430\u0444\u0442\u0430, \u043D\u0435\u0441\u0443\u0449\u0430\u044F \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443")
+      file: external_exports.string().optional().describe("File name in UserData/FlightPrograms without .xml"),
+      craft: external_exports.string().optional().describe("Name of the craft with the embedded program"),
+      part_id: external_exports.number().optional().describe("The craft part carrying the program")
     }
   },
   guard(
     async ({ file, craft, part_id }) => {
       const p = await gamePaths();
       if (file !== void 0) {
-        const path = join4(p.flightPrograms, `${assertSafeName(file, "\u0418\u043C\u044F \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B")}.xml`);
+        const path = join4(p.flightPrograms, `${assertSafeName(file, "Program name")}.xml`);
         const program2 = parseXmlRoot(await readFile5(path, "utf8"), "Program");
         return text(JSON.stringify(decompileProgram(program2), null, 2));
       }
       if (craft === void 0)
-        throw new ToolError("missing_source", "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 file \u0438\u043B\u0438 craft + part_id.", {});
+        throw new ToolError("missing_source", "Specify either file, or craft + part_id.", {});
       const parsed = Craft.parse(await readFile5(await craftPath(craft), "utf8"));
       const candidates = parsed.parts.filter((x) => x.modifiers.includes("FlightProgram"));
       const target = part_id !== void 0 ? parsed.part(part_id) : candidates[0];
       if (target === void 0)
-        throw new ToolError("no_program", "\u0412 \u043A\u0440\u0430\u0444\u0442\u0435 \u043D\u0435\u0442 \u0434\u0435\u0442\u0430\u043B\u0438 \u0441 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u043E\u0439 \u043F\u043E\u043B\u0451\u0442\u0430.", {
+        throw new ToolError("no_program", "The craft has no part with a flight program.", {
           candidates: candidates.map((c) => c.id)
         });
       const program = target.node.children.find((c) => c.tag === "FlightProgram")?.children.find((c) => c.tag === "Program");
       if (program === void 0)
-        throw new ToolError("empty_program", `\u0423 \u0434\u0435\u0442\u0430\u043B\u0438 ${target.id} \u0435\u0441\u0442\u044C \u0432\u044B\u0447\u0438\u0441\u043B\u0438\u0442\u0435\u043B\u044C, \u043D\u043E \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0430 \u043F\u0443\u0441\u0442\u0430.`, {});
+        throw new ToolError("empty_program", `Part ${target.id} has a computer, but the program is empty.`, {});
       return text(JSON.stringify(decompileProgram(program), null, 2));
     }
   )
@@ -25174,20 +25176,20 @@ var dslSchema = external_exports.object({
   on: external_exports.record(external_exports.array(external_exports.any())),
   requiresMfd: external_exports.boolean().optional()
 }).describe(
-  '\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0430 \u0432 DSL: { name, on: { FlightStart: [ ["set-input","throttle",1], ["stage"] ] } }. \u0412\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u044F \u2014 \u043C\u0430\u0441\u0441\u0438\u0432\u044B: ["<", ["prop","Altitude.ASL"], 1000]. "$\u0438\u043C\u044F" \u0441\u0441\u044B\u043B\u0430\u0435\u0442\u0441\u044F \u043D\u0430 \u043F\u0435\u0440\u0435\u043C\u0435\u043D\u043D\u0443\u044E.'
+  'A program in the DSL: { name, on: { FlightStart: [ ["set-input","throttle",1], ["stage"] ] } }. Expressions are arrays: ["<", ["prop","Altitude.ASL"], 1000]. "$name" refers to a variable.'
 );
 server.registerTool(
   "vizzy_write",
   {
-    title: "\u0417\u0430\u043F\u0438\u0441\u0430\u0442\u044C \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443 \u043F\u043E\u043B\u0451\u0442\u0430",
-    description: "\u041A\u043E\u043C\u043F\u0438\u043B\u0438\u0440\u0443\u0435\u0442 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443 \u0438\u0437 DSL \u0432 Vizzy XML \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u2014 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u044B\u043C \u0444\u0430\u0439\u043B\u043E\u043C \u0438\u043B\u0438 \u0432\u0441\u0442\u0440\u043E\u0438\u0432 \u0432 \u0434\u0435\u0442\u0430\u043B\u044C \u043A\u0440\u0430\u0444\u0442\u0430. \u0421\u0430\u043C \u0440\u0430\u0441\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u0442 id \u0438 style. \u041F\u0435\u0440\u0435\u0434 \u0437\u0430\u043F\u0438\u0441\u044C\u044E \u0434\u0435\u043B\u0430\u0435\u0442 \u0441\u043D\u0430\u043F\u0448\u043E\u0442.",
+    title: "Write a flight program",
+    description: "Compiles a program from the DSL into Vizzy XML and saves it \u2014 as a standalone file or embedded in a craft part. It assigns ids and styles itself. Takes a snapshot before writing.",
     inputSchema: {
       program: dslSchema,
-      file: external_exports.string().optional().describe("\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u043A\u0430\u043A \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u044B\u0439 \u0444\u0430\u0439\u043B"),
-      craft: external_exports.string().optional().describe("\u0412\u0441\u0442\u0440\u043E\u0438\u0442\u044C \u0432 \u043A\u0440\u0430\u0444\u0442"),
-      part_id: external_exports.number().optional().describe("\u0414\u0435\u0442\u0430\u043B\u044C-\u0432\u044B\u0447\u0438\u0441\u043B\u0438\u0442\u0435\u043B\u044C; \u043F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u043A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u043C\u043E\u0434\u0443\u043B\u044C"),
-      dry_run: external_exports.boolean().optional().describe("\u0422\u043E\u043B\u044C\u043A\u043E \u0441\u043A\u043E\u043C\u043F\u0438\u043B\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0438 \u043F\u043E\u043A\u0430\u0437\u0430\u0442\u044C XML"),
-      force: external_exports.boolean().optional().describe("\u041F\u0438\u0441\u0430\u0442\u044C \u0434\u0430\u0436\u0435 \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u043D\u043E\u0439 \u0438\u0433\u0440\u0435 \u2014 \u043D\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u0431\u0435\u0437 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u044F")
+      file: external_exports.string().optional().describe("Save as a standalone file"),
+      craft: external_exports.string().optional().describe("Embed into a craft"),
+      part_id: external_exports.number().optional().describe("The computer part; defaults to the active command pod"),
+      dry_run: external_exports.boolean().optional().describe("Only compile and show the XML"),
+      force: external_exports.boolean().optional().describe("Write even while the game is running \u2014 do not use without permission")
     }
   },
   guard(
@@ -25205,20 +25207,20 @@ server.registerTool(
         return text(buildXml(compiled, GAME_FORMAT).replace(/\r/g, ""));
       const p = await gamePaths();
       if (file !== void 0) {
-        const path2 = join4(p.flightPrograms, `${assertSafeName(file, "\u0418\u043C\u044F \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B")}.xml`);
+        const path2 = join4(p.flightPrograms, `${assertSafeName(file, "Program name")}.xml`);
         const snap2 = await guardedWrite("vizzy_write", path2, buildXml(compiled, GAME_FORMAT), { force });
-        return text(`\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0430 \xAB${program.name}\xBB \u0437\u0430\u043F\u0438\u0441\u0430\u043D\u0430 \u0432 ${path2}
-\u0421\u043D\u0438\u043C\u043E\u043A \u0434\u043B\u044F \u043E\u0442\u043A\u0430\u0442\u0430: ${snap2.id}`);
+        return text(`Program "${program.name}" written to ${path2}
+Snapshot to roll back to: ${snap2.id}`);
       }
       if (craft === void 0)
-        throw new ToolError("missing_target", "\u0423\u043A\u0430\u0436\u0438\u0442\u0435 file \u0438\u043B\u0438 craft.", {});
+        throw new ToolError("missing_target", "Specify either file or craft.", {});
       const path = await craftPath(craft);
       const parsed = Craft.parse(await readFile5(path, "utf8"));
       const target = part_id !== void 0 ? parsed.part(part_id) : parsed.parts.find((x) => x.modifiers.includes("FlightProgram")) ?? parsed.parts.find((x) => x.modifiers.includes("CommandPod"));
       if (target === void 0)
         throw new ToolError(
           "no_computer",
-          "\u0412 \u043A\u0440\u0430\u0444\u0442\u0435 \u043D\u0435\u0442 \u0434\u0435\u0442\u0430\u043B\u0438, \u0441\u043F\u043E\u0441\u043E\u0431\u043D\u043E\u0439 \u043D\u0435\u0441\u0442\u0438 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443 (\u043A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u043C\u043E\u0434\u0443\u043B\u044C, \u0434\u0438\u0441\u043A, \u0447\u0438\u043F \u0438\u043B\u0438 MFD).",
+          "The craft has no part able to carry a program (command pod, disk, chip or MFD).",
           {}
         );
       let holder = target.node.children.find((c) => c.tag === "FlightProgram");
@@ -25230,8 +25232,8 @@ server.registerTool(
       holder.children.push(compiled);
       const snap = await guardedWrite("vizzy_write", path, parsed.serialize(), { force });
       return text(
-        `\u041F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0430 \xAB${program.name}\xBB \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u0430 \u0432 \u0434\u0435\u0442\u0430\u043B\u044C ${target.id} (${target.partType}) \u043A\u0440\u0430\u0444\u0442\u0430 \xAB${craft}\xBB.
-\u0421\u043D\u0438\u043C\u043E\u043A \u0434\u043B\u044F \u043E\u0442\u043A\u0430\u0442\u0430: ${snap.id}`
+        `Program "${program.name}" embedded into part ${target.id} (${target.partType}) of craft "${craft}".
+Snapshot to roll back to: ${snap.id}`
       );
     }
   )
@@ -25239,34 +25241,34 @@ server.registerTool(
 server.registerTool(
   "game_launch",
   {
-    title: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0438\u0433\u0440\u0443",
-    description: "\u0417\u0430\u043F\u0443\u0441\u043A\u0430\u0435\u0442 Juno \u0438 \u0436\u0434\u0451\u0442 \u043F\u043E\u044F\u0432\u043B\u0435\u043D\u0438\u044F \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u0430.",
+    title: "Launch the game",
+    description: "Launches Juno and waits for the process to appear.",
     inputSchema: {}
   },
   guard(async () => {
     const r = await launchGame();
     return text(
-      r.alreadyRunning ? `\u0418\u0433\u0440\u0430 \u0443\u0436\u0435 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${r.pid})` : r.pid !== void 0 ? `\u0418\u0433\u0440\u0430 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${r.pid})` : "\u041A\u043E\u043C\u0430\u043D\u0434\u0430 \u0437\u0430\u043F\u0443\u0441\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430, \u043D\u043E \u043F\u0440\u043E\u0446\u0435\u0441\u0441 \u043D\u0435 \u043F\u043E\u044F\u0432\u0438\u043B\u0441\u044F \u0437\u0430 15 \u0441"
+      r.alreadyRunning ? `The game is already running (pid ${r.pid})` : r.pid !== void 0 ? `Game launched (pid ${r.pid})` : "Launch command sent, but the process did not appear within 15 s"
     );
   })
 );
 server.registerTool(
   "game_quit",
   {
-    title: "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u0438\u0433\u0440\u0443",
-    description: "\u041F\u0440\u043E\u0441\u0438\u0442 \u0438\u0433\u0440\u0443 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044C\u0441\u044F. \u041D\u0443\u0436\u043D\u043E \u043F\u0435\u0440\u0435\u0434 \u043B\u044E\u0431\u043E\u0439 \u0437\u0430\u043F\u0438\u0441\u044C\u044E \u0432 \u0444\u0430\u0439\u043B\u044B \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F.",
-    inputSchema: { force: external_exports.boolean().optional().describe("\u0423\u0431\u0438\u0442\u044C \u043F\u0440\u043E\u0446\u0435\u0441\u0441 \u0432\u043C\u0435\u0441\u0442\u043E \u0432\u0435\u0436\u043B\u0438\u0432\u043E\u0433\u043E \u0432\u044B\u0445\u043E\u0434\u0430") }
+    title: "Quit the game",
+    description: "Asks the game to quit. Required before any write to the save files.",
+    inputSchema: { force: external_exports.boolean().optional().describe("Kill the process instead of quitting politely") }
   },
   guard(async ({ force }) => {
     const r = await quitGame(force ?? false);
-    return text(r.wasRunning ? "\u0418\u0433\u0440\u0430 \u0437\u0430\u043A\u0440\u044B\u0442\u0430" : "\u0418\u0433\u0440\u0430 \u043D\u0435 \u0431\u044B\u043B\u0430 \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430");
+    return text(r.wasRunning ? "Game quit" : "The game was not running");
   })
 );
 server.registerTool(
   "log_read",
   {
-    title: "\u041F\u0440\u043E\u0447\u0438\u0442\u0430\u0442\u044C Player.log",
-    description: "\u0427\u0438\u0442\u0430\u0435\u0442 \u043B\u043E\u0433 \u0438\u0433\u0440\u044B. \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u043E\u0448\u0438\u0431\u043A\u0438 \u0441\u043E \u0441\u0442\u0435\u043A\u0430\u043C\u0438, \u0441\u0445\u043B\u043E\u043F\u044B\u0432\u0430\u044F \u043F\u043E\u0432\u0442\u043E\u0440\u044B \u2014 \u044D\u0442\u043E \u043E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043A\u0430\u043D\u0430\u043B \u043E\u0431\u0440\u0430\u0442\u043D\u043E\u0439 \u0441\u0432\u044F\u0437\u0438, \u043F\u043E\u043A\u0430 \u043D\u0435 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u043C\u043E\u0434-\u043C\u043E\u0441\u0442.",
+    title: "Read Player.log",
+    description: "Reads the game log. By default shows only errors with their stacks, collapsing repeats \u2014 this is the main feedback channel until the bridge mod is installed.",
     inputSchema: {
       lines: external_exports.number().optional(),
       filter: external_exports.enum(["all", "errors", "mods"]).optional()
@@ -25274,7 +25276,7 @@ server.registerTool(
   },
   guard(async ({ lines, filter }) => {
     const r = await readLog({ lines, filter });
-    return text(`${r.path} (${r.totalLines} \u0441\u0442\u0440\u043E\u043A)
+    return text(`${r.path} (${r.totalLines} lines)
 
 ${r.returned}`);
   })
@@ -25282,22 +25284,22 @@ ${r.returned}`);
 server.registerTool(
   "junoclaude_restore",
   {
-    title: "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F",
-    description: "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u0441\u043D\u0438\u043C\u043A\u0438, \u0441\u0434\u0435\u043B\u0430\u043D\u043D\u044B\u0435 \u043F\u0435\u0440\u0435\u0434 \u0437\u0430\u043F\u0438\u0441\u044F\u043C\u0438, \u0438 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0439.",
-    inputSchema: { snapshot_id: external_exports.string().optional().describe("\u0411\u0435\u0437 \u043D\u0435\u0433\u043E \u2014 \u0442\u043E\u043B\u044C\u043A\u043E \u0441\u043F\u0438\u0441\u043E\u043A") }
+    title: "Roll back changes",
+    description: "Lists the snapshots taken before writes and restores the one you pick.",
+    inputSchema: { snapshot_id: external_exports.string().optional().describe("Without it \u2014 list only") }
   },
   guard(async ({ snapshot_id }) => {
     if (snapshot_id === void 0) {
       const all = await listSnapshots();
-      if (all.length === 0) return text("\u0421\u043D\u0438\u043C\u043A\u043E\u0432 \u043D\u0435\u0442 \u2014 \u0437\u0430\u043F\u0438\u0441\u0435\u0439 \u0435\u0449\u0451 \u043D\u0435 \u0431\u044B\u043B\u043E.");
+      if (all.length === 0) return text("No snapshots \u2014 nothing has been written yet.");
       return text(
-        `\u0421\u043D\u0438\u043C\u043A\u0438 (\u043D\u043E\u0432\u044B\u0435 \u0441\u0432\u0435\u0440\u0445\u0443):
+        `Snapshots (newest first):
 ${all.slice(0, 25).map((s) => `  ${s.id}
       ${s.files.map((f) => f.path).join(", ")}`).join("\n")}`
       );
     }
     const m = await restoreSnapshot(snapshot_id);
-    return text(`\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u0438\u0437 ${m.id}:
+    return text(`Restored from ${m.id}:
 ${m.files.map((f) => `  ${f.path}`).join("\n")}`);
   })
 );

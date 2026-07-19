@@ -38,8 +38,8 @@ namespace JunoBridge.Handlers
 
             w.EndArray()
              .Num("nextSeq", events.Count > 0 ? events[events.Count - 1].Seq + 1 : System.Math.Max(since, newest))
-             // dropped > 0 значит, что клиент отстал от кольца: продолжать историю нельзя,
-             // нужно перечитать полное состояние.
+             // dropped > 0 means the client fell behind the ring: the history cannot be
+             // continued, the full state must be re-read.
              .Num("dropped", dropped)
              .Num("latestSeq", newest)
              .EndObject();

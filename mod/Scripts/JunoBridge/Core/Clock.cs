@@ -4,9 +4,9 @@ using ModApi;
 
 namespace JunoBridge.Core
 {
-    /// Кэш времени. EventLog.Record вызывается в том числе с HTTP-потоков, а
-    /// UnityEngine.Time и Game.Instance читать вне главного потока нельзя —
-    /// поэтому значения снимаются раз в кадр из Tick() и дальше только читаются.
+    /// Time cache. EventLog.Record is called from HTTP threads too, and UnityEngine.Time
+    /// and Game.Instance must not be read off the main thread — so the values are sampled
+    /// once per frame in Tick() and only read afterwards.
     internal static class Clock
     {
         private static volatile float _realTime;
@@ -22,7 +22,7 @@ namespace JunoBridge.Core
             get { return BitConverter.Int64BitsToDouble(Interlocked.Read(ref _gameTimeBits)); }
         }
 
-        /// Только главный поток.
+        /// Main thread only.
         public static void Tick()
         {
             _realTime = UnityEngine.Time.realtimeSinceStartup;

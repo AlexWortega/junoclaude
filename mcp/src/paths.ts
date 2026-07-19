@@ -1,4 +1,4 @@
-// Резолв путей установки Juno: New Origins.
+// Resolving the paths of a Juno: New Origins installation.
 
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -58,8 +58,8 @@ async function readVersions(installDir: string): Promise<{
 let cached: GamePaths | undefined;
 
 /**
- * Пути игры. Переопределяются через JUNO_INSTALL_DIR / JUNO_USER_DIR /
- * JUNO_LOG_PATH — нужно и для тестов, и для нестандартных установок Steam.
+ * The game's paths. Overridable via JUNO_INSTALL_DIR / JUNO_USER_DIR /
+ * JUNO_LOG_PATH — needed both for tests and for non-standard Steam installs.
  */
 export async function gamePaths(refresh = false): Promise<GamePaths> {
   if (cached && !refresh) return cached;
@@ -92,17 +92,17 @@ export async function gamePaths(refresh = false): Promise<GamePaths> {
 }
 
 /**
- * Проверяет имя, приходящее от модели и превращающееся в имя файла.
- * Крафты живут в плоском каталоге, поэтому разделители пути, `..` и ведущая
- * точка — всегда ошибка, а не экзотическое имя.
+ * Validates a name that comes from the model and becomes a file name.
+ * Crafts live in a flat directory, so path separators, `..` and a leading dot
+ * are always a mistake rather than an exotic name.
  */
-export function assertSafeName(name: string, what = 'имя'): string {
-  if (name.length === 0) throw new Error(`${what} не может быть пустым`);
+export function assertSafeName(name: string, what = 'Name'): string {
+  if (name.length === 0) throw new Error(`${what} cannot be empty`);
   if (name.includes('/') || name.includes('\\'))
-    throw new Error(`${what} не может содержать разделители пути: ${JSON.stringify(name)}`);
+    throw new Error(`${what} cannot contain path separators: ${JSON.stringify(name)}`);
   if (name === '.' || name === '..' || name.startsWith('.'))
-    throw new Error(`${what} не может начинаться с точки: ${JSON.stringify(name)}`);
+    throw new Error(`${what} cannot start with a dot: ${JSON.stringify(name)}`);
   if (/[\0<>:"|?*]/.test(name))
-    throw new Error(`${what} содержит недопустимые символы: ${JSON.stringify(name)}`);
+    throw new Error(`${what} contains invalid characters: ${JSON.stringify(name)}`);
   return name;
 }

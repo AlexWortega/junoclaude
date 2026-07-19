@@ -1,9 +1,10 @@
-// Порождение конструкции из декларативной спецификации.
+// Generating a design from a declarative spec.
 //
-// Модель описывает стек снизу вверх; билдер сам считает координаты, подбирает
-// точки крепления по добытым рецептам и разбивает детали на физические тела.
-// Всё, что игра пересчитывает при загрузке (масса, габариты, сопротивление),
-// заполняется приблизительно — тратить усилия на его точность незачем.
+// The model describes the stack bottom-up; the builder works out the
+// coordinates itself, picks attach points from mined recipes and splits parts
+// into physical bodies. Everything the game recomputes on load (mass, bounds,
+// drag) is filled in approximately — there is no point spending effort on its
+// accuracy.
 
 import type { XmlNode } from '../xml.js';
 import { buildXml, GAME_FORMAT } from '../xml.js';
@@ -52,7 +53,7 @@ const node = (tag: string, attrs: Record<string, string> = {}, children: XmlNode
   children,
 });
 
-/** Габаритная высота элемента вдоль оси стека. */
+/** Overall height of an item along the stack axis. */
 function itemHeight(item: StackItem): number {
   switch (item.kind) {
     case 'pod':
@@ -91,7 +92,7 @@ function partTypeOf(item: StackItem): string {
   }
 }
 
-/** Топливо, отличное от ракетного, игра помечает атрибутом fuelType. */
+/** Fuel other than rocket fuel is marked by the game with a fuelType attribute. */
 const FUEL_TYPES = new Set(['Jet', 'Battery', 'Mono', 'Solid', 'LOX/LH2', 'LOX/CH4', 'Xenon']);
 
 function modifiersFor(item: StackItem): XmlNode[] {
@@ -136,7 +137,7 @@ function modifiersFor(item: StackItem): XmlNode[] {
     out.push(
       node('Fuselage', {
         bottomScale: `${round6(half)},${round6(half)}`,
-        // Нос сходится в точку — верхний торец нулевой.
+        // A nose cone converges to a point — its top face is zero.
         topScale: '0,0',
         offset: fuselageOffset(item.length ?? item.diameter),
         version: '3',
@@ -161,7 +162,7 @@ function modifiersFor(item: StackItem): XmlNode[] {
     const attrs: Record<string, string> = { nozzleTypeId: item.nozzle ?? 'Bravo' };
     if (item.size !== undefined) attrs['nozzleThroatSize'] = String(round6(item.size * 0.85));
     out.push(node('RocketEngine', attrs));
-    // Без этого двигатель не подчиняется рычагу тяги.
+    // Without this the engine does not respond to the throttle.
     out.push(node('InputController', { inputId: 'Throttle' }));
   }
 
@@ -178,10 +179,10 @@ function modifiersFor(item: StackItem): XmlNode[] {
 }
 
 /**
- * Дополняет деталь модификаторами, объявленными в её типе, но не выписанными
- * нами. Игра их **не подставляет**: командный модуль без своего `<FuelTank>`
- * роняет построение топливной системы с NullReferenceException в
- * `CraftFuelSources.Rebuild`. Наши значения имеют приоритет над умолчаниями.
+ * Fills in the modifiers a part's type declares but we did not write out. The
+ * game does **not** supply them: a command pod without its own `<FuelTank>`
+ * crashes the fuel system build with a NullReferenceException in
+ * `CraftFuelSources.Rebuild`. Our values take priority over the defaults.
  */
 async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promise<XmlNode[]> {
   const pt = await partType(typeId);
@@ -192,8 +193,8 @@ async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promis
 
   for (const [tag, defaults] of Object.entries(pt.modifiers)) {
     if (present.has(tag)) continue;
-    // Config несёт полсотни служебных атрибутов, и игра заполняет их сама —
-    // в сохранённых ею конструкциях он всегда краткий.
+    // Config carries some fifty internal attributes and the game fills them in
+    // itself — in the designs it saves it is always terse.
     if (tag === 'Config') continue;
     out.push(node(tag, { ...defaults }));
   }
@@ -201,10 +202,10 @@ async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promis
 }
 
 /**
- * Грубая оценка массы группы деталей. Точное значение игра всё равно
- * пересчитает, но ноль ей подсовывать нельзя — вырожденное тело выбрасывает
- * при спавне. Сухая масса бака взята как доля от объёма топлива, чтобы порядок
- * величины совпадал с тем, что игра считает сама.
+ * A rough estimate of a part group's mass. The game recomputes the exact value
+ * anyway, but it must not be handed a zero — a degenerate body is thrown out on
+ * spawn. A tank's dry mass is taken as a fraction of the fuel volume so the
+ * order of magnitude matches what the game computes itself.
  */
 function estimateGroupMass(partIds: number[], stack: StackItem[]): number {
   let mass = 0;
@@ -243,25 +244,25 @@ function estimateGroupMass(partIds: number[], stack: StackItem[]): number {
 
 export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   const warnings: BuildWarning[] = [];
-  if (spec.stack.length === 0) throw new Error('Стек пуст: нужна хотя бы одна деталь');
+  if (spec.stack.length === 0) throw new Error('The stack is empty: at least one part is required');
 
-  // Командный модуль делаем корневым: игра ожидает, что корень — управляющая
-  // деталь, и от неё же считает достижимость остальных.
+  // Make the command pod the root: the game expects the root to be the
+  // controlling part, and measures the reachability of the rest from it.
   const podIndex = spec.stack.findIndex((i) => i.kind === 'pod');
   if (podIndex < 0)
     warnings.push({
       code: 'no_command_pod',
-      message: 'В стеке нет командного модуля — аппарат будет неуправляемым.',
+      message: 'The stack has no command pod — the vehicle will be uncontrollable.',
     });
   const rootIndex = podIndex >= 0 ? podIndex : 0;
 
   for (const item of spec.stack) {
     const id = partTypeOf(item);
     if ((await partType(id)) === undefined)
-      throw new Error(`Неизвестный тип детали «${id}». Проверьте через part_lookup.`);
+      throw new Error(`Unknown part type "${id}". Check it with part_lookup.`);
   }
 
-  // Раскладка снизу вверх: позиция детали — её центр.
+  // Layout bottom-up: a part's position is its centre.
   const layout: BuildResult['layout'] = [];
   const parts: XmlNode[] = [];
   let y = 0;
@@ -288,7 +289,7 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     y += height;
   }
 
-  // Командный модуль несёт названия групп активации.
+  // The command pod carries the activation group names.
   if (spec.activation_groups !== undefined && podIndex >= 0) {
     const names = Array.from({ length: 10 }, (_, i) => spec.activation_groups?.[i] ?? '').join(',');
     const pod = parts[podIndex] as XmlNode;
@@ -305,7 +306,7 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     );
   }
 
-  // Соединения соседних деталей стека.
+  // Connections between adjacent parts of the stack.
   const connections: XmlNode[] = [];
   for (let i = 0; i + 1 < spec.stack.length; i++) {
     const lower = partTypeOf(spec.stack[i] as StackItem);
@@ -315,15 +316,15 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
       resolved = await resolveStackConnection(lower, upper);
     } catch (e) {
       throw new Error(
-        `Не удалось состыковать ${lower} (позиция ${i}) с ${upper} (позиция ${i + 1}): ${(e as Error).message}`
+        `Could not join ${lower} (position ${i}) to ${upper} (position ${i + 1}): ${(e as Error).message}`
       );
     }
     if (resolved.confidence === 'inferred')
       warnings.push({
         code: 'inferred_connection',
         message:
-          `Стыковка ${lower} → ${upper} выведена по тегам, а не взята из готовых конструкций. ` +
-          `Проверьте её в редакторе: возможно, детали соединятся не так, как задумано.`,
+          `The joint ${lower} → ${upper} was derived from tags rather than taken from existing designs. ` +
+          `Check it in the designer: the parts may connect differently than intended.`,
       });
 
     connections.push(
@@ -336,11 +337,11 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     );
   }
 
-  // Отделяемая деталь образует собственное физическое тело, поэтому разрыв
-  // ставится ПЕРЕД ней, а не после: иначе последний в стеке парашют слипался
-  // с корпусом, и аппарат уходил в полёт одним телом. Проверено сравнением с
-  // тем, как игра пересохранила нашу же конструкцию: она разбивает на
-  // {двигатель, бак, модуль} и {парашют}.
+  // A detachable part forms a physical body of its own, so the split goes
+  // BEFORE it rather than after: otherwise a parachute last in the stack stuck
+  // to the hull and the vehicle flew as a single body. Verified by comparing
+  // with how the game re-saved our own design: it splits into
+  // {engine, tank, pod} and {parachute}.
   const detachable = (item: StackItem): boolean =>
     item.kind === 'decoupler' || item.kind === 'parachute';
 
@@ -361,8 +362,8 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     node('Body', {
       id: String(i + 1),
       partIds: partIds.join(','),
-      // Массу игра пересчитывает при загрузке, но ноль трактуется физикой как
-      // вырожденное тело: аппарат с нулевой массой выбрасывает при спавне.
+      // The game recomputes mass on load, but the physics treats zero as a
+      // degenerate body: a vehicle with zero mass is thrown out on spawn.
       mass: String(round6(estimateGroupMass(partIds, spec.stack))),
       position: '0,0,0',
       rotation: '0,0,0',
@@ -382,7 +383,7 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     {
       name: spec.name,
       parent: '',
-      // Габариты и стоимость игра пересчитает; даём разумную оценку.
+      // The game recomputes bounds and price; give a sensible estimate.
       initialBoundsMin: vecStr([-maxRadius, 0, -maxRadius]),
       initialBoundsMax: vecStr([maxRadius, y, maxRadius]),
       price: '0',

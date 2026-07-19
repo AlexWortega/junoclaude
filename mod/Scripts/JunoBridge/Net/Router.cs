@@ -21,8 +21,8 @@ namespace JunoBridge.Net
                 return BridgeResponse.Error(401, "unauthorized",
                     "Missing or invalid bearer token. Read it from " + Auth.TokenPath + ".");
 
-            // Во время перехода сцен главный поток может молчать несколько секунд,
-            // поэтому отбиваем здесь, на HTTP-потоке, не ставя работу в очередь.
+            // During a scene transition the main thread can stay silent for several seconds,
+            // so we reject here, on the HTTP thread, without enqueueing any work.
             if (SceneGate.Transitioning && !IsAlwaysAvailable(request))
             {
                 var busy = BridgeResponse.Error(503, "scene_transitioning", "A scene transition is in progress.");
@@ -72,7 +72,7 @@ namespace JunoBridge.Net
 
                 case "events":
                     if (method != "GET") return MethodNotAllowed();
-                    // Кольцевой буфер защищён своим замком и не трогает Unity — очередь не нужна.
+                    // The ring buffer has its own lock and does not touch Unity — no queue needed.
                     return EventsHandler.Get(request);
 
                 case "jobs":

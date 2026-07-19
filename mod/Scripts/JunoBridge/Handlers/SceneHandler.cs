@@ -7,9 +7,9 @@ using ModApi.Scenes.Parameters;
 
 namespace JunoBridge.Handlers
 {
-    /// Смена сцены не ждётся синхронно: пока идёт загрузка, главный поток перестаёт
-    /// прокачивать очередь, и любой ждущий HTTP-поток гарантированно упрётся в таймаут.
-    /// Поэтому 202 + jobId, а завершение приходит по SceneTransitionCompleted.
+    /// A scene change is not awaited synchronously: while loading, the main thread stops
+    /// pumping the queue and any waiting HTTP thread is guaranteed to hit its timeout.
+    /// Hence 202 + jobId, with completion arriving via SceneTransitionCompleted.
     internal static class SceneHandler
     {
         private const int EnqueueTimeoutMs = 3000;

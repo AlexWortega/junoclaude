@@ -26,10 +26,10 @@ namespace JunoBridge.Handlers
             if (!JsonLite.TryParse(request.Body, out body) || body.Kind != JsonKind.Object)
                 return Errors.BadBody("Expected a JSON object.");
 
-            // TODO(проверить): CraftControls.TargetHeading — Quaterniond?, а не угол.
-            // Способ построить из курса корректный кватернион (в какой системе отсчёта,
-            // с каким опорным вектором) в доках не нашёлся, поэтому ось честно отключена:
-            // молчаливая запись «правдоподобного» кватерниона увела бы корабль вслепую.
+            // TODO(verify): CraftControls.TargetHeading is a Quaterniond?, not an angle.
+            // The docs gave no way to build a correct quaternion from a heading (in which
+            // frame of reference, against which reference vector), so the axis is disabled
+            // outright: silently writing a "plausible" quaternion would steer the craft blindly.
             if (body.Has("targetHeading"))
                 return BridgeResponse.Error(501, "not_supported",
                     "targetHeading is not supported: the game exposes it as an orientation quaternion, not a scalar heading.");

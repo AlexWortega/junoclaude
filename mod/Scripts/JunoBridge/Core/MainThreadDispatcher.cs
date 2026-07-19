@@ -30,9 +30,9 @@ namespace JunoBridge.Core
             get { return _queue.Count + _endOfFrameQueue.Count; }
         }
 
-        /// Вызывается с HTTP-потока и блокирует именно его, не главный.
-        /// Никогда не вызывать изнутри работы, уже исполняемой на главном потоке —
-        /// это мгновенный самодедлок.
+        /// Called from the HTTP thread and blocks that thread, not the main one.
+        /// Never call it from inside work already running on the main thread —
+        /// that is an instant self-deadlock.
         public static BridgeResponse Invoke(string route, Func<BridgeResponse> work, int timeoutMs, bool needsEndOfFrame = false)
         {
             if (_draining)
@@ -55,27 +55,28 @@ namespace JunoBridge.Core
             if (job.Completion.Task.Wait(timeoutMs))
                 return job.Completion.Task.Result;
 
-            // Отказываемся ждать. Последующий TrySetResult с главного потока — no-op:
-            // нечего диспозить и нечего испортить. Ради этого здесь TCS, а не ManualResetEventSlim.
+            // We give up waiting. A later TrySetResult from the main thread is a no-op:
+            // nothing to dispose and nothing to corrupt. That is why this is a TCS and not
+            // a ManualResetEventSlim.
             job.Completion.TrySetCanceled();
             return BridgeResponse.Error(504, "main_thread_timeout",
                 "Main thread did not service the request within " + timeoutMs +
                 "ms (game may be loading a scene, minimised, or hitched).");
         }
 
-        /// Каждый кадр, главный поток.
+        /// Every frame, main thread.
         public static void Pump()
         {
             PumpQueue(_queue);
         }
 
-        /// Конец кадра, главный поток. Скриншоты требуют завершённой отрисовки.
+        /// End of frame, main thread. Screenshots require rendering to be finished.
         public static void PumpEndOfFrame()
         {
             PumpQueue(_endOfFrameQueue);
         }
 
-        /// На выходе из игры: снимаем всех ожидающих, чтобы HTTP-потоки не висели до таймаута.
+        /// On game exit: release everyone waiting so HTTP threads do not hang until timeout.
         public static void Drain()
         {
             _draining = true;

@@ -1,9 +1,9 @@
 {
-  "generated": "2026-07-19T21:18:57.174Z",
+  "generated": "2026-07-19T23:09:42.148Z",
   "gameVersion": "1.3.205",
   "minedFrom": {
-    "craftFiles": 61,
-    "connections": 16201
+    "craftFiles": 63,
+    "connections": 15656
   },
   "connections": {
     "Fuselage1": {
@@ -12,43 +12,43 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 1891,
+            "seen": 1794,
             "kind": "surface"
           },
           {
             "a": "2,4",
             "b": "1,5",
-            "seen": 706,
+            "seen": 691,
             "kind": "stack"
           },
           {
             "a": "2,2",
             "b": "1,1",
-            "seen": 522,
+            "seen": 504,
             "kind": "stack"
           },
           {
             "a": "1,5",
             "b": "2,4",
-            "seen": 498,
+            "seen": 481,
             "kind": "stack_inverted"
           },
           {
             "a": "1,1",
             "b": "2,2",
-            "seen": 328,
+            "seen": 318,
             "kind": "stack_inverted"
           },
           {
             "a": "1",
             "b": "2",
-            "seen": 163,
+            "seen": 157,
             "kind": "stack_inverted"
           },
           {
             "a": "2",
             "b": "1",
-            "seen": 147,
+            "seen": 143,
             "kind": "stack"
           },
           {
@@ -61,17 +61,17 @@
         "stack": {
           "a": "2,4",
           "b": "1,5",
-          "seen": 706
+          "seen": 691
         },
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 1891
+          "seen": 1794
         },
         "stack_inverted": {
           "a": "1,5",
           "b": "2,4",
-          "seen": 498
+          "seen": 481
         },
         "other": {
           "a": "4",
@@ -84,7 +84,7 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 87,
+            "seen": 83,
             "kind": "surface"
           },
           {
@@ -138,7 +138,7 @@
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 87
+          "seen": 83
         },
         "stack_inverted": {
           "a": "1",
@@ -156,25 +156,25 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 19,
+            "seen": 16,
             "kind": "surface"
           },
           {
             "a": "1,5",
             "b": "2,4",
-            "seen": 9,
+            "seen": 8,
             "kind": "stack_inverted"
           }
         ],
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 19
+          "seen": 16
         },
         "stack_inverted": {
           "a": "1,5",
           "b": "2,4",
-          "seen": 9
+          "seen": 8
         }
       },
       "Block1": {
@@ -197,13 +197,13 @@
           {
             "a": "3",
             "b": "1",
-            "seen": 60,
+            "seen": 59,
             "kind": "other"
           },
           {
             "a": "1",
             "b": "1",
-            "seen": 16,
+            "seen": 15,
             "kind": "other"
           },
           {
@@ -216,7 +216,7 @@
         "other": {
           "a": "3",
           "b": "1",
-          "seen": 60
+          "seen": 59
         }
       },
       "Detacher1": {
@@ -303,6 +303,33 @@
           "a": "3",
           "b": "0",
           "seen": 7
+        }
+      },
+      "CommandPod1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "2,4",
+            "b": "0,2",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 12
         }
       },
       "CommandDisc1": {
@@ -402,7 +429,7 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 53,
+            "seen": 50,
             "kind": "other"
           },
           {
@@ -426,7 +453,7 @@
         "other": {
           "a": "3",
           "b": "0",
-          "seen": 53
+          "seen": 50
         }
       },
       "CommandChip1": {
@@ -455,13 +482,13 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 73,
+            "seen": 69,
             "kind": "surface"
           },
           {
             "a": "4",
             "b": "1",
-            "seen": 16,
+            "seen": 15,
             "kind": "other"
           },
           {
@@ -504,12 +531,12 @@
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 73
+          "seen": 69
         },
         "other": {
           "a": "4",
           "b": "1",
-          "seen": 16
+          "seen": 15
         }
       },
       "CommandPod4": {
@@ -559,7 +586,7 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 19,
+            "seen": 18,
             "kind": "surface"
           },
           {
@@ -595,7 +622,7 @@
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 19
+          "seen": 18
         },
         "other": {
           "a": "5",
@@ -704,20 +731,20 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 56,
+            "seen": 52,
             "kind": "other"
           },
           {
             "a": "2",
             "b": "0",
-            "seen": 24,
+            "seen": 23,
             "kind": "other"
           }
         ],
         "other": {
           "a": "3",
           "b": "0",
-          "seen": 56
+          "seen": 52
         }
       },
       "Piston1": {
@@ -725,7 +752,7 @@
           {
             "a": "2",
             "b": "0",
-            "seen": 13,
+            "seen": 12,
             "kind": "other"
           },
           {
@@ -738,28 +765,7 @@
         "other": {
           "a": "2",
           "b": "0",
-          "seen": 13
-        }
-      },
-      "CommandPod1": {
-        "variants": [
-          {
-            "a": "1",
-            "b": "1",
-            "seen": 13,
-            "kind": "other"
-          },
-          {
-            "a": "2",
-            "b": "0",
-            "seen": 1,
-            "kind": "other"
-          }
-        ],
-        "other": {
-          "a": "1",
-          "b": "1",
-          "seen": 13
+          "seen": 12
         }
       },
       "DockingPort1": {
@@ -767,14 +773,14 @@
           {
             "a": "2",
             "b": "0",
-            "seen": 10,
+            "seen": 9,
             "kind": "other"
           }
         ],
         "other": {
           "a": "2",
           "b": "0",
-          "seen": 10
+          "seen": 9
         }
       }
     },
@@ -784,13 +790,13 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 137,
+            "seen": 129,
             "kind": "surface"
           },
           {
             "a": "1",
             "b": "1",
-            "seen": 13,
+            "seen": 12,
             "kind": "other"
           },
           {
@@ -803,12 +809,12 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 137
+          "seen": 129
         },
         "other": {
           "a": "1",
           "b": "1",
-          "seen": 13
+          "seen": 12
         }
       },
       "Strut1": {
@@ -969,7 +975,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 461,
+            "seen": 442,
             "kind": "surface"
           },
           {
@@ -1011,7 +1017,7 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 461
+          "seen": 442
         },
         "stack_inverted": {
           "a": "1",
@@ -1029,13 +1035,13 @@
           {
             "a": "1",
             "b": "2",
-            "seen": 1553,
+            "seen": 1492,
             "kind": "stack_inverted"
           },
           {
             "a": "1",
             "b": "0",
-            "seen": 813,
+            "seen": 807,
             "kind": "surface"
           },
           {
@@ -1077,12 +1083,12 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 813
+          "seen": 807
         },
         "stack_inverted": {
           "a": "1",
           "b": "2",
-          "seen": 1553
+          "seen": 1492
         },
         "other": {
           "a": "1",
@@ -1182,7 +1188,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 173,
+            "seen": 161,
             "kind": "surface"
           },
           {
@@ -1207,7 +1213,7 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 173
+          "seen": 161
         }
       },
       "Rotator1": {
@@ -1479,7 +1485,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 24,
+            "seen": 22,
             "kind": "surface"
           },
           {
@@ -1498,7 +1504,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 24
+          "seen": 22
         },
         "other": {
           "a": "1",
@@ -1526,14 +1532,14 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 173,
+            "seen": 168,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 173
+          "seen": 168
         }
       },
       "Wing1": {
@@ -1541,7 +1547,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 244,
+            "seen": 231,
             "kind": "other"
           },
           {
@@ -1565,7 +1571,7 @@
         "other": {
           "a": "1",
           "b": "0",
-          "seen": 244
+          "seen": 231
         }
       },
       "Rotator1": {
@@ -1588,14 +1594,14 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 32,
+            "seen": 30,
             "kind": "other"
           }
         ],
         "other": {
           "a": "1",
           "b": "0",
-          "seen": 32
+          "seen": 30
         }
       },
       "CargoBay1": {
@@ -1603,7 +1609,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 56,
+            "seen": 52,
             "kind": "surface"
           },
           {
@@ -1622,7 +1628,7 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 56
+          "seen": 52
         }
       },
       "NoseCone1": {
@@ -1647,14 +1653,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 11,
+            "seen": 10,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 11
+          "seen": 10
         }
       },
       "Block1": {
@@ -1679,7 +1685,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 357,
+            "seen": 341,
             "kind": "surface"
           },
           {
@@ -1692,7 +1698,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 357
+          "seen": 341
         },
         "other": {
           "a": "0",
@@ -1737,13 +1743,13 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 23,
+            "seen": 22,
             "kind": "surface"
           },
           {
             "a": "2,4",
             "b": "1,5",
-            "seen": 7,
+            "seen": 6,
             "kind": "stack"
           },
           {
@@ -1755,19 +1761,19 @@
           {
             "a": "1,5",
             "b": "2,4",
-            "seen": 2,
+            "seen": 1,
             "kind": "stack_inverted"
           }
         ],
         "stack": {
           "a": "2,4",
           "b": "1,5",
-          "seen": 7
+          "seen": 6
         },
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 23
+          "seen": 22
         },
         "stack_inverted": {
           "a": "1",
@@ -1827,31 +1833,31 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 36,
+            "seen": 33,
             "kind": "surface"
           },
           {
             "a": "0",
             "b": "2",
-            "seen": 29,
+            "seen": 27,
             "kind": "other"
           },
           {
             "a": "0",
             "b": "1",
-            "seen": 26,
+            "seen": 24,
             "kind": "other"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 36
+          "seen": 33
         },
         "other": {
           "a": "0",
           "b": "2",
-          "seen": 29
+          "seen": 27
         }
       },
       "CargoBay1": {
@@ -1915,14 +1921,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 8,
+            "seen": 7,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 8
+          "seen": 7
         }
       }
     },
@@ -1932,7 +1938,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 36,
+            "seen": 34,
             "kind": "surface"
           },
           {
@@ -1945,7 +1951,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 36
+          "seen": 34
         },
         "other": {
           "a": "0",
@@ -2022,14 +2028,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 58,
+            "seen": 57,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 58
+          "seen": 57
         }
       },
       "Strut1": {
@@ -2114,14 +2120,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 26,
+            "seen": 24,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "0",
-          "seen": 26
+          "seen": 24
         }
       },
       "Wing1": {
@@ -2178,36 +2184,36 @@
           {
             "a": "0",
             "b": "1",
-            "seen": 225,
+            "seen": 216,
             "kind": "stack"
           },
           {
             "a": "0",
             "b": "0",
-            "seen": 83,
+            "seen": 81,
             "kind": "surface"
           },
           {
             "a": "0",
             "b": "2",
-            "seen": 63,
+            "seen": 59,
             "kind": "other"
           }
         ],
         "stack": {
           "a": "0",
           "b": "1",
-          "seen": 225
+          "seen": 216
         },
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 83
+          "seen": 81
         },
         "other": {
           "a": "0",
           "b": "2",
-          "seen": 63
+          "seen": 59
         }
       },
       "Strut1": {
@@ -2230,14 +2236,14 @@
           {
             "a": "0",
             "b": "1",
-            "seen": 236,
+            "seen": 232,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "1",
-          "seen": 236
+          "seen": 232
         }
       }
     },
@@ -2731,13 +2737,13 @@
           {
             "a": "1,2",
             "b": "2,4",
-            "seen": 141,
+            "seen": 137,
             "kind": "stack_inverted"
           },
           {
             "a": "1,1",
             "b": "2,2",
-            "seen": 68,
+            "seen": 64,
             "kind": "stack_inverted"
           },
           {
@@ -2749,7 +2755,7 @@
           {
             "a": "1,1",
             "b": "1,1",
-            "seen": 48,
+            "seen": 46,
             "kind": "other"
           },
           {
@@ -2785,7 +2791,7 @@
         "stack_inverted": {
           "a": "1,2",
           "b": "2,4",
-          "seen": 141
+          "seen": 137
         },
         "other": {
           "a": "1,2",
@@ -3024,7 +3030,7 @@
           {
             "a": "1",
             "b": "2",
-            "seen": 118,
+            "seen": 108,
             "kind": "other"
           },
           {
@@ -3042,7 +3048,7 @@
         "other": {
           "a": "1",
           "b": "2",
-          "seen": 118
+          "seen": 108
         }
       },
       "Shock1": {
@@ -3247,7 +3253,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 156,
+            "seen": 153,
             "kind": "surface"
           },
           {
@@ -3278,7 +3284,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 156
+          "seen": 153
         },
         "other": {
           "a": "0",
@@ -3483,7 +3489,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 57,
+            "seen": 53,
             "kind": "surface"
           },
           {
@@ -3502,7 +3508,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 57
+          "seen": 53
         },
         "other": {
           "a": "0",
@@ -3676,31 +3682,31 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 44,
+            "seen": 38,
             "kind": "surface"
           },
           {
             "a": "0",
             "b": "2",
-            "seen": 22,
+            "seen": 19,
             "kind": "other"
           },
           {
             "a": "0",
             "b": "1",
-            "seen": 18,
+            "seen": 15,
             "kind": "other"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 44
+          "seen": 38
         },
         "other": {
           "a": "0",
           "b": "2",
-          "seen": 22
+          "seen": 19
         }
       }
     },
@@ -3911,13 +3917,13 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 72,
+            "seen": 68,
             "kind": "surface"
           },
           {
             "a": "2",
             "b": "5",
-            "seen": 17,
+            "seen": 16,
             "kind": "other"
           },
           {
@@ -3936,12 +3942,12 @@
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 72
+          "seen": 68
         },
         "other": {
           "a": "2",
           "b": "5",
-          "seen": 17
+          "seen": 16
         }
       },
       "Strut1": {
@@ -3981,13 +3987,13 @@
           {
             "a": "1",
             "b": "2",
-            "seen": 77,
+            "seen": 73,
             "kind": "other"
           },
           {
             "a": "2",
             "b": "1",
-            "seen": 62,
+            "seen": 60,
             "kind": "other"
           },
           {
@@ -4017,7 +4023,7 @@
         "other": {
           "a": "1",
           "b": "2",
-          "seen": 77
+          "seen": 73
         }
       },
       "CrewCompartment": {
@@ -4102,13 +4108,13 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 31,
+            "seen": 27,
             "kind": "surface"
           },
           {
             "a": "0",
             "b": "1",
-            "seen": 23,
+            "seen": 22,
             "kind": "other"
           },
           {
@@ -4127,12 +4133,12 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 31
+          "seen": 27
         },
         "other": {
           "a": "0",
           "b": "1",
-          "seen": 23
+          "seen": 22
         }
       },
       "Strut1": {
@@ -4170,14 +4176,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 12,
+            "seen": 11,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 12
+          "seen": 11
         }
       },
       "DockingPort1": {
@@ -4185,14 +4191,14 @@
           {
             "a": "1",
             "b": "1",
-            "seen": 10,
+            "seen": 9,
             "kind": "other"
           }
         ],
         "other": {
           "a": "1",
           "b": "1",
-          "seen": 10
+          "seen": 9
         }
       },
       "Gyroscope1": {
@@ -4200,14 +4206,14 @@
           {
             "a": "0",
             "b": "1",
-            "seen": 6,
+            "seen": 5,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "1",
-          "seen": 6
+          "seen": 5
         }
       }
     },
@@ -4292,7 +4298,7 @@
           {
             "a": "3",
             "b": "0",
-            "seen": 54,
+            "seen": 50,
             "kind": "surface"
           },
           {
@@ -4322,7 +4328,7 @@
         "surface": {
           "a": "3",
           "b": "0",
-          "seen": 54
+          "seen": 50
         }
       },
       "Strut1": {
@@ -4362,7 +4368,7 @@
           {
             "a": "1",
             "b": "5",
-            "seen": 48,
+            "seen": 47,
             "kind": "other"
           },
           {
@@ -4399,7 +4405,7 @@
         "other": {
           "a": "1",
           "b": "5",
-          "seen": 48
+          "seen": 47
         }
       },
       "JetEngine1": {
@@ -4413,7 +4419,7 @@
           {
             "a": "0",
             "b": "2",
-            "seen": 26,
+            "seen": 22,
             "kind": "other"
           }
         ],
@@ -4434,7 +4440,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 62,
+            "seen": 59,
             "kind": "other"
           },
           {
@@ -4556,6 +4562,23 @@
         }
       }
     },
+    "CommandPod1": {
+      "Parachute1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      }
+    },
     "BeaconLight1": {
       "Strut1": {
         "variants": [
@@ -4618,14 +4641,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 26,
+            "seen": 24,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "0",
-          "seen": 26
+          "seen": 24
         }
       },
       "Fuselage1": {
@@ -4676,7 +4699,7 @@
           {
             "a": "1",
             "b": "1",
-            "seen": 14,
+            "seen": 13,
             "kind": "other"
           },
           {
@@ -4694,7 +4717,7 @@
         "other": {
           "a": "1",
           "b": "1",
-          "seen": 14
+          "seen": 13
         }
       },
       "Strut1": {
@@ -4783,7 +4806,7 @@
           {
             "a": "1",
             "b": "0",
-            "seen": 58,
+            "seen": 56,
             "kind": "surface"
           },
           {
@@ -4802,7 +4825,7 @@
         "surface": {
           "a": "1",
           "b": "0",
-          "seen": 58
+          "seen": 56
         },
         "other": {
           "a": "1",
@@ -5035,7 +5058,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 51,
+            "seen": 47,
             "kind": "surface"
           },
           {
@@ -5054,7 +5077,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 51
+          "seen": 47
         }
       },
       "Wing1": {
@@ -5191,14 +5214,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 118,
+            "seen": 108,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "0",
-          "seen": 118
+          "seen": 108
         }
       }
     },
@@ -5521,14 +5544,14 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 72,
+            "seen": 65,
             "kind": "surface"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 72
+          "seen": 65
         }
       },
       "Strut1": {
@@ -5536,7 +5559,7 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 18,
+            "seen": 16,
             "kind": "surface"
           },
           {
@@ -5549,7 +5572,7 @@
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 18
+          "seen": 16
         },
         "other": {
           "a": "0",
@@ -5677,31 +5700,31 @@
           {
             "a": "0",
             "b": "0",
-            "seen": 595,
+            "seen": 551,
             "kind": "surface"
           },
           {
             "a": "0",
             "b": "2",
-            "seen": 52,
+            "seen": 47,
             "kind": "other"
           },
           {
             "a": "0",
             "b": "1",
-            "seen": 26,
+            "seen": 23,
             "kind": "other"
           }
         ],
         "surface": {
           "a": "0",
           "b": "0",
-          "seen": 595
+          "seen": 551
         },
         "other": {
           "a": "0",
           "b": "2",
-          "seen": 52
+          "seen": 47
         }
       },
       "NoseCone1": {
@@ -5823,31 +5846,14 @@
           {
             "a": "0",
             "b": "1",
-            "seen": 60,
+            "seen": 54,
             "kind": "other"
           }
         ],
         "other": {
           "a": "0",
           "b": "1",
-          "seen": 60
-        }
-      }
-    },
-    "LandingLeg3": {
-      "CargoBay1": {
-        "variants": [
-          {
-            "a": "0",
-            "b": "5",
-            "seen": 42,
-            "kind": "surface"
-          }
-        ],
-        "surface": {
-          "a": "0",
-          "b": "5",
-          "seen": 42
+          "seen": 54
         }
       }
     },
@@ -5865,6 +5871,23 @@
           "a": "0",
           "b": "0",
           "seen": 30
+        }
+      }
+    },
+    "LandingLeg3": {
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 36,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "5",
+          "seen": 36
         }
       }
     }

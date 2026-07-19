@@ -17,14 +17,15 @@ namespace JunoBridge.Core
         Slider2,
         Slider3,
         Slider4
-        // TargetHeading здесь намеренно нет: CraftControls.TargetHeading имеет тип
-        // Quaterniond? (ориентация), а весь этот конвейер — скалярный float.
-        // Ось отключена явно, см. отказ not_supported в FlightControlHandler.
+        // TargetHeading is deliberately absent here: CraftControls.TargetHeading is a
+        // Quaterniond? (an orientation), while this whole pipeline is scalar float.
+        // The axis is disabled explicitly, see the not_supported rejection in
+        // FlightControlHandler.
     }
 
-    /// Однократная запись в CraftControls живёт один кадр: собственный ввод игры
-    /// перезапишет её на следующем. Удержание переставляет значения каждый
-    /// FlightPreFixedUpdate, до явной отмены.
+    /// A single write to CraftControls lives for one frame: the game's own input overwrites
+    /// it on the next one. A hold reapplies the values on every FlightPreFixedUpdate, until
+    /// explicitly cancelled.
     internal static class ControlOverrides
     {
         private static readonly Dictionary<ControlAxis, float> _held = new Dictionary<ControlAxis, float>();
@@ -71,7 +72,7 @@ namespace JunoBridge.Core
             lock (_held) return new List<ControlAxis>(_held.Keys);
         }
 
-        /// Главный поток, перед физикой.
+        /// Main thread, before physics.
         public static void Apply()
         {
             var craft = GameContext.PlayerCraftNode;

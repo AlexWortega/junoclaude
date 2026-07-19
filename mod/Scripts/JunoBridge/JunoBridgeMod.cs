@@ -34,7 +34,7 @@ namespace JunoBridge
             }
             catch (Exception ex)
             {
-                // Мод не должен ронять загрузку игры: логируем и остаёмся неактивными.
+                // The mod must not break game startup: log and stay inactive.
                 EventLog.Record(EventKind.Exception, "OnModInitialized failed: " + ex);
                 UnityEngine.Debug.LogError("[JunoBridge] OnModInitialized failed: " + ex);
             }

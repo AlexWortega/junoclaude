@@ -58,7 +58,7 @@ namespace JunoBridge.Net
                 }
                 catch (Exception)
                 {
-                    // Закрытие слушателя приводит сюда же — это штатный выход.
+                    // Closing the listener lands here too — that is the normal exit.
                     if (!_running) return;
                     Thread.Sleep(50);
                     continue;
@@ -89,7 +89,7 @@ namespace JunoBridge.Net
             }
             catch (Exception)
             {
-                // Клиент мог отвалиться до записи ответа — это не наша проблема.
+                // The client may have dropped before the response was written — not our problem.
             }
             finally
             {

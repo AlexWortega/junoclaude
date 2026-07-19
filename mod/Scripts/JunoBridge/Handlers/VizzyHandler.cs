@@ -35,8 +35,8 @@ namespace JunoBridge.Handlers
 
         public static BridgeResponse Put(int partId, BridgeRequest request)
         {
-            // В полёте программа уже скомпилирована в исполняющийся процесс, и запись
-            // FlightProgramXml её не подменит. Авторинг — операция конструктора.
+            // In flight the program is already compiled into a running process, and writing
+            // FlightProgramXml will not replace it. Authoring is a designer operation.
             if (!GameContext.InDesigner)
                 return BridgeResponse.Error(409, "requires_designer",
                     "Vizzy programs can only be written in the designer; launch afterwards.");
@@ -65,8 +65,8 @@ namespace JunoBridge.Handlers
                 return BridgeResponse.Error(400, "invalid_xml", ex.Message);
             }
 
-            // Прогоняем через штатный десериализатор до записи: лучше отказать здесь,
-            // чем положить мусор в корабль и получить взрыв при загрузке.
+            // Run it through the stock deserializer before writing: better to refuse here than
+            // to put garbage into the craft and blow up at load time.
             string programError;
             if (!TryValidateProgram(element, out programError))
                 return BridgeResponse.Error(400, "invalid_program", programError);
@@ -93,9 +93,9 @@ namespace JunoBridge.Handlers
             return BridgeResponse.Ok(w.ToString());
         }
 
-        /// Через рефлексию: XML-доки не раскрывают, статический DeserializeFlightProgram
-        /// или экземплярный, а промах в этом месте — ошибка компиляции всего мода.
-        /// TODO(проверить): выяснить форму вызова и заменить на прямой.
+        /// Via reflection: the XML docs do not say whether DeserializeFlightProgram is static
+        /// or an instance method, and a miss here is a compile error for the whole mod.
+        /// TODO(verify): determine the call shape and replace this with a direct call.
         private static bool TryValidateProgram(XElement element, out string error)
         {
             error = null;
@@ -125,7 +125,7 @@ namespace JunoBridge.Handlers
             }
             catch (Exception ex)
             {
-                // Не смогли даже добраться до валидатора — не повод отвергать программу.
+                // We could not even reach the validator — not a reason to reject the program.
                 EventLog.Record(EventKind.Exception, "Vizzy program validation unavailable: " + ex.Message);
                 return true;
             }

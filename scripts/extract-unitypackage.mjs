@@ -1,21 +1,21 @@
 #!/usr/bin/env node
-// Извлекает файлы из .unitypackage (gzip-tar) по pathname.
+// Extracts files from a .unitypackage (gzip-tar) by pathname.
 //
-// Формат: каждый ассет лежит в каталоге, названном его GUID:
-//   <guid>/asset       — содержимое
-//   <guid>/asset.meta  — метаданные
-//   <guid>/pathname    — путь внутри Assets/, ради которого всё и затевается
+// The format: each asset lives in a directory named after its GUID:
+//   <guid>/asset       — the contents
+//   <guid>/asset.meta  — the metadata
+//   <guid>/pathname    — the path inside Assets/, which is the point of it all
 //
-// Ищем по pathname, а не по GUID: GUID меняется между версиями игры,
-// pathname — нет. Два прохода, потому что tar — поток, и `pathname`
-// может идти после `asset` внутри одного каталога.
+// We look up by pathname, not by GUID: the GUID changes between game versions,
+// the pathname does not. Two passes, because tar is a stream and `pathname`
+// may come after `asset` within the same directory.
 
 import { createReadStream } from 'node:fs';
 import { createGunzip } from 'node:zlib';
 
 const BLOCK = 512;
 
-/** Минимальный потоковый ридер tar — достаточно для формата .unitypackage. */
+/** A minimal streaming tar reader — enough for the .unitypackage format. */
 async function* readTar(stream) {
   let buf = Buffer.alloc(0);
   const chunks = [];
@@ -25,7 +25,7 @@ async function* readTar(stream) {
   let off = 0;
   while (off + BLOCK <= buf.length) {
     const header = buf.subarray(off, off + BLOCK);
-    // Два нулевых блока подряд — конец архива.
+    // Two consecutive zero blocks mean the end of the archive.
     if (header.every((b) => b === 0)) break;
 
     const name = header.subarray(0, 100).toString('utf8').replace(/\0.*$/, '');
@@ -34,7 +34,7 @@ async function* readTar(stream) {
     const typeFlag = String.fromCharCode(header[156]);
 
     off += BLOCK;
-    // '0' и '\0' — обычный файл; каталоги ('5') и прочее пропускаем.
+    // '0' and '\0' mean a regular file; directories ('5') and the rest are skipped.
     if (typeFlag === '0' || typeFlag === '\0') {
       yield { name, data: buf.subarray(off, off + size) };
     }
@@ -43,17 +43,17 @@ async function* readTar(stream) {
 }
 
 /**
- * @param {string} pkgPath путь к .unitypackage
- * @param {Set<string>} wanted нужные pathname, например 'Assets/ModTools/Parts/Parts.xml'
- * @returns {Promise<Map<string, Buffer>>} pathname → содержимое
+ * @param {string} pkgPath path to the .unitypackage
+ * @param {Set<string>} wanted the pathnames wanted, e.g. 'Assets/ModTools/Parts/Parts.xml'
+ * @returns {Promise<Map<string, Buffer>>} pathname → contents
  */
 export async function extractByPathname(pkgPath, wanted) {
   const guidToPath = new Map();
   const assets = new Map(); // guid → Buffer
 
-  // Один проход: собираем и pathname, и asset-блобы, решаем в конце.
-  // Держать все asset'ы в памяти дороже, но .unitypackage здесь 11 МБ —
-  // это дешевле второго прохода с распаковкой gzip.
+  // A single pass: collect both pathnames and asset blobs, decide at the end.
+  // Holding every asset in memory costs more, but the .unitypackage here is
+  // 11 MB — cheaper than a second pass with gzip decompression.
   for await (const entry of readTar(createReadStream(pkgPath).pipe(createGunzip()))) {
     const slash = entry.name.indexOf('/');
     if (slash < 0) continue;
@@ -75,14 +75,14 @@ export async function extractByPathname(pkgPath, wanted) {
   const missing = [...wanted].filter((w) => !out.has(w));
   if (missing.length) {
     throw new Error(
-      `Не найдено в ${pkgPath}:\n  ${missing.join('\n  ')}\n` +
-        `Возможно, обновилась игра и путь изменился. Доступно ${guidToPath.size} ассетов.`
+      `Not found in ${pkgPath}:\n  ${missing.join('\n  ')}\n` +
+        `The game may have updated and the path changed. ${guidToPath.size} assets available.`
     );
   }
   return out;
 }
 
-// CLI: node extract-unitypackage.mjs <pkg> <pathname> [выходной файл]
+// CLI: node extract-unitypackage.mjs <pkg> <pathname> [output file]
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [pkg, pathname, outFile] = process.argv.slice(2);
   if (!pkg || !pathname) {
@@ -94,7 +94,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (outFile) {
     const { writeFile } = await import('node:fs/promises');
     await writeFile(outFile, data);
-    console.error(`${data.length} байт → ${outFile}`);
+    console.error(`${data.length} bytes → ${outFile}`);
   } else {
     process.stdout.write(data);
   }

@@ -1,14 +1,15 @@
-// Обратное преобразование Vizzy XML → DSL.
+// The reverse transform, Vizzy XML → DSL.
 //
-// Нужно, чтобы модель могла прочитать существующую программу, не втягивая
-// в контекст десятки килобайт XML: DSL примерно впятеро компактнее. Блоки,
-// которым нет соответствия в DSL, отдаются в сыром виде — терять их нельзя.
+// Needed so the model can read an existing program without pulling tens of
+// kilobytes of XML into the context: the DSL is roughly five times more
+// compact. Blocks with no DSL equivalent are returned raw — they must not be
+// lost.
 
 import type { XmlNode } from '../xml.js';
 import { EXPRESSIONS, INSTRUCTIONS, MATH_FUNCTIONS } from './blocks.js';
 import type { DslProgram, DslStmt } from './compile.js';
 
-/** Обратные индексы строятся один раз: тег+style → имя операции DSL. */
+/** Reverse indices are built once: tag+style → DSL operation name. */
 const instructionByKey = new Map<string, string>();
 for (const [name, spec] of Object.entries(INSTRUCTIONS))
   instructionByKey.set(`${spec.tag}|${spec.style}`, name);
@@ -16,7 +17,7 @@ for (const [name, spec] of Object.entries(INSTRUCTIONS))
 const expressionByKey = new Map<string, string>();
 for (const [name, spec] of Object.entries(EXPRESSIONS)) {
   expressionByKey.set(`${spec.tag}|${spec.style}`, name);
-  // Часть операций различается атрибутом op, а не style.
+  // Some operations are distinguished by the op attribute rather than style.
   if (spec.fixedAttrs?.['op'] !== undefined)
     expressionByKey.set(`${spec.tag}|op=${spec.fixedAttrs['op']}`, name);
 }
@@ -33,7 +34,7 @@ function decompileExpr(node: XmlNode): unknown {
 
   if (node.tag === 'Variable') {
     const name = node.attrs['variableName'] ?? '';
-    // Компилятор принимает "$имя" обратно как ссылку на переменную.
+    // The compiler accepts "$name" back as a variable reference.
     return `$${name}`;
   }
 
@@ -53,8 +54,8 @@ function decompileExpr(node: XmlNode): unknown {
 
   if (name !== undefined) return [name, ...node.children.map(decompileExpr)];
 
-  // Неизвестный блок сохраняем как есть — иначе обратная компиляция потеряет
-  // часть программы, а это хуже, чем менее красивый вывод.
+  // An unknown block is kept as is — otherwise decompiling would lose part of
+  // the program, which is worse than less pretty output.
   return {
     raw: node.tag,
     attrs: node.attrs,
@@ -100,8 +101,8 @@ export function decompileProgram(program: XmlNode): DslProgram {
     return entry;
   });
 
-  // Верхний уровень плоский: <Event> открывает стек, следующие за ним
-  // элементы — его тело, пока не встретится следующее событие.
+  // The top level is flat: <Event> opens the stack and the elements following
+  // it are its body, until the next event appears.
   const instructions = program.children.find((c) => c.tag === 'Instructions');
   const on: Record<string, DslStmt[]> = {};
   let current: DslStmt[] | undefined;
@@ -110,7 +111,7 @@ export function decompileProgram(program: XmlNode): DslProgram {
   for (const child of instructions?.children ?? []) {
     if (child.tag === 'Event') {
       const eventName = child.attrs['event'] ?? 'FlightStart';
-      // Одно и то же событие может встретиться дважды — не затираем первое.
+      // The same event may occur twice — do not overwrite the first one.
       const key = on[eventName] === undefined ? eventName : `${eventName}#${Object.keys(on).length}`;
       current = [];
       on[key] = current;
@@ -118,7 +119,7 @@ export function decompileProgram(program: XmlNode): DslProgram {
     }
     (current ?? orphans).push(decompileStmt(child));
   }
-  if (orphans.length > 0) on['(без события)'] = orphans;
+  if (orphans.length > 0) on['(no event)'] = orphans;
 
   const result: DslProgram = { name: program.attrs['name'] ?? '', on };
   if (variables.length > 0) result.variables = variables;

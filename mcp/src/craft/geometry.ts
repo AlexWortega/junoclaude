@@ -1,22 +1,22 @@
-// Геометрия процедурных корпусов и вывод ёмкости баков.
+// Procedural hull geometry and the derivation of tank capacity.
 //
-// Формула ёмкости выведена статистически по 2286 бакам из 62 конструкций,
-// сохранённых самой игрой, и подтверждена точно:
-//   круглое сечение    → 550.000 единиц на кубометр
-//   квадратное сечение → ровно 4/π от этого же значения
-// То есть коэффициент один, а различается площадь сечения. Совпадение с 4/π
-// до четвёртого знака не оставляет сомнений в модели.
+// The capacity formula was derived statistically from 2286 tanks across 62
+// designs the game saved itself, and confirmed exactly:
+//   round cross-section  → 550.000 units per cubic metre
+//   square cross-section → exactly 4/π of that same value
+// That is, the coefficient is the same and only the cross-section area differs.
+// Matching 4/π to four decimal places leaves no doubt about the model.
 
-/** Единиц топлива на кубометр объёма при utilization = 1. */
+/** Fuel units per cubic metre of volume at utilization = 1. */
 export const FUEL_UNITS_PER_M3 = 550;
 
-/** У твёрдого топлива своя плотность. */
+/** Solid fuel has its own density. */
 export const SOLID_FUEL_UNITS_PER_M3 = 400;
 
 /**
- * Площадь сечения корпуса. `cornerRadiuses` задаёт скругление восьми углов:
- * при единице сечение круглое (π·a·b), при нуле — прямоугольное (4·a·b).
- * Промежуточные значения игра интерполирует, и замеры это подтверждают.
+ * Cross-section area of a hull. `cornerRadiuses` sets the rounding of the eight
+ * corners: at one the section is round (π·a·b), at zero rectangular (4·a·b).
+ * The game interpolates intermediate values, and the measurements confirm it.
  */
 export function crossSectionArea(
   halfWidth: number,
@@ -34,17 +34,17 @@ export function crossSectionArea(
 }
 
 export interface FuselageShape {
-  /** Полная длина детали по оси Y. */
+  /** Full length of the part along the Y axis. */
   length: number;
-  /** Полуоси верхнего торца: [ширина, глубина]. */
+  /** Semi-axes of the top face: [width, depth]. */
   topScale: [number, number];
   bottomScale: [number, number];
   cornerRadiuses?: number[];
 }
 
 /**
- * Объём усечённого конуса с переменным сечением. Игра использует ту же
- * формулу для среднего сечения, что и классическая формула Симпсона.
+ * Volume of a truncated cone with a varying cross-section. The game uses the
+ * same formula for the mean section as the classic Simpson's rule.
  */
 export function fuselageVolume(shape: FuselageShape): number {
   const corners = shape.cornerRadiuses;
@@ -63,15 +63,15 @@ export function fuelCapacity(
 }
 
 /**
- * Атрибут `offset` корпуса: его составляющая по Y равна **половине** длины.
- * Проверено на эталонной конструкции: бак с offset="0,2.5,0" простирается от
- * -2.82 до 2.18 при центре -0.32, то есть занимает пять метров.
+ * A hull's `offset` attribute: its Y component equals **half** the length.
+ * Verified against a reference design: a tank with offset="0,2.5,0" spans from
+ * -2.82 to 2.18 about a centre of -0.32, that is, it occupies five metres.
  */
 export function fuselageOffset(length: number): string {
   return `0,${length / 2},0`;
 }
 
-/** Округление до шести знаков — игра пишет числа примерно с такой точностью. */
+/** Rounding to six decimals — roughly the precision the game writes numbers at. */
 export const round6 = (n: number): number => Math.round(n * 1e6) / 1e6;
 
 export const vecStr = (v: number[]): string => v.map(round6).join(',');

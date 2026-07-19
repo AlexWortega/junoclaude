@@ -8,8 +8,8 @@ using ModApi.Flight.Sim;
 
 namespace JunoBridge.Serialization
 {
-    /// Сериализуем заведомо избыточно: лишние 40 полей стоят микросекунды,
-    /// а добавление одного поля позже стоит пересборки Unity и перезапуска игры.
+    /// We serialize deliberately more than needed: 40 extra fields cost microseconds, while
+    /// adding one field later costs a Unity rebuild and a game restart.
     internal static class TelemetrySerializer
     {
         private const double RadToDeg = 180.0 / Math.PI;
@@ -37,8 +37,8 @@ namespace JunoBridge.Serialization
             WriteMass(w, data);
             WritePropulsion(w, data);
             WriteState(w, node, craft, data);
-            // ICraftFlightData.Orbit — это ICraftOrbitData (урезанная сводка на 8 полей).
-            // Полные элементы орбиты живут в IOrbitNode.Orbit.
+            // ICraftFlightData.Orbit is an ICraftOrbitData (a trimmed 8-field summary).
+            // The full orbital elements live in IOrbitNode.Orbit.
             var orbitNode = node as IOrbitNode;
             OrbitSerializer.Write(w, "orbit", orbitNode == null ? null : orbitNode.Orbit, orbitNode);
             WriteControls(w, node);
@@ -98,7 +98,7 @@ namespace JunoBridge.Serialization
 
             w.BeginObject("position")
              .Str("planet", parent == null ? null : parent.Name)
-             // LatLon приходит в радианах; наружу отдаём градусы — LLM плохо рассуждают в радианах.
+             // LatLon arrives in radians; we emit degrees — LLMs reason poorly in radians.
              .Num("latitude", node.LatLon.x * RadToDeg)
              .Num("longitude", node.LatLon.y * RadToDeg)
              .Num("altitudeAsl", node.Altitude)
@@ -180,7 +180,7 @@ namespace JunoBridge.Serialization
             double mass = data.CurrentMass;
             double gravity = data.GravityMagnitude;
             double weight = mass * gravity;
-            // TWR в API нет; делитель может быть нулевым в глубоком космосе.
+            // There is no TWR in the API; the divisor can be zero in deep space.
             double twr = weight > 1e-6 ? data.MaxActiveEngineThrust / weight : 0.0;
 
             int engineCount = 0;
