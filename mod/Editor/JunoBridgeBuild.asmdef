@@ -1,0 +1,8 @@
+{
+	"name": "JunoBridgeBuild.Editor",
+	"references": [],
+	"includePlatforms": [
+		"Editor"
+	],
+	"autoReferenced": false
+}

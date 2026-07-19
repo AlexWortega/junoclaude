@@ -11,12 +11,20 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = join(ROOT, 'mod/Scripts/JunoBridge');
+
+// Editor/ обязателен для воспроизводимой сборки с нуля: без JunoBridgeBuild.cs
+// нечего звать через -executeMethod, а без .asmdef рядом с ним корневой
+// JunoBridge.asmdef (его ModTools генерирует сам при каждой сборке) затягивает
+// редакторный скрипт в рантайм-сборку мода, и сборка скриптов игрока падает.
+const DIRS = [
+  ['mod/Scripts/JunoBridge', 'Assets/JunoBridge'],
+  ['mod/Editor', 'Assets/Editor'],
+];
 
 async function countFiles(dir) {
   let n = 0;
   for (const entry of await readdir(dir, { withFileTypes: true, recursive: true }))
-    if (entry.isFile() && entry.name.endsWith('.cs')) n++;
+    if (entry.isFile()) n++;
   return n;
 }
 
@@ -39,14 +47,17 @@ async function main() {
     process.exit(1);
   }
 
-  const dest = join(project, 'Assets/JunoBridge');
-  // Удаляем перед копированием: иначе переименованный или удалённый в
-  // репозитории файл останется в проекте и будет ломать компиляцию дублем.
-  await rm(dest, { recursive: true, force: true });
-  await mkdir(dest, { recursive: true });
-  await cp(SOURCE, dest, { recursive: true });
+  for (const [from, to] of DIRS) {
+    const source = join(ROOT, from);
+    const dest = join(project, to);
+    // Удаляем перед копированием: иначе переименованный или удалённый в
+    // репозитории файл останется в проекте и будет ломать компиляцию дублем.
+    await rm(dest, { recursive: true, force: true });
+    await mkdir(dest, { recursive: true });
+    await cp(source, dest, { recursive: true });
+    console.error(`${await countFiles(source)} файлов → ${dest}`);
+  }
 
-  console.error(`${await countFiles(SOURCE)} файлов .cs → ${dest}`);
   console.error('Переключитесь в Unity — он подхватит изменения и пересоберёт.');
 }
 
