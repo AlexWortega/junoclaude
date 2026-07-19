@@ -42,15 +42,38 @@ attempting before the earlier ones hold.
 
    *The interstage encloses the engine.* Details below.
 
-2. **Get off the pad.** The current blocker. A tall vehicle spawns already
-   tilted — `pitch -19.3°` on the pad — and cannot climb; a shorter one
-   spawned at `pitch 0.3°`, which is still not the `90°` a stock rocket shows.
-   Something about how the craft's orientation is derived is wrong, and it
-   scales with length. Compare a generated craft against a stock one in the
-   designer to see which axis is off before writing more flight code.
+2. ~~**Get off the pad.**~~ **Done.** A two-stage vehicle flew to **15.1 km**
+   with all 7 parts intact and both stages firing.
 
-   Note the units: a stock rocket on the pad reports `pitch 90`, ours report
-   near `0`, so the nose is being treated as pointing along a different axis.
+   The earlier "spawns tilted" reading was a red herring: the stock `__new__`
+   rocket also reports a small pitch on the pad, and a craft that reported
+   `pitch -13.6°` still flew to 26 km. Pitch near zero is normal; the `90°` of
+   a large stock rocket comes from something else.
+
+   The real cause was **thrust-to-weight below 1**. The vehicle that would not
+   move had `TWR 0.62` — it physically cannot lift. Measured points, all with
+   a single default `Bravo` engine (thrust 3631):
+
+   | tank | fuel | TWR | result |
+   |---|---|---|---|
+   | 5 m × 2 m | 88 | 3.34 | 26.6 km, single stage |
+   | 9 m × 2 m + upper stage | 204 | ~1.7 | **15.1 km, two stages** |
+   | 18 m × 2.4 m + upper stage | 571 | 0.62 | never left the pad |
+
+   A `size: 2` engine raises thrust but burns 679 units in 6 s (~113/s against
+   ~2/s at `size: 1`), so it is not a free fix. Thrust and flow both scale with
+   `nozzleThroatSize`; stock craft use 0.5–1.0.
+
+3. **Reach orbit.** The current blocker. Peak vertical speed so far is
+   508 m/s against roughly 2500 m/s needed for orbit around Droo, so the
+   vehicle needs far more delta-v while keeping lift-off TWR above about 1.3.
+   That means more stages, not a bigger single engine, and it needs a gravity
+   turn rather than a vertical climb — going straight up spends everything
+   fighting gravity.
+
+   Radial boosters would be the natural answer and `craft_build` does not
+   support them yet (`RadialGroup` is defined in the spec type but not
+   implemented).
 
 ### Why the interstage matters (kept for reference)
 
@@ -68,13 +91,13 @@ attempting before the earlier ones hold.
 2. **Reach orbit.** Needs a gravity turn, not a vertical climb: pitch over
    gradually with altitude and hold prograde. Success = periapsis above
    ~70 km. The autopilot already reads `orbit.apoapsis` / `periapsis`.
-3. **Trans-lunar injection.** Burn at the right point to raise apoapsis to
+4. **Trans-lunar injection.** Burn at the right point to raise apoapsis to
    Luna's orbit. Needs Luna's orbital radius and a phase angle — both
    obtainable from `/planets`.
-4. **Capture and landing.** Retrograde burn near periapsis, then a suicide
+5. **Capture and landing.** Retrograde burn near periapsis, then a suicide
    burn to touch down under ~5 m/s. Landing legs required — currently the
    builder has no `landing_leg` item.
-5. **Return.** Ascent from Luna, trans-Droo injection, atmospheric entry with
+6. **Return.** Ascent from Luna, trans-Droo injection, atmospheric entry with
    a heat shield, parachute descent.
 
 ## Known gaps blocking the later steps
