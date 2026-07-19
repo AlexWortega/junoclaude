@@ -67,10 +67,16 @@ export interface WriteGuardOptions {
 }
 
 /**
- * Отказывает в записи, если игра запущена. Игра читает UserData при старте и
- * переписывает при сохранении, поэтому запись «на живую» либо потеряется,
- * либо затрёт работу пользователя.
+ * Файлы, которые игра переписывает сама. Правка их на живую либо потеряется,
+ * либо затрёт состояние пользователя.
+ *
+ * Каталоги конструкций и программ полёта сюда намеренно не входят: проверено
+ * на практике, что игра не кэширует их список — записанный при запущенной игре
+ * новый крафт сразу виден в редакторе и открывается. Блокировать такую запись
+ * значило бы требовать перезапуска игры без всякой на то причины.
  */
+const LIVE_STATE_PATTERNS = [/\/GameStates\//, /Settings\.xml$/, /\/Career\//];
+
 export async function assertSafeToWrite(
   target: string,
   opts: WriteGuardOptions = {}
@@ -79,10 +85,10 @@ export async function assertSafeToWrite(
   if (opts.force === true) return;
 
   const pid = await gamePid();
-  if (pid !== undefined)
+  if (pid !== undefined && LIVE_STATE_PATTERNS.some((re) => re.test(target)))
     throw new ToolError(
       'game_running',
-      `Juno запущена (pid ${pid}). Запись в ${target} будет потеряна при сохранении из игры ` +
+      `Juno запущена (pid ${pid}), а ${target} игра переписывает сама — правка будет потеряна ` +
         `или затрёт текущее состояние.`,
       { pid, fix: 'Вызовите game_quit или попросите пользователя выйти из игры.' }
     );

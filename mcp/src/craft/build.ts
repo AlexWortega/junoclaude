@@ -170,6 +170,29 @@ function modifiersFor(item: StackItem): XmlNode[] {
   return out;
 }
 
+/**
+ * Дополняет деталь модификаторами, объявленными в её типе, но не выписанными
+ * нами. Игра их **не подставляет**: командный модуль без своего `<FuelTank>`
+ * роняет построение топливной системы с NullReferenceException в
+ * `CraftFuelSources.Rebuild`. Наши значения имеют приоритет над умолчаниями.
+ */
+async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promise<XmlNode[]> {
+  const pt = await partType(typeId);
+  if (pt === undefined) return existing;
+
+  const present = new Set(existing.map((m) => m.tag));
+  const out = [...existing];
+
+  for (const [tag, defaults] of Object.entries(pt.modifiers)) {
+    if (present.has(tag)) continue;
+    // Config несёт полсотни служебных атрибутов, и игра заполняет их сама —
+    // в сохранённых ею конструкциях он всегда краткий.
+    if (tag === 'Config') continue;
+    out.push(node(tag, { ...defaults }));
+  }
+  return out;
+}
+
 export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   const warnings: BuildWarning[] = [];
   if (spec.stack.length === 0) throw new Error('Стек пуст: нужна хотя бы одна деталь');
@@ -195,7 +218,7 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   const parts: XmlNode[] = [];
   let y = 0;
 
-  spec.stack.forEach((item, index) => {
+  for (const [index, item] of spec.stack.entries()) {
     const height = itemHeight(item);
     const centerY = y + height / 2;
     const stage = 'stage' in item && item.stage !== undefined ? item.stage : 0;
@@ -211,10 +234,11 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     if (stage > 0) attrs['activationStage'] = String(stage);
     if ('name' in item && item.name !== undefined) attrs['name'] = item.name;
 
-    parts.push(node('Part', attrs, modifiersFor(item)));
+    const modifiers = await fillDefaultModifiers(attrs['partType'] as string, modifiersFor(item));
+    parts.push(node('Part', attrs, modifiers));
     layout.push({ id: index, partType: attrs['partType'] as string, y: round6(centerY), height, stage });
     y += height;
-  });
+  }
 
   // Командный модуль несёт названия групп активации.
   if (spec.activation_groups !== undefined && podIndex >= 0) {

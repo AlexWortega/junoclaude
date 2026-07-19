@@ -23308,14 +23308,15 @@ async function assertWritablePath(target) {
       { allowedRoots: roots }
     );
 }
+var LIVE_STATE_PATTERNS = [/\/GameStates\//, /Settings\.xml$/, /\/Career\//];
 async function assertSafeToWrite(target, opts = {}) {
   await assertWritablePath(target);
   if (opts.force === true) return;
   const pid = await gamePid();
-  if (pid !== void 0)
+  if (pid !== void 0 && LIVE_STATE_PATTERNS.some((re) => re.test(target)))
     throw new ToolError(
       "game_running",
-      `Juno \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${pid}). \u0417\u0430\u043F\u0438\u0441\u044C \u0432 ${target} \u0431\u0443\u0434\u0435\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u0430 \u043F\u0440\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0438 \u0438\u0437 \u0438\u0433\u0440\u044B \u0438\u043B\u0438 \u0437\u0430\u0442\u0440\u0451\u0442 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435.`,
+      `Juno \u0437\u0430\u043F\u0443\u0449\u0435\u043D\u0430 (pid ${pid}), \u0430 ${target} \u0438\u0433\u0440\u0430 \u043F\u0435\u0440\u0435\u043F\u0438\u0441\u044B\u0432\u0430\u0435\u0442 \u0441\u0430\u043C\u0430 \u2014 \u043F\u0440\u0430\u0432\u043A\u0430 \u0431\u0443\u0434\u0435\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u0430 \u0438\u043B\u0438 \u0437\u0430\u0442\u0440\u0451\u0442 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435.`,
       { pid, fix: "\u0412\u044B\u0437\u043E\u0432\u0438\u0442\u0435 game_quit \u0438\u043B\u0438 \u043F\u043E\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F \u0432\u044B\u0439\u0442\u0438 \u0438\u0437 \u0438\u0433\u0440\u044B." }
     );
   try {
@@ -24042,6 +24043,18 @@ function modifiersFor(item) {
     }
   return out;
 }
+async function fillDefaultModifiers(typeId, existing) {
+  const pt = await partType(typeId);
+  if (pt === void 0) return existing;
+  const present = new Set(existing.map((m) => m.tag));
+  const out = [...existing];
+  for (const [tag, defaults] of Object.entries(pt.modifiers)) {
+    if (present.has(tag)) continue;
+    if (tag === "Config") continue;
+    out.push(node(tag, { ...defaults }));
+  }
+  return out;
+}
 async function buildCraft(spec) {
   const warnings = [];
   if (spec.stack.length === 0) throw new Error("\u0421\u0442\u0435\u043A \u043F\u0443\u0441\u0442: \u043D\u0443\u0436\u043D\u0430 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u0430 \u0434\u0435\u0442\u0430\u043B\u044C");
@@ -24060,7 +24073,7 @@ async function buildCraft(spec) {
   const layout = [];
   const parts2 = [];
   let y = 0;
-  spec.stack.forEach((item, index) => {
+  for (const [index, item] of spec.stack.entries()) {
     const height = itemHeight(item);
     const centerY = y + height / 2;
     const stage = "stage" in item && item.stage !== void 0 ? item.stage : 0;
@@ -24074,10 +24087,11 @@ async function buildCraft(spec) {
     if (index === rootIndex) attrs["rootPart"] = "true";
     if (stage > 0) attrs["activationStage"] = String(stage);
     if ("name" in item && item.name !== void 0) attrs["name"] = item.name;
-    parts2.push(node("Part", attrs, modifiersFor(item)));
+    const modifiers = await fillDefaultModifiers(attrs["partType"], modifiersFor(item));
+    parts2.push(node("Part", attrs, modifiers));
     layout.push({ id: index, partType: attrs["partType"], y: round6(centerY), height, stage });
     y += height;
-  });
+  }
   if (spec.activation_groups !== void 0 && podIndex >= 0) {
     const names = Array.from({ length: 10 }, (_, i) => spec.activation_groups?.[i] ?? "").join(",");
     const pod = parts2[podIndex];
