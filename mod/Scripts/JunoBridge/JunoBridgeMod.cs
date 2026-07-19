@@ -40,7 +40,7 @@ namespace JunoBridge
             }
         }
 
-        protected override void OnModLoaded()
+        public override void OnModLoaded()
         {
             base.OnModLoaded();
         }

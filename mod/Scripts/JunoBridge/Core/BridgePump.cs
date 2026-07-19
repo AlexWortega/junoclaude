@@ -83,23 +83,23 @@ namespace JunoBridge.Core
             MainThreadDispatcher.Drain();
         }
 
-        public void FlightUpdate(ref FlightFrameData frame)
+        public void FlightUpdate(in FlightFrameData frame)
         {
             PumpOnce();
         }
 
-        public void FlightUpdatePaused(ref FlightFrameData frame)
+        public void FlightUpdatePaused(in FlightFrameData frame)
         {
             PumpOnce();
         }
 
-        public void FlightPreFixedUpdate(ref FlightFrameData frame)
+        public void FlightPreFixedUpdate(in FlightFrameData frame)
         {
             try { ControlOverrides.Apply(); }
             catch (Exception ex) { EventLog.Record(EventKind.Exception, "ControlOverrides.Apply: " + ex); }
         }
 
-        public void DesignerUpdate(ref DesignerFrameData frame)
+        public void DesignerUpdate(in DesignerFrameData frame)
         {
             PumpOnce();
         }
