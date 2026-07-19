@@ -37,7 +37,10 @@ namespace JunoBridge.Serialization
             WriteMass(w, data);
             WritePropulsion(w, data);
             WriteState(w, node, craft, data);
-            OrbitSerializer.Write(w, "orbit", data.Orbit, node as IOrbitNode);
+            // ICraftFlightData.Orbit — это ICraftOrbitData (урезанная сводка на 8 полей).
+            // Полные элементы орбиты живут в IOrbitNode.Orbit.
+            var orbitNode = node as IOrbitNode;
+            OrbitSerializer.Write(w, "orbit", orbitNode == null ? null : orbitNode.Orbit, orbitNode);
             WriteControls(w, node);
 
             w.EndObject();
@@ -56,7 +59,7 @@ namespace JunoBridge.Serialization
              .Num("timeMultiplier", GameContext.TimeMultiplier)
              .Num("altitudeAsl", node.Altitude)
              .Num("altitudeAgl", node.AltitudeAgl)
-             .Num("heading", node.Heading);
+             .Quat("heading", node.Heading);
 
             if (data != null)
             {
@@ -236,7 +239,7 @@ namespace JunoBridge.Serialization
                  .Num("slider2", controls.Slider2)
                  .Num("slider3", controls.Slider3)
                  .Num("slider4", controls.Slider4)
-                 .Num("targetHeading", controls.TargetHeading)
+                 .Quat("targetHeading", controls.TargetHeading)
                  .Bool("translationMode", controls.TranslationModeEnabled);
             }
 

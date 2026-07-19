@@ -30,7 +30,7 @@ namespace JunoBridge.Core
             double gameTime = 0.0;
             try
             {
-                var game = Game.Instance;
+                var game = GameContext.Game;
                 if (game != null && game.SceneManager != null && game.SceneManager.InFlightScene)
                 {
                     var flight = game.FlightScene;

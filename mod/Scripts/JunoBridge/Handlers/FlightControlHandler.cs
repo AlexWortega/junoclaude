@@ -11,7 +11,7 @@ namespace JunoBridge.Handlers
         {
             "throttle", "pitch", "yaw", "roll", "brake",
             "translateForward", "translateRight", "translateUp",
-            "slider1", "slider2", "slider3", "slider4", "targetHeading"
+            "slider1", "slider2", "slider3", "slider4"
         };
 
         public static BridgeResponse SetInput(BridgeRequest request)
@@ -25,6 +25,14 @@ namespace JunoBridge.Handlers
             JsonValue body;
             if (!JsonLite.TryParse(request.Body, out body) || body.Kind != JsonKind.Object)
                 return Errors.BadBody("Expected a JSON object.");
+
+            // TODO(проверить): CraftControls.TargetHeading — Quaterniond?, а не угол.
+            // Способ построить из курса корректный кватернион (в какой системе отсчёта,
+            // с каким опорным вектором) в доках не нашёлся, поэтому ось честно отключена:
+            // молчаливая запись «правдоподобного» кватерниона увела бы корабль вслепую.
+            if (body.Has("targetHeading"))
+                return BridgeResponse.Error(501, "not_supported",
+                    "targetHeading is not supported: the game exposes it as an orientation quaternion, not a scalar heading.");
 
             string mode = body.Has("mode") ? body["mode"].AsString("set") : "set";
 

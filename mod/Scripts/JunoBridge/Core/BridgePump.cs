@@ -41,7 +41,7 @@ namespace JunoBridge.Core
 
             try
             {
-                var game = Game.Instance;
+                var game = GameContext.Game;
                 if (game == null || game.SceneManager == null) return;
 
                 // TODO(проверить): типы IFlightScene.GameLoop / IDesigner.GameLoop в XML-доках

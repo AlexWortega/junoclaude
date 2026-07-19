@@ -32,7 +32,7 @@ namespace JunoBridge.Handlers
                      .Num("latitude", location.Latitude)
                      .Num("longitude", location.Longitude)
                      .Num("altitudeAgl", location.AltitudeAboveGroundLevel)
-                     .Num("heading", location.Heading)
+                     .Quat("heading", location.Heading)
                      .Num("launchCostPerKg", location.LaunchCostPerKG)
                      .Num("maxCraftMass", location.MaxCraftMass)
                      .Num("maxCraftHeight", location.MaxCraftHeight)

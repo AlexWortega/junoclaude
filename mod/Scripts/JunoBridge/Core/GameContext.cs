@@ -10,9 +10,12 @@ namespace JunoBridge.Core
     /// Единая точка доступа к объектам игры. Только главный поток.
     internal static class GameContext
     {
+        /// ModApi.Game внутренний: он продублирован в namespace Common именно для модов
+        /// («Modders and other code must use 'Common' namespace» — док к типу).
+        /// Единственная точка входа к IGame во всём мосте.
         public static IGame Game
         {
-            get { return ModApi.Game.Instance; }
+            get { return ModApi.Common.Game.Instance; }
         }
 
         public static ISceneManager Scenes

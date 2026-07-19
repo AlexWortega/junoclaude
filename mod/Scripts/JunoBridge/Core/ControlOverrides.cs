@@ -16,8 +16,10 @@ namespace JunoBridge.Core
         Slider1,
         Slider2,
         Slider3,
-        Slider4,
-        TargetHeading
+        Slider4
+        // TargetHeading здесь намеренно нет: CraftControls.TargetHeading имеет тип
+        // Quaterniond? (ориентация), а весь этот конвейер — скалярный float.
+        // Ось отключена явно, см. отказ not_supported в FlightControlHandler.
     }
 
     /// Однократная запись в CraftControls живёт один кадр: собственный ввод игры
@@ -120,7 +122,6 @@ namespace JunoBridge.Core
                 case ControlAxis.Slider2: controls.Slider2 = value; break;
                 case ControlAxis.Slider3: controls.Slider3 = value; break;
                 case ControlAxis.Slider4: controls.Slider4 = value; break;
-                case ControlAxis.TargetHeading: controls.TargetHeading = value; break;
             }
         }
 
@@ -139,8 +140,7 @@ namespace JunoBridge.Core
                 case ControlAxis.Slider1: return "slider1";
                 case ControlAxis.Slider2: return "slider2";
                 case ControlAxis.Slider3: return "slider3";
-                case ControlAxis.Slider4: return "slider4";
-                default: return "targetHeading";
+                default: return "slider4";
             }
         }
 
@@ -160,7 +160,6 @@ namespace JunoBridge.Core
                 case "slider2": axis = ControlAxis.Slider2; return true;
                 case "slider3": axis = ControlAxis.Slider3; return true;
                 case "slider4": axis = ControlAxis.Slider4; return true;
-                case "targetHeading": axis = ControlAxis.TargetHeading; return true;
                 default: axis = ControlAxis.Throttle; return false;
             }
         }

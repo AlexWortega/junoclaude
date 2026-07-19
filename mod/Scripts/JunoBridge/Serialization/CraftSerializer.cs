@@ -19,7 +19,7 @@ namespace JunoBridge.Serialization
              .Num("mass", node.CraftMass)
              .Num("altitudeAsl", node.Altitude)
              .Num("altitudeAgl", node.AltitudeAgl)
-             .Num("heading", node.Heading)
+             .Quat("heading", node.Heading)
              .EndObject();
         }
 
@@ -39,7 +39,7 @@ namespace JunoBridge.Serialization
              .Num("mass", part.Mass)
              .Num("damage", part.Damage)
              .Num("price", part.Price)
-             .Num("groupId", part.GroupId)
+             .Str("groupId", part.GroupId.HasValue ? part.GroupId.Value.ToString() : null)
              .Vec("position", part.Position);
 
             if (includeModifiers)

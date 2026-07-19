@@ -33,8 +33,10 @@ namespace JunoBridge.Serialization
              .Num("trueAnomaly", orbit.TrueAnomaly * RadToDeg)
              .Num("meanAnomaly", orbit.MeanAnomaly * RadToDeg)
              .Num("eccentricAnomaly", orbit.EccentricAnomaly * RadToDeg)
-             .Num("periapsis", orbit.Periapsis)
-             .Num("apoapsis", orbit.Apoapsis)
+             // IOrbit.Periapsis/Apoapsis — это векторы положения апсид, а не расстояния;
+             // скаляры лежат ниже в *Distance. Имена с суффиксом Vector, чтобы не путать.
+             .Vec("periapsisVector", orbit.Periapsis)
+             .Vec("apoapsisVector", orbit.Apoapsis)
              .Num("periapsisDistance", orbit.PeriapsisDistance)
              .Num("apoapsisDistance", orbit.ApoapsisDistance)
              .Num("period", orbit.Period)

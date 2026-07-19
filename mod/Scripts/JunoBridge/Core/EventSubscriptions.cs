@@ -182,7 +182,9 @@ namespace JunoBridge.Core
                     .EndObject().ToString());
         }
 
-        private static void OnCraftStructureChanged(ICraftScript craft)
+        /// ICraftScript.CraftStructureChanged — это SimpleNotificationDelegate, без аргументов:
+        /// изменившийся корабль всегда текущий.
+        private static void OnCraftStructureChanged()
         {
             EventLog.Record(EventKind.CraftStructureChanged, "Craft structure changed.");
         }

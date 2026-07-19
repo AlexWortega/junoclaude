@@ -1,5 +1,7 @@
 using System;
-using System.Diagnostics;
+// Не «using System.Diagnostics»: он тянет System.Diagnostics.EventLog,
+// который конфликтует с JunoBridge.Core.EventLog.
+using Diag = System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -38,7 +40,7 @@ namespace JunoBridge.Net
         {
             get
             {
-                string path = Game.PersistentDataPath;
+                string path = ModApi.Common.Game.PersistentDataPath;
                 return string.IsNullOrEmpty(path) ? UnityEngine.Application.persistentDataPath : path;
             }
         }
@@ -61,7 +63,7 @@ namespace JunoBridge.Net
                 .Num("port", port)
                 .Num("apiVersion", JunoBridgeMod.ApiVersion)
                 .Str("modVersion", JunoBridgeMod.ModVersion)
-                .Num("pid", Process.GetCurrentProcess().Id)
+                .Num("pid", Diag.Process.GetCurrentProcess().Id)
                 .Str("tokenFile", TokenPath)
                 .EndObject();
             WriteRestricted(InfoPath, info.ToString());
@@ -109,12 +111,12 @@ namespace JunoBridge.Net
             {
                 try
                 {
-                    var psi = new ProcessStartInfo("/bin/chmod", "600 \"" + path + "\"")
+                    var psi = new Diag.ProcessStartInfo("/bin/chmod", "600 \"" + path + "\"")
                     {
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
-                    using (var p = Process.Start(psi))
+                    using (var p = Diag.Process.Start(psi))
                         if (p != null) p.WaitForExit(2000);
                 }
                 catch (Exception ex)

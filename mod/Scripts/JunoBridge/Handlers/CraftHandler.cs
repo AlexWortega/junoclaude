@@ -25,7 +25,8 @@ namespace JunoBridge.Handlers
              .Num("partCount", CountParts(data))
              .Num("currentStage", pod == null ? -1 : pod.CurrentStage)
              .Num("numStages", pod == null ? 0 : pod.NumStages)
-             .Vec("centerOfMass", craft.CenterOfMass)
+             // CenterOfMass — Transform, ориентированный по пилотской оси командного модуля.
+             .Vec("centerOfMass", craft.CenterOfMass.position)
              .EndObject();
 
             return BridgeResponse.Ok(w.ToString());

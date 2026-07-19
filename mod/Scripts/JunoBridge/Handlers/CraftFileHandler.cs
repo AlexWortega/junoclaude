@@ -58,7 +58,7 @@ namespace JunoBridge.Handlers
             var w = new JsonWriter(256);
             w.BeginObject()
              .Str("craftId", craftId)
-             .Str("file", designs.GetCraftFile(craftId))
+             .Str("file", designs.GetCraftFile(craftId).FullName)
              .EndObject();
             return BridgeResponse.Ok(w.ToString());
         }

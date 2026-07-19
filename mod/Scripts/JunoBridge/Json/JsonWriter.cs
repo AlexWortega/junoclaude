@@ -193,6 +193,22 @@ namespace JunoBridge.Json
             return EndArray();
         }
 
+        /// Порядок [x,y,z,w] — как у полей Quaterniond, а не [w,x,y,z].
+        public JsonWriter Quat(string key, UnityEngine.Quaterniond q)
+        {
+            BeginArray(key);
+            Num(q.x);
+            Num(q.y);
+            Num(q.z);
+            Num(q.w);
+            return EndArray();
+        }
+
+        public JsonWriter Quat(string key, UnityEngine.Quaterniond? q)
+        {
+            return q.HasValue ? Quat(key, q.Value) : Null(key);
+        }
+
         public override string ToString()
         {
             return _sb.ToString();
