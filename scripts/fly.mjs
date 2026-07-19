@@ -77,7 +77,29 @@ async function waitForFlight(timeoutMs = 40000) {
  * hold the nose up. Returns a trace so the caller can see what happened rather
  * than only where it ended.
  */
-async function ascend({ durationS = 120, sampleMs = 500, targetApoapsis = null }) {
+/**
+ * Target pitch during ascent. Climbing straight up spends the whole budget
+ * fighting gravity, so the vehicle tips over gradually with altitude: vertical
+ * until it is clear of the pad, then easing towards the horizon as it thins
+ * out of the atmosphere.
+ */
+function targetPitchDeg(altitude, turnStart, turnEnd) {
+  if (altitude < turnStart) return 90;
+  if (altitude > turnEnd) return 0;
+  const f = (altitude - turnStart) / (turnEnd - turnStart);
+  // A square-law profile keeps the craft near-vertical early, where dynamic
+  // pressure is highest, and turns hardest up high where it is cheap.
+  return 90 * (1 - f) ** 2;
+}
+
+async function ascend({
+  durationS = 120,
+  sampleMs = 500,
+  targetApoapsis = null,
+  gravityTurn = false,
+  turnStart = 1000,
+  turnEnd = 45000,
+}) {
   const trace = [];
   const started = Date.now();
   let lastStageAt = 0;
@@ -111,6 +133,16 @@ async function ascend({ durationS = 120, sampleMs = 500, targetApoapsis = null }
       lastStageAt = elapsed;
     }
 
+    // Steer towards the profile with a proportional term on the pitch error.
+    // The game's pitch input is a rate command, so a plain P controller is
+    // enough — an integral term would wind up during staging transients.
+    if (gravityTurn && !t.grounded) {
+      const wanted = targetPitchDeg(t.altitude, turnStart, turnEnd);
+      const error = wanted - t.pitch;
+      const command = Math.max(-1, Math.min(1, error / 45));
+      await post('/flight/input', { mode: 'hold', throttle: 1, pitch: command });
+    }
+
     if (targetApoapsis !== null && t.apoapsis !== null && t.apoapsis >= targetApoapsis) {
       await post('/flight/input', { mode: 'hold', throttle: 0 });
       trace.push({ t: elapsed, note: 'target apoapsis reached' });
@@ -119,7 +151,7 @@ async function ascend({ durationS = 120, sampleMs = 500, targetApoapsis = null }
 
     // Not climbing while under thrust means the vehicle is lying over or stuck:
     // burning the rest of the fuel into the ground teaches us nothing.
-    if (!t.grounded && t.thrust > 0 && t.vertical < 1) {
+    if (!t.grounded && t.thrust > 0 && t.vertical < 1 && !gravityTurn) {
       stallSince ??= elapsed;
       if (elapsed - stallSince > 6) {
         trace.push({ t: elapsed, note: 'aborted: thrust without climb' });
@@ -197,7 +229,13 @@ async function main() {
       `pitch ${before.pitch.toFixed(1)}° parts ${before.parts} fuel ${before.fuel.toFixed(0)}`
   );
 
-  const trace = await ascend({ durationS: Number(durationRaw) });
+  const trace = await ascend({
+    durationS: Number(durationRaw),
+    gravityTurn: process.env.JUNO_GRAVITY_TURN === '1',
+    targetApoapsis: process.env.JUNO_TARGET_APOAPSIS
+      ? Number(process.env.JUNO_TARGET_APOAPSIS)
+      : null,
+  });
   console.log(summarise(trace));
 
   const traceFile = `/tmp/juno-flight-${craftId.replace(/\W+/g, '_')}.json`;
