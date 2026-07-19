@@ -1,0 +1,2150 @@
+{
+  "generated": "2026-07-19T21:27:55.582Z",
+  "gameVersion": "1.3.205",
+  "minedFrom": {
+    "programs": 25
+  },
+  "instructions": {
+    "Event:flight-start": {
+      "tag": "Event",
+      "style": "flight-start",
+      "seen": 33,
+      "attrs": [
+        "event",
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "Comment:comment": {
+      "tag": "Comment",
+      "style": "comment",
+      "seen": 263,
+      "attrs": [
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetVariable:set-variable": {
+      "tag": "SetVariable",
+      "style": "set-variable",
+      "seen": 315,
+      "attrs": [
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CallCustomExpression",
+        "Conditional",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "Not",
+        "Planet",
+        "StringOp",
+        "Variable",
+        "Vector"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:create-mfd-widget": {
+      "tag": "SetCraftProperty",
+      "style": "create-mfd-widget",
+      "seen": 55,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-alignment": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-alignment",
+      "seen": 9,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-widget": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-widget",
+      "seen": 104,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CallCustomExpression",
+        "Comparison",
+        "Conditional",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "Not",
+        "StringOp",
+        "Variable",
+        "Vector"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-label": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-label",
+      "seen": 52,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Conditional",
+        "Constant",
+        "ListOp",
+        "MathFunction",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "For:for": {
+      "tag": "For",
+      "style": "for",
+      "seen": 26,
+      "attrs": [
+        "id",
+        "style",
+        "var"
+      ],
+      "argTags": [
+        "Constant",
+        "EvaluateExpression",
+        "ListOp"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": true
+    },
+    "CallCustomInstruction:call-custom-instruction": {
+      "tag": "CallCustomInstruction",
+      "style": "call-custom-instruction",
+      "seen": 81,
+      "attrs": [
+        "call",
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CallCustomExpression",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "StringOp",
+        "Variable",
+        "Vector",
+        "VectorOp"
+      ],
+      "arities": [
+        0,
+        2,
+        3,
+        4,
+        5
+      ],
+      "hasBody": false
+    },
+    "CustomInstruction:custom-instruction": {
+      "tag": "CustomInstruction",
+      "style": "custom-instruction",
+      "seen": 11,
+      "attrs": [
+        "callFormat",
+        "format",
+        "id",
+        "name",
+        "pos",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-event": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-event",
+      "seen": 27,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "Event:receive-msg": {
+      "tag": "Event",
+      "style": "receive-msg",
+      "seen": 33,
+      "attrs": [
+        "event",
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:play-beep": {
+      "tag": "SetCraftProperty",
+      "style": "play-beep",
+      "seen": 15,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "Variable"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "If:if": {
+      "tag": "If",
+      "style": "if",
+      "seen": 104,
+      "attrs": [
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "BoolOp",
+        "Comparison",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "Not",
+        "StringOp",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": true
+    },
+    "ElseIf:else-if": {
+      "tag": "ElseIf",
+      "style": "else-if",
+      "seen": 30,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "BoolOp",
+        "Comparison",
+        "EvaluateExpression",
+        "Not",
+        "StringOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": true
+    },
+    "ElseIf:else": {
+      "tag": "ElseIf",
+      "style": "else",
+      "seen": 29,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": true
+    },
+    "SetVariable:list-init": {
+      "tag": "SetVariable",
+      "style": "list-init",
+      "seen": 4,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "ListOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-sprite": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-sprite",
+      "seen": 28,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "EvaluateExpression",
+        "ListOp",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "BroadcastMessage:broadcast-msg": {
+      "tag": "BroadcastMessage",
+      "style": "broadcast-msg",
+      "seen": 19,
+      "attrs": [
+        "global",
+        "id",
+        "local",
+        "style"
+      ],
+      "argTags": [
+        "CallCustomExpression",
+        "Constant",
+        "EvaluateExpression",
+        "ListOp",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "WaitSeconds:wait-seconds": {
+      "tag": "WaitSeconds",
+      "style": "wait-seconds",
+      "seen": 46,
+      "attrs": [
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetList:list-add": {
+      "tag": "SetList",
+      "style": "list-add",
+      "seen": 20,
+      "attrs": [
+        "id",
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "While:while": {
+      "tag": "While",
+      "style": "while",
+      "seen": 30,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "Comparison",
+        "Constant",
+        "CraftProperty"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": true
+    },
+    "SetCraftProperty:set-mfd-map": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-map",
+      "seen": 14,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "Planet",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetTarget:set-target": {
+      "tag": "SetTarget",
+      "style": "set-target",
+      "seen": 4,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Planet",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BroadcastMessage:broadcast-msg-craft": {
+      "tag": "BroadcastMessage",
+      "style": "broadcast-msg-craft",
+      "seen": 1,
+      "attrs": [
+        "global",
+        "id",
+        "local",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "ListOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-gauge": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-gauge",
+      "seen": 19,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "Repeat:repeat": {
+      "tag": "Repeat",
+      "style": "repeat",
+      "seen": 5,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "MathFunction"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": true
+    },
+    "SetCraftProperty:set-mfd-texture-initialize": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-texture-initialize",
+      "seen": 1,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "Break:break": {
+      "tag": "Break",
+      "style": "break",
+      "seen": 1,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "WaitUntil:wait-until": {
+      "tag": "WaitUntil",
+      "style": "wait-until",
+      "seen": 18,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "BoolOp",
+        "Comparison",
+        "CraftProperty",
+        "EvaluateExpression",
+        "Not"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetActivationGroup:set-ag": {
+      "tag": "SetActivationGroup",
+      "style": "set-ag",
+      "seen": 14,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "Not",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetInput:set-input": {
+      "tag": "SetInput",
+      "style": "set-input",
+      "seen": 16,
+      "attrs": [
+        "id",
+        "input",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "ListOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "ChangeVariable:change-variable": {
+      "tag": "ChangeVariable",
+      "style": "change-variable",
+      "seen": 4,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-texture-setpixel": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-texture-setpixel",
+      "seen": 2,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "EvaluateExpression",
+        "Variable"
+      ],
+      "arities": [
+        4
+      ],
+      "hasBody": false
+    },
+    "Event:change-soi": {
+      "tag": "Event",
+      "style": "change-soi",
+      "seen": 1,
+      "attrs": [
+        "event",
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "LockNavSphere:lock-nav-sphere": {
+      "tag": "LockNavSphere",
+      "style": "lock-nav-sphere",
+      "seen": 7,
+      "attrs": [
+        "id",
+        "indicatorType",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "UserInput:user-input": {
+      "tag": "UserInput",
+      "style": "user-input",
+      "seen": 3,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetList:list-clear": {
+      "tag": "SetList",
+      "style": "list-clear",
+      "seen": 2,
+      "attrs": [
+        "id",
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:destroy-mfd-widget": {
+      "tag": "SetCraftProperty",
+      "style": "destroy-mfd-widget",
+      "seen": 1,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "ListOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-mfd-order-back": {
+      "tag": "SetCraftProperty",
+      "style": "set-mfd-order-back",
+      "seen": 1,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "DisplayMessage:display": {
+      "tag": "DisplayMessage",
+      "style": "display",
+      "seen": 12,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "ActivateStage:activate-stage": {
+      "tag": "ActivateStage",
+      "style": "activate-stage",
+      "seen": 5,
+      "attrs": [
+        "id",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "Event:part-explode": {
+      "tag": "Event",
+      "style": "part-explode",
+      "seen": 2,
+      "attrs": [
+        "event",
+        "id",
+        "pos",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "SetCraftProperty:set-part": {
+      "tag": "SetCraftProperty",
+      "style": "set-part",
+      "seen": 15,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "SetTargetHeading:set-heading": {
+      "tag": "SetTargetHeading",
+      "style": "set-heading",
+      "seen": 2,
+      "attrs": [
+        "id",
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    }
+  },
+  "expressions": {
+    "Variable": {
+      "tag": "Variable",
+      "style": "",
+      "seen": 1040,
+      "attrs": [
+        "list",
+        "local",
+        "name",
+        "number",
+        "pos",
+        "variableName"
+      ],
+      "argTags": [
+        "Items"
+      ],
+      "arities": [
+        0,
+        1
+      ],
+      "hasBody": false
+    },
+    "Constant:comment-text": {
+      "tag": "Constant",
+      "style": "comment-text",
+      "seen": 263,
+      "attrs": [
+        "canReplace",
+        "style",
+        "text"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "Constant": {
+      "tag": "Constant",
+      "style": "",
+      "seen": 2141,
+      "attrs": [
+        "bool",
+        "canReplace",
+        "number",
+        "text"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "VectorOp:vec-op-2": {
+      "tag": "VectorOp",
+      "style": "vec-op-2",
+      "seen": 14,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "CraftProperty",
+        "Variable",
+        "Vector"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-mfd-widget": {
+      "tag": "CraftProperty",
+      "style": "prop-mfd-widget",
+      "seen": 93,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "ListOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Vector:vec": {
+      "tag": "Vector",
+      "style": "vec",
+      "seen": 43,
+      "attrs": [
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CallCustomExpression",
+        "Constant",
+        "CraftProperty",
+        "MathFunction",
+        "Variable"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-mul": {
+      "tag": "BinaryOp",
+      "style": "op-mul",
+      "seen": 76,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CallCustomExpression",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "MathFunction",
+        "Planet",
+        "Variable",
+        "Vector",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "VectorOp:vec-op-1": {
+      "tag": "VectorOp",
+      "style": "vec-op-1",
+      "seen": 70,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Conditional",
+        "CraftProperty",
+        "ListOp",
+        "Planet",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Constant:true": {
+      "tag": "Constant",
+      "style": "true",
+      "seen": 64,
+      "attrs": [
+        "bool",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-sub": {
+      "tag": "BinaryOp",
+      "style": "op-sub",
+      "seen": 45,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Comparison",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "MathFunction",
+        "StringOp",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "StringOp:letter": {
+      "tag": "StringOp",
+      "style": "letter",
+      "seen": 46,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "EvaluateExpression",
+        "MathFunction",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-add": {
+      "tag": "BinaryOp",
+      "style": "op-add",
+      "seen": 34,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Comparison",
+        "Constant",
+        "CraftProperty",
+        "ListOp",
+        "Variable",
+        "Vector",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "StringOp:join": {
+      "tag": "StringOp",
+      "style": "join",
+      "seen": 74,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Conditional",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "ListOp",
+        "MathFunction",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        3,
+        4,
+        5
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:note-frequency": {
+      "tag": "CraftProperty",
+      "style": "note-frequency",
+      "seen": 11,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "ListOp",
+        "StringOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "Comparison:op-eq": {
+      "tag": "Comparison",
+      "style": "op-eq",
+      "seen": 65,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "StringOp:length": {
+      "tag": "StringOp",
+      "style": "length",
+      "seen": 11,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "Planet",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "StringOp:contains": {
+      "tag": "StringOp",
+      "style": "contains",
+      "seen": 99,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "ListOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "ListOp:list-get": {
+      "tag": "ListOp",
+      "style": "list-get",
+      "seen": 50,
+      "attrs": [
+        "op",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "ListOp",
+        "MathFunction",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-div": {
+      "tag": "BinaryOp",
+      "style": "op-div",
+      "seen": 30,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "MathFunction",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "Not:op-not": {
+      "tag": "Not",
+      "style": "op-not",
+      "seen": 18,
+      "attrs": [
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "Comparison",
+        "CraftProperty",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Conditional:conditional": {
+      "tag": "Conditional",
+      "style": "conditional",
+      "seen": 90,
+      "attrs": [
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "BinaryOp",
+        "Comparison",
+        "Conditional",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "StringOp",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "EvaluateExpression:evaluate-expression": {
+      "tag": "EvaluateExpression",
+      "style": "evaluate-expression",
+      "seen": 188,
+      "attrs": [
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Constant:false": {
+      "tag": "Constant",
+      "style": "false",
+      "seen": 25,
+      "attrs": [
+        "bool",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "ListOp:list-create": {
+      "tag": "ListOp",
+      "style": "list-create",
+      "seen": 12,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Comparison:op-gt": {
+      "tag": "Comparison",
+      "style": "op-gt",
+      "seen": 15,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "ListOp",
+        "MathFunction",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-time": {
+      "tag": "CraftProperty",
+      "style": "prop-time",
+      "seen": 11,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "ActivationGroup:activation-group": {
+      "tag": "ActivationGroup",
+      "style": "activation-group",
+      "seen": 14,
+      "attrs": [
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Planet:planet-to-lat-long-asl": {
+      "tag": "Planet",
+      "style": "planet-to-lat-long-asl",
+      "seen": 8,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "CraftProperty",
+        "EvaluateExpression",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-nav": {
+      "tag": "CraftProperty",
+      "style": "prop-nav",
+      "seen": 10,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-mfd-sprite": {
+      "tag": "CraftProperty",
+      "style": "prop-mfd-sprite",
+      "seen": 19,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Planet:planet": {
+      "tag": "Planet",
+      "style": "planet",
+      "seen": 7,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "CraftProperty",
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-name": {
+      "tag": "CraftProperty",
+      "style": "prop-name",
+      "seen": 10,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "StringOp:friendly": {
+      "tag": "StringOp",
+      "style": "friendly",
+      "seen": 6,
+      "attrs": [
+        "op",
+        "style",
+        "subOp"
+      ],
+      "argTags": [
+        "CraftProperty",
+        "MathFunction",
+        "Planet",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Planet:planet-to-position": {
+      "tag": "Planet",
+      "style": "planet-to-position",
+      "seen": 2,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BoolOp:op-and": {
+      "tag": "BoolOp",
+      "style": "op-and",
+      "seen": 10,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "BoolOp",
+        "Comparison",
+        "CraftProperty",
+        "EvaluateExpression",
+        "Not",
+        "StringOp",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "StringOp:format": {
+      "tag": "StringOp",
+      "style": "format",
+      "seen": 20,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Conditional",
+        "Constant",
+        "CraftProperty",
+        "EvaluateExpression",
+        "MathFunction",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        3,
+        4,
+        6,
+        7
+      ],
+      "hasBody": false
+    },
+    "ListOp:list-length": {
+      "tag": "ListOp",
+      "style": "list-length",
+      "seen": 5,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "CallCustomExpression:call-custom-expression": {
+      "tag": "CallCustomExpression",
+      "style": "call-custom-expression",
+      "seen": 53,
+      "attrs": [
+        "call",
+        "style"
+      ],
+      "argTags": [
+        "CallCustomExpression",
+        "Constant",
+        "EvaluateExpression",
+        "Variable"
+      ],
+      "arities": [
+        0,
+        1,
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-mfd-label": {
+      "tag": "CraftProperty",
+      "style": "prop-mfd-label",
+      "seen": 4,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "MathFunction:op-math": {
+      "tag": "MathFunction",
+      "style": "op-math",
+      "seen": 34,
+      "attrs": [
+        "function",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Conditional",
+        "CraftProperty",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-rand": {
+      "tag": "BinaryOp",
+      "style": "op-rand",
+      "seen": 12,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "EvaluateExpression"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "Comparison:op-lt": {
+      "tag": "Comparison",
+      "style": "op-lt",
+      "seen": 19,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "MathFunction",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-fuel": {
+      "tag": "CraftProperty",
+      "style": "prop-fuel",
+      "seen": 12,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-orbit": {
+      "tag": "CraftProperty",
+      "style": "prop-orbit",
+      "seen": 6,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-misc": {
+      "tag": "CraftProperty",
+      "style": "prop-misc",
+      "seen": 8,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:terrain-query": {
+      "tag": "CraftProperty",
+      "style": "terrain-query",
+      "seen": 3,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Planet"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "ListOp:list-index": {
+      "tag": "ListOp",
+      "style": "list-index",
+      "seen": 3,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "CraftProperty",
+        "Planet",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-altitude": {
+      "tag": "CraftProperty",
+      "style": "prop-altitude",
+      "seen": 15,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "StringOp:substring": {
+      "tag": "StringOp",
+      "style": "substring",
+      "seen": 2,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        3
+      ],
+      "hasBody": false
+    },
+    "CustomExpression:custom-expression": {
+      "tag": "CustomExpression",
+      "style": "custom-expression",
+      "seen": 13,
+      "attrs": [
+        "callFormat",
+        "format",
+        "name",
+        "pos",
+        "style"
+      ],
+      "argTags": [
+        "CallCustomExpression",
+        "Conditional",
+        "EvaluateExpression",
+        "StringOp",
+        "Vector",
+        "VectorOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-min": {
+      "tag": "BinaryOp",
+      "style": "op-min",
+      "seen": 7,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "CraftProperty",
+        "Variable",
+        "VectorOp"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "Planet:planet-to-lat-long-agl": {
+      "tag": "Planet",
+      "style": "planet-to-lat-long-agl",
+      "seen": 4,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CraftProperty"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-max": {
+      "tag": "BinaryOp",
+      "style": "op-max",
+      "seen": 4,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:craft": {
+      "tag": "CraftProperty",
+      "style": "craft",
+      "seen": 1,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "CraftProperty"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:craft-id": {
+      "tag": "CraftProperty",
+      "style": "craft-id",
+      "seen": 1,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Variable"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "BinaryOp:op-mod": {
+      "tag": "BinaryOp",
+      "style": "op-mod",
+      "seen": 4,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-input": {
+      "tag": "CraftProperty",
+      "style": "prop-input",
+      "seen": 6,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-velocity": {
+      "tag": "CraftProperty",
+      "style": "prop-velocity",
+      "seen": 14,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "BoolOp:op-or": {
+      "tag": "BoolOp",
+      "style": "op-or",
+      "seen": 2,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "ActivationGroup",
+        "Comparison",
+        "CraftProperty"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:part": {
+      "tag": "CraftProperty",
+      "style": "part",
+      "seen": 17,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:part-id": {
+      "tag": "CraftProperty",
+      "style": "part-id",
+      "seen": 29,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "StringOp"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    },
+    "Comparison:op-lte": {
+      "tag": "Comparison",
+      "style": "op-lte",
+      "seen": 7,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "CraftProperty",
+        "MathFunction",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:part-transform": {
+      "tag": "CraftProperty",
+      "style": "part-transform",
+      "seen": 5,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CraftProperty",
+        "Vector"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:raycast-query": {
+      "tag": "CraftProperty",
+      "style": "raycast-query",
+      "seen": 1,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [
+        "BinaryOp",
+        "CraftProperty"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "CraftProperty:prop-performance": {
+      "tag": "CraftProperty",
+      "style": "prop-performance",
+      "seen": 3,
+      "attrs": [
+        "property",
+        "style"
+      ],
+      "argTags": [],
+      "arities": [
+        0
+      ],
+      "hasBody": false
+    },
+    "Comparison:op-gte": {
+      "tag": "Comparison",
+      "style": "op-gte",
+      "seen": 1,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant",
+        "Variable"
+      ],
+      "arities": [
+        2
+      ],
+      "hasBody": false
+    },
+    "VectorOp:vec-op-color": {
+      "tag": "VectorOp",
+      "style": "vec-op-color",
+      "seen": 3,
+      "attrs": [
+        "op",
+        "style"
+      ],
+      "argTags": [
+        "Constant"
+      ],
+      "arities": [
+        1
+      ],
+      "hasBody": false
+    }
+  },
+  "craftProperties": {
+    "Altitude.AGL": "prop-altitude",
+    "Altitude.ASL": "prop-altitude",
+    "Craft.NameToID": "craft-id",
+    "Craft.Position": "craft",
+    "Fuel.AllStages": "prop-fuel",
+    "Fuel.Battery": "prop-fuel",
+    "Fuel.FuelInStage": "prop-fuel",
+    "Fuel.Mono": "prop-fuel",
+    "Input.Brake": "prop-input",
+    "Input.Pitch": "prop-input",
+    "Input.Throttle": "prop-input",
+    "Input.Yaw": "prop-input",
+    "Mfd.Color": "prop-mfd-widget",
+    "Mfd.Exists": "prop-mfd-widget",
+    "Mfd.Label.FontSize": "prop-mfd-label",
+    "Mfd.Label.Text": "prop-mfd-label",
+    "Mfd.Opacity": "prop-mfd-widget",
+    "Mfd.Position": "prop-mfd-widget",
+    "Mfd.Size": "prop-mfd-widget",
+    "Mfd.Sprite.FillAmount": "prop-mfd-sprite",
+    "Mfd.Visible": "prop-mfd-widget",
+    "Misc.Grounded": "prop-misc",
+    "Misc.NumStages": "prop-misc",
+    "Misc.Stage": "prop-misc",
+    "Nav.CraftDirection": "prop-nav",
+    "Nav.CraftHeading": "prop-nav",
+    "Nav.Position": "prop-nav",
+    "Orbit.Apoapsis": "prop-orbit",
+    "Orbit.Periapsis": "prop-orbit",
+    "Orbit.Planet": "prop-name",
+    "Orbit.TimeToApoapsis": "prop-orbit",
+    "Orbit.TimeToPeriapsis": "prop-orbit",
+    "Part.Activated": "part",
+    "Part.LocalToPci": "part-transform",
+    "Part.Mass": "part",
+    "Part.NameToID": "part-id",
+    "Part.PciToLocal": "part-transform",
+    "Part.Position": "part",
+    "Part.ThisID": "part",
+    "Performance.Mass": "prop-performance",
+    "Performance.MaxActiveEngineThrust": "prop-performance",
+    "Performance.TWR": "prop-performance",
+    "Raycast": "raycast-query",
+    "Sound.Frequency": "note-frequency",
+    "Target.Planet": "prop-name",
+    "Target.Position": "prop-nav",
+    "Terrain.Color": "terrain-query",
+    "Terrain.Height": "terrain-query",
+    "Time.FrameDeltaTime": "prop-time",
+    "Time.TotalTime": "prop-time",
+    "Vel.Acceleration": "prop-velocity",
+    "Vel.Gravity": "prop-velocity",
+    "Vel.MachNumber": "prop-velocity",
+    "Vel.OrbitVelocity": "prop-velocity",
+    "Vel.SurfaceVelocity": "prop-velocity",
+    "Vel.VerticalSurfaceVelocity": "prop-velocity"
+  }
+}

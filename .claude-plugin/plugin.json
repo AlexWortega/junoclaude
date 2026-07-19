@@ -1,0 +1,18 @@
+{
+  "name": "junoclaude",
+  "version": "0.1.0",
+  "description": "Проектирование, сборка, программирование и испытание аппаратов в Juno: New Origins (SimpleRockets 2). Генерирует craft XML, компилирует Vizzy-программы полёта, запускает игру и читает её лог. Используйте, когда речь о Juno New Origins, SimpleRockets, Vizzy, сборке ракеты или самолёта, либо об испытании аппарата в игре.",
+  "author": { "name": "Aleksandr Nikolich" },
+  "license": "MIT",
+  "keywords": ["juno", "simplerockets", "sr2", "vizzy", "rocket", "spaceflight"],
+  "skills": ["./skills/juno"],
+  "mcpServers": {
+    "juno": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/dist/index.js"],
+      "env": {
+        "JUNO_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}"
+      }
+    }
+  }
+}

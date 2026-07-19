@@ -1,0 +1,5872 @@
+{
+  "generated": "2026-07-19T21:18:57.174Z",
+  "gameVersion": "1.3.205",
+  "minedFrom": {
+    "craftFiles": 61,
+    "connections": 16201
+  },
+  "connections": {
+    "Fuselage1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 1891,
+            "kind": "surface"
+          },
+          {
+            "a": "2,4",
+            "b": "1,5",
+            "seen": 706,
+            "kind": "stack"
+          },
+          {
+            "a": "2,2",
+            "b": "1,1",
+            "seen": 522,
+            "kind": "stack"
+          },
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 498,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1,1",
+            "b": "2,2",
+            "seen": 328,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 163,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 147,
+            "kind": "stack"
+          },
+          {
+            "a": "2,3,4",
+            "b": "1,0,5",
+            "seen": 56,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,5",
+          "seen": 706
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 1891
+        },
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,4",
+          "seen": 498
+        },
+        "other": {
+          "a": "4",
+          "b": "5",
+          "seen": 50
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 87,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 14,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 6,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 5,
+            "kind": "stack"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 5,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "2",
+          "b": "1",
+          "seen": 5
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 87
+        },
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 6
+        },
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 14
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 19,
+            "kind": "surface"
+          },
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 9,
+            "kind": "stack_inverted"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 19
+        },
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,4",
+          "seen": 9
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "5",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "5",
+          "seen": 6
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "1",
+            "seen": 60,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 16,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "1",
+          "seen": 60
+        }
+      },
+      "Detacher1": {
+        "variants": [
+          {
+            "a": "2,4",
+            "b": "1,0",
+            "seen": 20,
+            "kind": "stack"
+          },
+          {
+            "a": "5",
+            "b": "2",
+            "seen": 9,
+            "kind": "other"
+          },
+          {
+            "a": "4",
+            "b": "0",
+            "seen": 8,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 3,
+            "kind": "stack"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "5",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "4",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,0",
+          "seen": 20
+        },
+        "other": {
+          "a": "5",
+          "b": "2",
+          "seen": 9
+        }
+      },
+      "JetEngine1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 10,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 10
+        }
+      },
+      "Fin1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 7,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 7
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "2,4",
+            "b": "1,4",
+            "seen": 7,
+            "kind": "stack"
+          },
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "1,5",
+            "b": "2,3",
+            "seen": 2,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 1,
+            "kind": "stack"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "2,4",
+            "b": "2,4",
+            "seen": 1,
+            "kind": "stack"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,4",
+          "seen": 7
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 4
+        },
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,3",
+          "seen": 2
+        },
+        "other": {
+          "a": "3",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "1,5",
+            "b": "1,5",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        },
+        "other": {
+          "a": "1,5",
+          "b": "1,5",
+          "seen": 1
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 53,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "2",
+          "seen": 4
+        },
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 53
+        }
+      },
+      "CommandChip1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 73,
+            "kind": "surface"
+          },
+          {
+            "a": "4",
+            "b": "1",
+            "seen": 16,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "5",
+            "seen": 9,
+            "kind": "surface"
+          },
+          {
+            "a": "5",
+            "b": "2",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "5",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          },
+          {
+            "a": "3,1",
+            "b": "0,0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 73
+        },
+        "other": {
+          "a": "4",
+          "b": "1",
+          "seen": 16
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 5,
+            "kind": "other"
+          },
+          {
+            "a": "2,4",
+            "b": "0,2",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 5
+        }
+      },
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "4",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "4",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 19,
+            "kind": "surface"
+          },
+          {
+            "a": "2,4",
+            "b": "1,2",
+            "seen": 2,
+            "kind": "stack"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 1,
+            "kind": "stack"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          },
+          {
+            "a": "5",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,2",
+          "seen": 2
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 19
+        },
+        "other": {
+          "a": "5",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "RocketEngine1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 8,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "0",
+          "seen": 8
+        }
+      },
+      "Inlet1": {
+        "variants": [
+          {
+            "a": "5",
+            "b": "1",
+            "seen": 11,
+            "kind": "other"
+          },
+          {
+            "a": "4",
+            "b": "0",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "4",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "5",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "5",
+          "b": "1",
+          "seen": 11
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 26,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 25,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 26
+        }
+      },
+      "CommandPod6": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 56,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 24,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 56
+        }
+      },
+      "Piston1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 13,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 13
+        }
+      },
+      "CommandPod1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 13,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 13
+        }
+      },
+      "DockingPort1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 10,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 10
+        }
+      }
+    },
+    "HingeRotator1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 137,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 13,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 137
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 13
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 126,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 111,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 96,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 28,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 111
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 126
+        }
+      },
+      "Shock1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 37,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 37
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 5
+        }
+      }
+    },
+    "Strut1": {
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 162,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 46,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 27,
+            "kind": "other"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "0",
+          "seen": 162
+        },
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 46
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 461,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 51,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 21,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 17,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 13,
+            "kind": "stack"
+          },
+          {
+            "a": "1,2",
+            "b": "0,0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "2",
+          "b": "1",
+          "seen": 13
+        },
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 461
+        },
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 21
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 17
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1553,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 813,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 102,
+            "kind": "stack"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 65,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 9,
+            "kind": "other"
+          },
+          {
+            "a": "1,2",
+            "b": "0,0",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "2",
+          "b": "1",
+          "seen": 102
+        },
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 813
+        },
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 1553
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 12
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 36,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 30,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 30,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "3",
+            "seen": 30,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "4",
+            "seen": 19,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "3",
+            "seen": 19,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 19,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 18,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 36
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 14,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 14
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 6
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 173,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 10,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "5",
+            "seen": 7,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 173
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 41,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 41
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "Piston1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 2,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "4",
+          "seen": 2
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "ElectricMotor2": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "CommandPod6": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "4",
+            "seen": 2,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "2",
+          "b": "4",
+          "seen": 2
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 7,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 1,
+            "kind": "stack"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "2",
+          "b": "1",
+          "seen": 1
+        },
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 7
+        }
+      },
+      "RocketEngine1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "Shock1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "1",
+          "seen": 4
+        }
+      },
+      "RoverWheel1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 12
+        }
+      },
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "3",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "3",
+          "seen": 2
+        }
+      },
+      "JetEngine1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "Wing1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 24,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 24
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "Fin1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 173,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 173
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 244,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "2",
+          "seen": 4
+        },
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 244
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 18,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 18
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 32,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 32
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 56,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "5",
+            "seen": 6,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 56
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      }
+    },
+    "CommandChip1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 11,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 11
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 6
+        }
+      }
+    },
+    "FuelAdapter1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 357,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 357
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "Gyroscope1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 23,
+            "kind": "surface"
+          },
+          {
+            "a": "2,4",
+            "b": "1,5",
+            "seen": 7,
+            "kind": "stack"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 5,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 2,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,5",
+          "seen": 7
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 23
+        },
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 5
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "1",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "1",
+          "seen": 6
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "1,5",
+            "b": "2,3",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,3",
+          "seen": 1
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 8,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,4",
+          "seen": 8
+        }
+      }
+    },
+    "Camera1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 36,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 29,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 26,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 36
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 29
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 3
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 8,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 8
+        }
+      }
+    },
+    "Light1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 36,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 36
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 43,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 43
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 5
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 3
+        }
+      }
+    },
+    "LandingGear1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 58,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 58
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "5",
+          "seen": 4
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 26,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 26
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "Generator2": {
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      }
+    },
+    "RocketEngine1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 225,
+            "kind": "stack"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 83,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 63,
+            "kind": "other"
+          }
+        ],
+        "stack": {
+          "a": "0",
+          "b": "1",
+          "seen": 225
+        },
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 83
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 63
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 3,
+            "kind": "stack"
+          }
+        ],
+        "stack": {
+          "a": "0",
+          "b": "1",
+          "seen": 3
+        }
+      },
+      "FuelAdapter1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 236,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 236
+        }
+      }
+    },
+    "StructuralPanel1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 34,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 34
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        }
+      }
+    },
+    "Fin1": {
+      "StructuralPanel1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 57,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 57
+        }
+      },
+      "JetEngine1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 7,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 7
+        }
+      },
+      "Fin1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 13,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 13
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 12,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 12
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "Block1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0,5",
+            "b": "2,0",
+            "seen": 24,
+            "kind": "surface"
+          },
+          {
+            "a": "5",
+            "b": "1",
+            "seen": 19,
+            "kind": "other"
+          },
+          {
+            "a": "1,5",
+            "b": "1,0",
+            "seen": 12,
+            "kind": "surface"
+          },
+          {
+            "a": "4",
+            "b": "1",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "1,5",
+            "b": "2,0",
+            "seen": 12,
+            "kind": "surface"
+          },
+          {
+            "a": "4",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0,5",
+          "b": "2,0",
+          "seen": 24
+        },
+        "other": {
+          "a": "5",
+          "b": "1",
+          "seen": 19
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "5",
+            "b": "0",
+            "seen": 12,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "5",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "5",
+          "b": "0",
+          "seen": 12
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 6
+        }
+      },
+      "Block1": {
+        "variants": [
+          {
+            "a": "4",
+            "b": "5",
+            "seen": 36,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "3",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "3",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "4",
+            "b": "4",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "4",
+          "b": "5",
+          "seen": 36
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "5",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "5",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 6
+        }
+      }
+    },
+    "EvaChair1": {
+      "Block1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 3
+        }
+      }
+    },
+    "NoseCone1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 11,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        },
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 11
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1,2",
+            "b": "2,4",
+            "seen": 141,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1,1",
+            "b": "2,2",
+            "seen": 68,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1,2",
+            "b": "1,5",
+            "seen": 59,
+            "kind": "other"
+          },
+          {
+            "a": "1,1",
+            "b": "1,1",
+            "seen": 48,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 31,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 22,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 19,
+            "kind": "surface"
+          },
+          {
+            "a": "2,1",
+            "b": "5,1",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 19
+        },
+        "stack_inverted": {
+          "a": "1,2",
+          "b": "2,4",
+          "seen": 141
+        },
+        "other": {
+          "a": "1,2",
+          "b": "1,5",
+          "seen": 59
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "2,1",
+            "b": "2,0",
+            "seen": 1,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        },
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 10,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 6
+        },
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 10
+        }
+      },
+      "Detacher1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "1,2",
+            "b": "2,3",
+            "seen": 6,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1,2",
+          "b": "2,3",
+          "seen": 6
+        }
+      },
+      "FuelAdapter1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 7,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 7
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      }
+    },
+    "Mfd1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 7,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 7
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 12
+        }
+      },
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 13,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "3",
+          "seen": 13
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 6
+        }
+      }
+    },
+    "Shock1": {
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 30,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 30
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 10,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 10
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 118,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 118
+        }
+      },
+      "Shock1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        }
+      }
+    },
+    "RoverWheel1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 30,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 22,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 22
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 30
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 28,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 28
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 2
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "4",
+          "seen": 4
+        }
+      },
+      "StructuralPanel1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "SolarPanel1": {
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 18,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 18
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 8,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 8
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      }
+    },
+    "DetacherSide1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 156,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 10,
+            "kind": "surface"
+          },
+          {
+            "a": "0,0",
+            "b": "0,0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "3",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 156
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 10,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 10
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "DockingPort1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 2
+        }
+      }
+    },
+    "Eva": {
+      "EvaChair1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 16,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 16
+        }
+      },
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 10,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 10
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "6",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "6",
+          "seen": 2
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 9,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "3",
+          "seen": 9
+        }
+      },
+      "CommandPod5": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "3",
+          "seen": 3
+        }
+      }
+    },
+    "Parachute1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 57,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 6,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 57
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 6
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "CommandPod5": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "4",
+          "seen": 3
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 3
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "RCSNozzle2": {
+      "Block1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 18,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 18,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 18,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 18,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 18,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "4",
+          "seen": 18
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 44,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 22,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 18,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 44
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 22
+        }
+      }
+    },
+    "Detacher1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "5",
+            "seen": 15,
+            "kind": "other"
+          },
+          {
+            "a": "0,1",
+            "b": "4,2",
+            "seen": 4,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 3,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "4",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0,1",
+          "b": "4,2",
+          "seen": 4
+        },
+        "other": {
+          "a": "2",
+          "b": "5",
+          "seen": 15
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "0,1",
+            "b": "4,2",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "CommandPod5": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "Inlet1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "5",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "0,1",
+            "b": "4,2",
+            "seen": 2,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0,1",
+          "b": "4,2",
+          "seen": 2
+        },
+        "other": {
+          "a": "2",
+          "b": "5",
+          "seen": 2
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "CargoBay1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 72,
+            "kind": "surface"
+          },
+          {
+            "a": "2",
+            "b": "5",
+            "seen": 17,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 7,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 72
+        },
+        "other": {
+          "a": "2",
+          "b": "5",
+          "seen": 17
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 25,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 25
+        },
+        "other": {
+          "a": "3",
+          "b": "2",
+          "seen": 3
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 77,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "1",
+            "seen": 62,
+            "kind": "other"
+          },
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 13,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 5,
+            "kind": "other"
+          },
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 13
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 77
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Detacher1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "2",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 1
+        }
+      }
+    },
+    "DockingPort1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 31,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 23,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 31
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 23
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "4",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 12,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 12
+        }
+      },
+      "DockingPort1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 10,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 10
+        }
+      },
+      "Gyroscope1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 6,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 6
+        }
+      }
+    },
+    "Cockpit1": {
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      }
+    },
+    "CockpitCanopy1": {
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 9,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 9
+        }
+      }
+    },
+    "JetEngine1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 54,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 2,
+            "kind": "stack"
+          },
+          {
+            "a": "1,2",
+            "b": "1,5",
+            "seen": 1,
+            "kind": "stack"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "stack": {
+          "a": "1",
+          "b": "1",
+          "seen": 2
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 54
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "3",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "JetEngine1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 16,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 16
+        }
+      }
+    },
+    "Inlet1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "5",
+            "seen": 48,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 45,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 31,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "4",
+            "seen": 14,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 12,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 10,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "5",
+          "seen": 48
+        }
+      },
+      "JetEngine1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 36,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 26,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 36
+        }
+      },
+      "Inlet1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 153,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 62,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 22,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 153
+        }
+      },
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "3",
+          "seen": 1
+        }
+      },
+      "Detacher1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "BeaconLight1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 18,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 18
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "Fin1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 8,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 8
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 26,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 26
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 8,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 8
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "Piston1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 14,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 14
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 3
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "Rotator1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 32,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 27,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 32
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 27
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 7,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 7
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 58,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 20,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 58
+        },
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 20
+        }
+      },
+      "Rotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "Shock1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      }
+    },
+    "CommandDisc1": {
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "4",
+            "b": "4",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "4",
+          "b": "4",
+          "seen": 1
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1,4",
+            "b": "2,4",
+            "seen": 6,
+            "kind": "stack_inverted"
+          },
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        },
+        "stack_inverted": {
+          "a": "1,4",
+          "b": "2,4",
+          "seen": 6
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 2,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1",
+          "b": "0",
+          "seen": 2
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "2",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          },
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "2",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "3,2",
+            "b": "1,0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3,2",
+          "b": "1,0",
+          "seen": 1
+        }
+      }
+    },
+    "Label1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 89,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 89
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 2
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 22,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 22
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 3
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 51,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 14,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 7,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 51
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "2",
+          "seen": 4
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 6,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 6
+        }
+      },
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 10,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "3",
+          "seen": 10
+        }
+      }
+    },
+    "HeatShield1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "stack_inverted"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        },
+        "stack_inverted": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        },
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 2
+        }
+      },
+      "CommandPod4": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "CommandPod5": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "DetacherSide1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "Shock1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 118,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 118
+        }
+      }
+    },
+    "FairingBase1": {
+      "Inlet1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 3,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 5,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "1",
+          "seen": 5
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 4,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "4",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "5",
+          "seen": 4
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      },
+      "Detacher1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 3,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 3
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "3",
+          "seen": 1
+        }
+      }
+    },
+    "Fairing1": {
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 7,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0",
+          "b": "1",
+          "seen": 7
+        }
+      },
+      "Fairing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 6,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0",
+          "b": "1",
+          "seen": 6
+        }
+      }
+    },
+    "FairingNoseCone1": {
+      "Fairing1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0",
+          "b": "1",
+          "seen": 4
+        }
+      },
+      "FairingBase1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "0",
+          "b": "1",
+          "seen": 1
+        }
+      }
+    },
+    "LandingLeg4": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "ElectricMotor2": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 9,
+            "kind": "surface"
+          },
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          },
+          {
+            "a": "1",
+            "b": "1",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 9
+        },
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      },
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "HingeRotator1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "0",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "0",
+          "seen": 4
+        }
+      },
+      "Wing1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 2,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "1",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "PropellerAssembly1": {
+      "ElectricMotor2": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 16,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "0",
+          "seen": 16
+        }
+      }
+    },
+    "Ball1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "1",
+            "b": "2",
+            "seen": 1,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "1",
+          "b": "2",
+          "seen": 1
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "5",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "5",
+          "b": "0",
+          "seen": 1
+        }
+      }
+    },
+    "SolarPanelArray": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 72,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 72
+        }
+      },
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 18,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 2,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 18
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 2
+        }
+      }
+    },
+    "Generator1": {
+      "CommandDisc1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 3,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 3
+        }
+      },
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 1
+        }
+      }
+    },
+    "ToggleSwitch1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 5,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 5
+        }
+      },
+      "Cockpit1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "3",
+            "seen": 10,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "3",
+          "seen": 10
+        }
+      }
+    },
+    "Gauge1": {
+      "GaugeBase1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 4
+        }
+      }
+    },
+    "GaugeBase1": {
+      "Strut1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "RCSNozzle1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 595,
+            "kind": "surface"
+          },
+          {
+            "a": "0",
+            "b": "2",
+            "seen": 52,
+            "kind": "other"
+          },
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 26,
+            "kind": "other"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 595
+        },
+        "other": {
+          "a": "0",
+          "b": "2",
+          "seen": 52
+        }
+      },
+      "NoseCone1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 4,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 4
+        }
+      }
+    },
+    "CrewCompartment": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "2,4",
+            "b": "1,5",
+            "seen": 3,
+            "kind": "stack"
+          },
+          {
+            "a": "3",
+            "b": "0",
+            "seen": 1,
+            "kind": "surface"
+          },
+          {
+            "a": "5",
+            "b": "4",
+            "seen": 1,
+            "kind": "other"
+          },
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack": {
+          "a": "2,4",
+          "b": "1,5",
+          "seen": 3
+        },
+        "surface": {
+          "a": "3",
+          "b": "0",
+          "seen": 1
+        },
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,4",
+          "seen": 1
+        },
+        "other": {
+          "a": "5",
+          "b": "4",
+          "seen": 1
+        }
+      },
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "3",
+            "b": "5",
+            "seen": 1,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "3",
+          "b": "5",
+          "seen": 1
+        }
+      },
+      "CrewCompartment": {
+        "variants": [
+          {
+            "a": "1,5",
+            "b": "2,4",
+            "seen": 1,
+            "kind": "stack_inverted"
+          }
+        ],
+        "stack_inverted": {
+          "a": "1,5",
+          "b": "2,4",
+          "seen": 1
+        }
+      }
+    },
+    "Eva-Tourist": {
+      "EvaChair1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 4,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 4
+        }
+      }
+    },
+    "IonEngine1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "1",
+            "seen": 60,
+            "kind": "other"
+          }
+        ],
+        "other": {
+          "a": "0",
+          "b": "1",
+          "seen": 60
+        }
+      }
+    },
+    "LandingLeg3": {
+      "CargoBay1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "5",
+            "seen": 42,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "5",
+          "seen": 42
+        }
+      }
+    },
+    "LandingLeg1": {
+      "Fuselage1": {
+        "variants": [
+          {
+            "a": "0",
+            "b": "0",
+            "seen": 30,
+            "kind": "surface"
+          }
+        ],
+        "surface": {
+          "a": "0",
+          "b": "0",
+          "seen": 30
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "junoclaude-workspace",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "fast-xml-parser": "^4.5.0"
+  },
+  "scripts": {
+    "catalog": "node scripts/build-parts-catalog.mjs && node scripts/mine-connections.mjs"
+  }
+}

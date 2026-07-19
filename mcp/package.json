@@ -1,0 +1,22 @@
+{
+  "name": "junoclaude-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "junoclaude-mcp": "dist/index.js" },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test ../test/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "fast-xml-parser": "^4.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2"
+  }
+}
