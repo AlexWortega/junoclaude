@@ -263,13 +263,37 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   }
 
   // Layout bottom-up: a part's position is its centre.
+  //
+  // The origin must end up at the centre of mass, not at the bottom of the
+  // stack. The game positions a craft on the pad relative to its origin, so a
+  // stack laid out from zero upward spawns buried in the ground and is
+  // destroyed. This was established by letting the game re-save a generated
+  // craft: it shifted every part by the same amount and wrote
+  // localCenterOfMass equal to minus the root part's position.
+  const heights = spec.stack.map(itemHeight);
+  let cursor = 0;
+  const rawCentres = heights.map((h) => {
+    const centre = cursor + h / 2;
+    cursor += h;
+    return centre;
+  });
+
+  let massSum = 0;
+  let momentSum = 0;
+  spec.stack.forEach((item, index) => {
+    const m = estimateGroupMass([index], spec.stack);
+    massSum += m;
+    momentSum += m * (rawCentres[index] as number);
+  });
+  const centreOfMass = massSum > 0 ? momentSum / massSum : cursor / 2;
+
   const layout: BuildResult['layout'] = [];
   const parts: XmlNode[] = [];
-  let y = 0;
+  const totalHeight = cursor;
 
   for (const [index, item] of spec.stack.entries()) {
-    const height = itemHeight(item);
-    const centerY = y + height / 2;
+    const height = heights[index] as number;
+    const centerY = (rawCentres[index] as number) - centreOfMass;
     const stage = 'stage' in item && item.stage !== undefined ? item.stage : 0;
 
     const attrs: Record<string, string> = {
@@ -286,7 +310,6 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     const modifiers = await fillDefaultModifiers(attrs['partType'] as string, modifiersFor(item));
     parts.push(node('Part', attrs, modifiers));
     layout.push({ id: index, partType: attrs['partType'] as string, y: round6(centerY), height, stage });
-    y += height;
   }
 
   // The command pod carries the activation group names.
@@ -383,14 +406,17 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     {
       name: spec.name,
       parent: '',
-      // The game recomputes bounds and price; give a sensible estimate.
-      initialBoundsMin: vecStr([-maxRadius, 0, -maxRadius]),
-      initialBoundsMax: vecStr([maxRadius, y, maxRadius]),
+      // Bounds are in craft-local coordinates, whose origin now sits at the
+      // centre of mass, so the bottom of the stack is negative.
+      initialBoundsMin: vecStr([-maxRadius, -centreOfMass, -maxRadius]),
+      initialBoundsMax: vecStr([maxRadius, totalHeight - centreOfMass, maxRadius]),
       price: '0',
       xmlVersion: '15',
       suppressCraftConfigWarnings: 'false',
       activeCommandPod: String(rootIndex),
-      localCenterOfMass: vecStr([0, y / 2, 0]),
+      // Expressed relative to the root part: the origin is the centre of mass,
+      // so this is simply minus the root's position.
+      localCenterOfMass: vecStr([0, -((rawCentres[rootIndex] as number) - centreOfMass), 0]),
     },
     [
       node('Assembly', {}, [

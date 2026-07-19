@@ -24105,12 +24105,27 @@ async function buildCraft(spec) {
     if (await partType(id) === void 0)
       throw new Error(`Unknown part type "${id}". Check it with part_lookup.`);
   }
+  const heights = spec.stack.map(itemHeight);
+  let cursor = 0;
+  const rawCentres = heights.map((h) => {
+    const centre = cursor + h / 2;
+    cursor += h;
+    return centre;
+  });
+  let massSum = 0;
+  let momentSum = 0;
+  spec.stack.forEach((item, index) => {
+    const m = estimateGroupMass([index], spec.stack);
+    massSum += m;
+    momentSum += m * rawCentres[index];
+  });
+  const centreOfMass = massSum > 0 ? momentSum / massSum : cursor / 2;
   const layout = [];
   const parts2 = [];
-  let y = 0;
+  const totalHeight = cursor;
   for (const [index, item] of spec.stack.entries()) {
-    const height = itemHeight(item);
-    const centerY = y + height / 2;
+    const height = heights[index];
+    const centerY = rawCentres[index] - centreOfMass;
     const stage = "stage" in item && item.stage !== void 0 ? item.stage : 0;
     const attrs = {
       id: String(index),
@@ -24125,7 +24140,6 @@ async function buildCraft(spec) {
     const modifiers = await fillDefaultModifiers(attrs["partType"], modifiersFor(item));
     parts2.push(node("Part", attrs, modifiers));
     layout.push({ id: index, partType: attrs["partType"], y: round6(centerY), height, stage });
-    y += height;
   }
   if (spec.activation_groups !== void 0 && podIndex >= 0) {
     const names = Array.from({ length: 10 }, (_, i) => spec.activation_groups?.[i] ?? "").join(",");
@@ -24204,14 +24218,17 @@ async function buildCraft(spec) {
     {
       name: spec.name,
       parent: "",
-      // The game recomputes bounds and price; give a sensible estimate.
-      initialBoundsMin: vecStr([-maxRadius, 0, -maxRadius]),
-      initialBoundsMax: vecStr([maxRadius, y, maxRadius]),
+      // Bounds are in craft-local coordinates, whose origin now sits at the
+      // centre of mass, so the bottom of the stack is negative.
+      initialBoundsMin: vecStr([-maxRadius, -centreOfMass, -maxRadius]),
+      initialBoundsMax: vecStr([maxRadius, totalHeight - centreOfMass, maxRadius]),
       price: "0",
       xmlVersion: "15",
       suppressCraftConfigWarnings: "false",
       activeCommandPod: String(rootIndex),
-      localCenterOfMass: vecStr([0, y / 2, 0])
+      // Expressed relative to the root part: the origin is the centre of mass,
+      // so this is simply minus the root's position.
+      localCenterOfMass: vecStr([0, -(rawCentres[rootIndex] - centreOfMass), 0])
     },
     [
       node("Assembly", {}, [
