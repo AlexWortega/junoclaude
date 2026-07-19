@@ -131,6 +131,21 @@ export async function resolvePoints(
   return out;
 }
 
+/**
+ * Сторона детали, к которой относится точка крепления. Атрибут `tag` заполнен
+ * лишь у части деталей, зато имя точки называет сторону почти всегда:
+ * `AttachPointBottomLoad`, `AttachPointTop`. Опираться только на `tag` значит
+ * не состыковать командный модуль вообще ни с чем.
+ */
+function sideOf(point: AttachPoint): 'Top' | 'Bottom' | undefined {
+  if (point.tag === 'Top' || point.tag === 'Bottom') return point.tag;
+  const name = point.name;
+  // Порядок важен: BottomLoad содержит и Bottom, и Load, но не Top.
+  if (/bottom/i.test(name)) return 'Bottom';
+  if (/top/i.test(name)) return 'Top';
+  return undefined;
+}
+
 export interface ResolvedConnection {
   a: string;
   b: string;
@@ -169,8 +184,12 @@ export async function resolveStackConnection(
 
   // Нижняя деталь стыкуется верхом, верхняя — низом. Берём пару Load и пару
   // Shell: только Load даст сегментированный корпус с неверным сопротивлением.
-  const pick = (pt: PartType, tag: string, kind: AttachPoint['kind']): AttachPoint | undefined =>
-    pt.attachPoints.find((p) => p.tag === tag && p.kind === kind);
+  const pick = (
+    pt: PartType,
+    side: 'Top' | 'Bottom',
+    kind: AttachPoint['kind']
+  ): AttachPoint | undefined =>
+    pt.attachPoints.find((p) => p.kind === kind && sideOf(p) === side);
 
   const aIdx: number[] = [];
   const bIdx: number[] = [];
@@ -182,11 +201,24 @@ export async function resolveStackConnection(
       bIdx.push(b.index);
     }
   }
-  if (aIdx.length === 0)
+
+  // Мелкие детали вроде парашюта имеют единственную безымянную точку —
+  // выбирать там не из чего, и это нормальная стыковка, а не отказ.
+  if (aIdx.length === 0) {
+    const soleLoad = (pt: PartType): AttachPoint | undefined => {
+      const loads = pt.attachPoints.filter((p) => p.kind === 'load');
+      return loads.length === 1 ? loads[0] : undefined;
+    };
+    const a = pick(lowerPt, 'Top', 'load') ?? soleLoad(lowerPt);
+    const b = pick(upperPt, 'Bottom', 'load') ?? soleLoad(upperPt);
+    if (a !== undefined && b !== undefined)
+      return { a: String(a.index), b: String(b.index), confidence: 'inferred' };
+
     throw new Error(
       `Нет совместимых точек крепления: ${lower} (верх) → ${upper} (низ). ` +
         `Посмотрите part_lookup для обеих деталей.`
     );
+  }
 
   return { a: aIdx.join(','), b: bIdx.join(','), confidence: 'inferred' };
 }

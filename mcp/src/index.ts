@@ -13,6 +13,7 @@ import { ToolError, guardedWrite, listSnapshots, restoreSnapshot } from './safet
 import { gameStatus, launchGame, quitGame, readLog } from './game.js';
 import { parts as partsCatalog, partType, connections } from './catalog.js';
 import { Craft } from './craft/model.js';
+import { buildCraft, type CraftSpec } from './craft/build.js';
 import { summarize, renderSummary, renderTree } from './craft/summary.js';
 import { buildXml, parseXmlRoot, GAME_FORMAT } from './xml.js';
 import { compileProgram, CompileError, type DslProgram } from './vizzy/compile.js';
@@ -184,6 +185,67 @@ server.registerTool(
       if (out.length > MAX_XML_BYTES) out = `${out.slice(0, MAX_XML_BYTES)}\n… обрезано`;
       if (missing.length > 0) out = `(деталей нет в крафте: ${missing.join(', ')})\n${out}`;
       return text(out);
+    }
+  )
+);
+
+server.registerTool(
+  'craft_build',
+  {
+    title: 'Собрать конструкцию',
+    description:
+      'Собирает аппарат из декларативной спецификации: стек деталей снизу вверх. ' +
+      'Сам считает координаты, подбирает точки крепления по добытым рецептам, ' +
+      'вычисляет ёмкость баков и разбивает детали на физические тела по отделителям. ' +
+      'Виды элементов: pod, tank, engine, decoupler, nosecone, parachute, raw.',
+    inputSchema: {
+      spec: z
+        .object({
+          name: z.string(),
+          type: z.enum(['rocket', 'plane']).optional(),
+          stack: z.array(z.any()).describe('Снизу вверх: элемент 0 стоит на площадке'),
+          activation_groups: z.array(z.string()).optional(),
+        })
+        .describe(
+          'Пример: { "name":"Зонд", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, ' +
+            '{"kind":"tank","length":5,"diameter":2}, {"kind":"pod"}, {"kind":"parachute","stage":1} ] }'
+        ),
+      dry_run: z.boolean().optional().describe('Только показать результат, не записывая'),
+      force: z.boolean().optional(),
+    },
+  },
+  guard(
+    async ({
+      spec,
+      dry_run,
+      force,
+    }: {
+      spec: CraftSpec;
+      dry_run?: boolean;
+      force?: boolean;
+    }) => {
+      const result = await buildCraft(spec);
+      const lines = [
+        `Собрано: «${spec.name}», ${result.partCount} деталей`,
+        '',
+        'Раскладка (снизу вверх, координата центра по Y):',
+        ...result.layout.map(
+          (l) =>
+            `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  ступень ${l.stage}` : ''}`
+        ),
+      ];
+      if (result.warnings.length > 0)
+        lines.push('', 'Предупреждения:', ...result.warnings.map((w) => `  ! ${w.message}`));
+
+      if (dry_run === true) {
+        lines.push('', '--- XML ---', result.xml.replace(/\r/g, ''));
+        return text(lines.join('\n'));
+      }
+
+      const path = await craftPath(spec.name);
+      const snap = await guardedWrite('craft_build', path, result.xml, { force });
+      lines.push('', `Записано: ${path}`, `Снимок для отката: ${snap.id}`);
+      return text(lines.join('\n'));
     }
   )
 );

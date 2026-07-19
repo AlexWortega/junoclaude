@@ -837,8 +837,8 @@ var require_codegen = __commonJS({
       endIf() {
         return this._endBlockNode(If, Else);
       }
-      _for(node2, forBody) {
-        this._blockNode(node2);
+      _for(node3, forBody) {
+        this._blockNode(node3);
         if (forBody)
           this.code(forBody).endFor();
         return this;
@@ -887,10 +887,10 @@ var require_codegen = __commonJS({
       }
       // `return` statement
       return(value) {
-        const node2 = new Return();
-        this._blockNode(node2);
+        const node3 = new Return();
+        this._blockNode(node3);
         this.code(value);
-        if (node2.nodes.length !== 1)
+        if (node3.nodes.length !== 1)
           throw new Error('CodeGen: "return" should have one node');
         return this._endBlockNode(Return);
       }
@@ -898,16 +898,16 @@ var require_codegen = __commonJS({
       try(tryBody, catchCode, finallyCode) {
         if (!catchCode && !finallyCode)
           throw new Error('CodeGen: "try" without "catch" and "finally"');
-        const node2 = new Try();
-        this._blockNode(node2);
+        const node3 = new Try();
+        this._blockNode(node3);
         this.code(tryBody);
         if (catchCode) {
           const error2 = this.name("e");
-          this._currNode = node2.catch = new Catch(error2);
+          this._currNode = node3.catch = new Catch(error2);
           catchCode(error2);
         }
         if (finallyCode) {
-          this._currNode = node2.finally = new Finally();
+          this._currNode = node3.finally = new Finally();
           this.code(finallyCode);
         }
         return this._endBlockNode(Catch, Finally);
@@ -952,13 +952,13 @@ var require_codegen = __commonJS({
           this._root.optimizeNames(this._root.names, this._constants);
         }
       }
-      _leafNode(node2) {
-        this._currNode.nodes.push(node2);
+      _leafNode(node3) {
+        this._currNode.nodes.push(node3);
         return this;
       }
-      _blockNode(node2) {
-        this._currNode.nodes.push(node2);
-        this._nodes.push(node2);
+      _blockNode(node3) {
+        this._currNode.nodes.push(node3);
+        this._nodes.push(node3);
       }
       _endBlockNode(N1, N2) {
         const n2 = this._currNode;
@@ -968,12 +968,12 @@ var require_codegen = __commonJS({
         }
         throw new Error(`CodeGen: not in block "${N2 ? `${N1.kind}/${N2.kind}` : N1.kind}"`);
       }
-      _elseNode(node2) {
+      _elseNode(node3) {
         const n2 = this._currNode;
         if (!(n2 instanceof If)) {
           throw new Error('CodeGen: "else" without "if"');
         }
-        this._currNode = n2.else = node2;
+        this._currNode = n2.else = node3;
         return this;
       }
       get _root() {
@@ -983,9 +983,9 @@ var require_codegen = __commonJS({
         const ns = this._nodes;
         return ns[ns.length - 1];
       }
-      set _currNode(node2) {
+      set _currNode(node3) {
         const ns = this._nodes;
-        ns[ns.length - 1] = node2;
+        ns[ns.length - 1] = node3;
       }
     };
     exports.CodeGen = CodeGen;
@@ -7418,12 +7418,12 @@ var require_xmlNode = __commonJS({
         if (key === "__proto__") key = "#__proto__";
         this.child.push({ [key]: val });
       }
-      addChild(node2) {
-        if (node2.tagname === "__proto__") node2.tagname = "#__proto__";
-        if (node2[":@"] && Object.keys(node2[":@"]).length > 0) {
-          this.child.push({ [node2.tagname]: node2.child, [":@"]: node2[":@"] });
+      addChild(node3) {
+        if (node3.tagname === "__proto__") node3.tagname = "#__proto__";
+        if (node3[":@"] && Object.keys(node3[":@"]).length > 0) {
+          this.child.push({ [node3.tagname]: node3.child, [":@"]: node3[":@"] });
         } else {
-          this.child.push({ [node2.tagname]: node2.child });
+          this.child.push({ [node3.tagname]: node3.child });
         }
       }
     };
@@ -8441,8 +8441,8 @@ var require_OrderedObjParser = __commonJS({
 var require_node2json = __commonJS({
   "node_modules/fast-xml-parser/src/xmlparser/node2json.js"(exports) {
     "use strict";
-    function prettify(node2, options) {
-      return compress(node2, options);
+    function prettify(node3, options) {
+      return compress(node3, options);
     }
     function compress(arr, options, jPath) {
       let text2;
@@ -23477,18 +23477,18 @@ function convert(raw) {
       });
       continue;
     }
-    const node2 = { tag, attrs, children: [] };
+    const node3 = { tag, attrs, children: [] };
     if (Array.isArray(kids)) {
-      node2.children = convert(kids);
+      node3.children = convert(kids);
       const textNode = kids.find(
         (k) => k !== null && typeof k === "object" && TEXT_KEY in k
       );
       if (textNode !== void 0) {
         const t = String(textNode[TEXT_KEY] ?? "");
-        if (t !== "") node2.text = t;
+        if (t !== "") node3.text = t;
       }
     }
-    out.push(node2);
+    out.push(node3);
   }
   return out;
 }
@@ -23534,25 +23534,25 @@ function escapeAttr(value) {
 function escapeText(value) {
   return value.replace(/[&<>]/g, (c) => ESCAPES[c]);
 }
-function writeNode(node2, indent, step, out) {
-  if (node2.tag === COMMENT_TAG) {
-    out.push(`${indent}<!--${node2.comment ?? ""}-->`);
+function writeNode(node3, indent, step, out) {
+  if (node3.tag === COMMENT_TAG) {
+    out.push(`${indent}<!--${node3.comment ?? ""}-->`);
     return;
   }
-  const attrs = Object.entries(node2.attrs).map(([k, v]) => ` ${k}="${escapeAttr(v)}"`).join("");
-  const hasChildren = node2.children.length > 0;
-  const hasText = node2.text !== void 0 && node2.text !== "";
+  const attrs = Object.entries(node3.attrs).map(([k, v]) => ` ${k}="${escapeAttr(v)}"`).join("");
+  const hasChildren = node3.children.length > 0;
+  const hasText = node3.text !== void 0 && node3.text !== "";
   if (!hasChildren && !hasText) {
-    out.push(`${indent}<${node2.tag}${attrs} />`);
+    out.push(`${indent}<${node3.tag}${attrs} />`);
     return;
   }
   if (!hasChildren && hasText) {
-    out.push(`${indent}<${node2.tag}${attrs}>${escapeText(node2.text)}</${node2.tag}>`);
+    out.push(`${indent}<${node3.tag}${attrs}>${escapeText(node3.text)}</${node3.tag}>`);
     return;
   }
-  out.push(`${indent}<${node2.tag}${attrs}>`);
-  for (const child of node2.children) writeNode(child, indent + step, step, out);
-  out.push(`${indent}</${node2.tag}>`);
+  out.push(`${indent}<${node3.tag}${attrs}>`);
+  for (const child of node3.children) writeNode(child, indent + step, step, out);
+  out.push(`${indent}</${node3.tag}>`);
 }
 var GAME_FORMAT = {
   bom: true,
@@ -23568,8 +23568,8 @@ function buildXml(root, format = {}) {
   writeNode(root, "", f.indent, out);
   return (f.bom ? "\uFEFF" : "") + out.join(f.eol) + (f.trailingNewline ? f.eol : "");
 }
-var childrenNamed = (node2, tag) => node2.children.filter((c) => c.tag === tag);
-var childNamed = (node2, tag) => node2.children.find((c) => c.tag === tag);
+var childrenNamed = (node3, tag) => node3.children.filter((c) => c.tag === tag);
+var childNamed = (node3, tag) => node3.children.find((c) => c.tag === tag);
 
 // src/game.ts
 var execAsync2 = promisify2(exec2);
@@ -23749,6 +23749,50 @@ async function connections() {
 async function partType(id) {
   return (await parts()).parts[id];
 }
+function sideOf(point) {
+  if (point.tag === "Top" || point.tag === "Bottom") return point.tag;
+  const name = point.name;
+  if (/bottom/i.test(name)) return "Bottom";
+  if (/top/i.test(name)) return "Top";
+  return void 0;
+}
+async function resolveStackConnection(lower, upper) {
+  const cat = await connections();
+  const direct = cat.connections[lower]?.[upper]?.stack;
+  if (direct) return { a: direct.a, b: direct.b, confidence: "known", seen: direct.seen };
+  const inverted = cat.connections[upper]?.[lower]?.stack_inverted;
+  if (inverted)
+    return { a: inverted.b, b: inverted.a, confidence: "known", seen: inverted.seen };
+  const lowerPt = await partType(lower);
+  const upperPt = await partType(upper);
+  if (lowerPt === void 0 || upperPt === void 0)
+    throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0442\u0438\u043F \u0434\u0435\u0442\u0430\u043B\u0438: ${lowerPt === void 0 ? lower : upper}`);
+  const pick2 = (pt, side, kind) => pt.attachPoints.find((p) => p.kind === kind && sideOf(p) === side);
+  const aIdx = [];
+  const bIdx = [];
+  for (const kind of ["load", "shell"]) {
+    const a = pick2(lowerPt, "Top", kind);
+    const b = pick2(upperPt, "Bottom", kind);
+    if (a !== void 0 && b !== void 0) {
+      aIdx.push(a.index);
+      bIdx.push(b.index);
+    }
+  }
+  if (aIdx.length === 0) {
+    const soleLoad = (pt) => {
+      const loads = pt.attachPoints.filter((p) => p.kind === "load");
+      return loads.length === 1 ? loads[0] : void 0;
+    };
+    const a = pick2(lowerPt, "Top", "load") ?? soleLoad(lowerPt);
+    const b = pick2(upperPt, "Bottom", "load") ?? soleLoad(upperPt);
+    if (a !== void 0 && b !== void 0)
+      return { a: String(a.index), b: String(b.index), confidence: "inferred" };
+    throw new Error(
+      `\u041D\u0435\u0442 \u0441\u043E\u0432\u043C\u0435\u0441\u0442\u0438\u043C\u044B\u0445 \u0442\u043E\u0447\u0435\u043A \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F: ${lower} (\u0432\u0435\u0440\u0445) \u2192 ${upper} (\u043D\u0438\u0437). \u041F\u043E\u0441\u043C\u043E\u0442\u0440\u0438\u0442\u0435 part_lookup \u0434\u043B\u044F \u043E\u0431\u0435\u0438\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.`
+    );
+  }
+  return { a: aIdx.join(","), b: bIdx.join(","), confidence: "inferred" };
+}
 
 // src/craft/model.ts
 var Craft = class _Craft {
@@ -23764,33 +23808,33 @@ var Craft = class _Craft {
     if (assembly === void 0) throw new Error("\u0412 \u043A\u0440\u0430\u0444\u0442\u0435 \u043D\u0435\u0442 \u044D\u043B\u0435\u043C\u0435\u043D\u0442\u0430 <Assembly>");
     const partsNode = childNamed(assembly, "Parts");
     const parts2 = [];
-    for (const node2 of partsNode ? childrenNamed(partsNode, "Part") : []) {
-      const id = Number(node2.attrs["id"]);
+    for (const node3 of partsNode ? childrenNamed(partsNode, "Part") : []) {
+      const id = Number(node3.attrs["id"]);
       if (!Number.isInteger(id)) continue;
       parts2.push({
         id,
-        partType: node2.attrs["partType"] ?? "",
-        name: node2.attrs["name"],
-        position: vec(node2.attrs["position"]),
-        rotation: vec(node2.attrs["rotation"]),
+        partType: node3.attrs["partType"] ?? "",
+        name: node3.attrs["name"],
+        position: vec(node3.attrs["position"]),
+        rotation: vec(node3.attrs["rotation"]),
         // Отсутствие атрибута означает нулевую ступень — так игра экономит место.
-        activationStage: Number(node2.attrs["activationStage"] ?? "0") || 0,
-        activationGroup: node2.attrs["activationGroup"] ? Number(node2.attrs["activationGroup"]) : void 0,
-        isRoot: node2.attrs["rootPart"] === "true",
-        commandPodId: node2.attrs["commandPodId"] ? Number(node2.attrs["commandPodId"]) : void 0,
-        modifiers: node2.children.map((c) => c.tag),
-        node: node2
+        activationStage: Number(node3.attrs["activationStage"] ?? "0") || 0,
+        activationGroup: node3.attrs["activationGroup"] ? Number(node3.attrs["activationGroup"]) : void 0,
+        isRoot: node3.attrs["rootPart"] === "true",
+        commandPodId: node3.attrs["commandPodId"] ? Number(node3.attrs["commandPodId"]) : void 0,
+        modifiers: node3.children.map((c) => c.tag),
+        node: node3
       });
     }
     const connectionsNode = childNamed(assembly, "Connections");
     const connections2 = [];
-    for (const node2 of connectionsNode ? childrenNamed(connectionsNode, "Connection") : []) {
+    for (const node3 of connectionsNode ? childrenNamed(connectionsNode, "Connection") : []) {
       connections2.push({
-        partA: Number(node2.attrs["partA"]),
-        partB: Number(node2.attrs["partB"]),
-        attachPointsA: node2.attrs["attachPointsA"],
-        attachPointsB: node2.attrs["attachPointsB"],
-        node: node2
+        partA: Number(node3.attrs["partA"]),
+        partB: Number(node3.attrs["partB"]),
+        attachPointsA: node3.attrs["attachPointsA"],
+        attachPointsB: node3.attrs["attachPointsB"],
+        node: node3
       });
     }
     return new _Craft(root, format, parts2, connections2);
@@ -23853,6 +23897,297 @@ function vec(raw) {
 }
 function modifierAttr(part, modifier, attr) {
   return part.node.children.find((c) => c.tag === modifier)?.attrs[attr];
+}
+
+// src/craft/geometry.ts
+var FUEL_UNITS_PER_M3 = 550;
+var SOLID_FUEL_UNITS_PER_M3 = 400;
+function crossSectionArea(halfWidth, halfDepth, cornerRadiuses = [1, 1, 1, 1, 1, 1, 1, 1]) {
+  const roundness = cornerRadiuses.length > 0 ? cornerRadiuses.reduce((a, b) => a + b, 0) / cornerRadiuses.length : 1;
+  const clamped = Math.min(1, Math.max(0, roundness));
+  const circle = Math.PI * halfWidth * halfDepth;
+  const square = 4 * halfWidth * halfDepth;
+  return square + (circle - square) * clamped;
+}
+function fuselageVolume(shape) {
+  const corners = shape.cornerRadiuses;
+  const top = crossSectionArea(shape.topScale[0], shape.topScale[1], corners);
+  const bottom = crossSectionArea(shape.bottomScale[0], shape.bottomScale[1], corners);
+  return shape.length / 3 * (top + bottom + Math.sqrt(Math.abs(top * bottom)));
+}
+function fuelCapacity(shape, opts = {}) {
+  const { utilization = 1, solid = false } = opts;
+  const density = solid ? SOLID_FUEL_UNITS_PER_M3 : FUEL_UNITS_PER_M3;
+  return fuselageVolume(shape) * utilization * density;
+}
+function fuselageOffset(length) {
+  return `0,${length / 2},0`;
+}
+var round6 = (n2) => Math.round(n2 * 1e6) / 1e6;
+var vecStr = (v) => v.map(round6).join(",");
+
+// src/craft/build.ts
+var node = (tag, attrs = {}, children = []) => ({
+  tag,
+  attrs,
+  children
+});
+function itemHeight(item) {
+  switch (item.kind) {
+    case "pod":
+      return 1.6;
+    case "tank":
+      return item.length;
+    case "engine":
+      return 1 * (item.size ?? 1);
+    case "decoupler":
+      return 0.35;
+    case "nosecone":
+      return item.length ?? item.diameter;
+    case "parachute":
+      return 0.5;
+    case "raw":
+      return item.length ?? 1;
+  }
+}
+function partTypeOf(item) {
+  switch (item.kind) {
+    case "pod":
+      return item.variant ?? "CommandPod1";
+    case "tank":
+      return "Fuselage1";
+    case "engine":
+      return "RocketEngine1";
+    case "decoupler":
+      return "Detacher1";
+    case "nosecone":
+      return "NoseCone1";
+    case "parachute":
+      return "Parachute1";
+    case "raw":
+      return item.partType;
+  }
+}
+var FUEL_TYPES = /* @__PURE__ */ new Set(["Jet", "Battery", "Mono", "Solid", "LOX/LH2", "LOX/CH4", "Xenon"]);
+function modifiersFor(item) {
+  const out = [
+    node("Drag", { drag: "0,0,0,0,0,0", area: "0,0,0,0,0,0" }),
+    node("Config", {})
+  ];
+  if (item.kind === "tank") {
+    const halfTop = (item.top_diameter ?? item.diameter) / 2;
+    const halfBottom = item.diameter / 2;
+    const shape = {
+      length: item.length,
+      topScale: [halfTop, halfTop],
+      bottomScale: [halfBottom, halfBottom]
+    };
+    out.push(
+      node("Fuselage", {
+        bottomScale: `${round6(halfBottom)},${round6(halfBottom)}`,
+        topScale: `${round6(halfTop)},${round6(halfTop)}`,
+        offset: fuselageOffset(item.length),
+        deformations: "0,0,0",
+        depthCurve: "0",
+        version: "3"
+      })
+    );
+    if (item.fuel !== "empty") {
+      const solid = item.fuel === "Solid";
+      const capacity = round6(fuelCapacity(shape, { solid }));
+      const attrs = {
+        capacity: String(capacity),
+        fuel: String(capacity)
+      };
+      if (item.fuel !== void 0 && FUEL_TYPES.has(item.fuel)) attrs["fuelType"] = item.fuel;
+      out.push(node("FuelTank", attrs));
+    }
+  }
+  if (item.kind === "nosecone") {
+    const half = item.diameter / 2;
+    out.push(
+      node("Fuselage", {
+        bottomScale: `${round6(half)},${round6(half)}`,
+        // Нос сходится в точку — верхний торец нулевой.
+        topScale: "0,0",
+        offset: fuselageOffset(item.length ?? item.diameter),
+        version: "3"
+      })
+    );
+  }
+  if (item.kind === "decoupler") {
+    const half = item.diameter / 2;
+    out.push(
+      node("Fuselage", {
+        bottomScale: `${round6(half)},${round6(half)}`,
+        topScale: `${round6(half)},${round6(half)}`,
+        offset: fuselageOffset(0.35),
+        version: "3"
+      })
+    );
+    out.push(node("Detacher", {}));
+  }
+  if (item.kind === "engine") {
+    const attrs = { nozzleTypeId: item.nozzle ?? "Bravo" };
+    if (item.size !== void 0) attrs["nozzleThroatSize"] = String(round6(item.size * 0.85));
+    out.push(node("RocketEngine", attrs));
+    out.push(node("InputController", { inputId: "Throttle" }));
+  }
+  if (item.kind === "parachute") out.push(node("Parachute", {}));
+  if (item.kind === "raw" && item.modifiers !== void 0)
+    for (const [tag, attrs] of Object.entries(item.modifiers)) {
+      const stringified = {};
+      for (const [k, v] of Object.entries(attrs)) stringified[k] = String(v);
+      out.push(node(tag, stringified));
+    }
+  return out;
+}
+async function buildCraft(spec) {
+  const warnings = [];
+  if (spec.stack.length === 0) throw new Error("\u0421\u0442\u0435\u043A \u043F\u0443\u0441\u0442: \u043D\u0443\u0436\u043D\u0430 \u0445\u043E\u0442\u044F \u0431\u044B \u043E\u0434\u043D\u0430 \u0434\u0435\u0442\u0430\u043B\u044C");
+  const podIndex = spec.stack.findIndex((i) => i.kind === "pod");
+  if (podIndex < 0)
+    warnings.push({
+      code: "no_command_pod",
+      message: "\u0412 \u0441\u0442\u0435\u043A\u0435 \u043D\u0435\u0442 \u043A\u043E\u043C\u0430\u043D\u0434\u043D\u043E\u0433\u043E \u043C\u043E\u0434\u0443\u043B\u044F \u2014 \u0430\u043F\u043F\u0430\u0440\u0430\u0442 \u0431\u0443\u0434\u0435\u0442 \u043D\u0435\u0443\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u043C\u044B\u043C."
+    });
+  const rootIndex = podIndex >= 0 ? podIndex : 0;
+  for (const item of spec.stack) {
+    const id = partTypeOf(item);
+    if (await partType(id) === void 0)
+      throw new Error(`\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043D\u044B\u0439 \u0442\u0438\u043F \u0434\u0435\u0442\u0430\u043B\u0438 \xAB${id}\xBB. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 part_lookup.`);
+  }
+  const layout = [];
+  const parts2 = [];
+  let y = 0;
+  spec.stack.forEach((item, index) => {
+    const height = itemHeight(item);
+    const centerY = y + height / 2;
+    const stage = "stage" in item && item.stage !== void 0 ? item.stage : 0;
+    const attrs = {
+      id: String(index),
+      partType: partTypeOf(item),
+      position: vecStr([0, centerY, 0]),
+      rotation: "0,0,0",
+      commandPodId: String(rootIndex)
+    };
+    if (index === rootIndex) attrs["rootPart"] = "true";
+    if (stage > 0) attrs["activationStage"] = String(stage);
+    if ("name" in item && item.name !== void 0) attrs["name"] = item.name;
+    parts2.push(node("Part", attrs, modifiersFor(item)));
+    layout.push({ id: index, partType: attrs["partType"], y: round6(centerY), height, stage });
+    y += height;
+  });
+  if (spec.activation_groups !== void 0 && podIndex >= 0) {
+    const names = Array.from({ length: 10 }, (_, i) => spec.activation_groups?.[i] ?? "").join(",");
+    const pod = parts2[podIndex];
+    pod.children.push(
+      node(
+        "CommandPod",
+        {
+          activationGroupNames: names,
+          activationGroupStates: Array(10).fill("false").join(","),
+          craftConfigType: spec.type === "plane" ? "Plane" : "Rocket"
+        },
+        [node("Controls", {})]
+      )
+    );
+  }
+  const connections2 = [];
+  for (let i = 0; i + 1 < spec.stack.length; i++) {
+    const lower = partTypeOf(spec.stack[i]);
+    const upper = partTypeOf(spec.stack[i + 1]);
+    let resolved;
+    try {
+      resolved = await resolveStackConnection(lower, upper);
+    } catch (e) {
+      throw new Error(
+        `\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u043E\u0441\u0442\u044B\u043A\u043E\u0432\u0430\u0442\u044C ${lower} (\u043F\u043E\u0437\u0438\u0446\u0438\u044F ${i}) \u0441 ${upper} (\u043F\u043E\u0437\u0438\u0446\u0438\u044F ${i + 1}): ${e.message}`
+      );
+    }
+    if (resolved.confidence === "inferred")
+      warnings.push({
+        code: "inferred_connection",
+        message: `\u0421\u0442\u044B\u043A\u043E\u0432\u043A\u0430 ${lower} \u2192 ${upper} \u0432\u044B\u0432\u0435\u0434\u0435\u043D\u0430 \u043F\u043E \u0442\u0435\u0433\u0430\u043C, \u0430 \u043D\u0435 \u0432\u0437\u044F\u0442\u0430 \u0438\u0437 \u0433\u043E\u0442\u043E\u0432\u044B\u0445 \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u0439. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0435\u0451 \u0432 \u0440\u0435\u0434\u0430\u043A\u0442\u043E\u0440\u0435: \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E, \u0434\u0435\u0442\u0430\u043B\u0438 \u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0442\u0441\u044F \u043D\u0435 \u0442\u0430\u043A, \u043A\u0430\u043A \u0437\u0430\u0434\u0443\u043C\u0430\u043D\u043E.`
+      });
+    connections2.push(
+      node("Connection", {
+        partA: String(i),
+        partB: String(i + 1),
+        attachPointsA: resolved.a,
+        attachPointsB: resolved.b
+      })
+    );
+  }
+  const bodies = [];
+  let bodyId = 1;
+  let current = [];
+  spec.stack.forEach((item, index) => {
+    current.push(index);
+    const breaks = item.kind === "decoupler" || item.kind === "parachute";
+    if (breaks || index === spec.stack.length - 1) {
+      bodies.push(
+        node("Body", {
+          id: String(bodyId++),
+          partIds: current.join(","),
+          mass: "0",
+          position: "0,0,0",
+          rotation: "0,0,0",
+          centerOfMass: "0,0,0"
+        })
+      );
+      current = [];
+    }
+  });
+  if (current.length > 0)
+    bodies.push(
+      node("Body", {
+        id: String(bodyId++),
+        partIds: current.join(","),
+        mass: "0",
+        position: "0,0,0",
+        rotation: "0,0,0",
+        centerOfMass: "0,0,0"
+      })
+    );
+  const maxRadius = Math.max(
+    0.5,
+    ...spec.stack.map(
+      (i) => i.kind === "tank" || i.kind === "nosecone" || i.kind === "decoupler" ? i.diameter / 2 : 0.5
+    )
+  );
+  const craft = node(
+    "Craft",
+    {
+      name: spec.name,
+      parent: "",
+      // Габариты и стоимость игра пересчитает; даём разумную оценку.
+      initialBoundsMin: vecStr([-maxRadius, 0, -maxRadius]),
+      initialBoundsMax: vecStr([maxRadius, y, maxRadius]),
+      price: "0",
+      xmlVersion: "15",
+      suppressCraftConfigWarnings: "false",
+      activeCommandPod: String(rootIndex),
+      localCenterOfMass: vecStr([0, y / 2, 0])
+    },
+    [
+      node("Assembly", {}, [
+        node("Parts", {}, parts2),
+        node("Connections", {}, connections2),
+        node("Collisions", {}),
+        node("Bodies", {}, bodies)
+      ]),
+      node("DesignerSettings", {}),
+      node("Themes", {}),
+      node("Symmetry", {})
+    ]
+  );
+  return {
+    xml: buildXml(craft, GAME_FORMAT),
+    partCount: parts2.length,
+    warnings,
+    layout
+  };
 }
 
 // src/craft/summary.ts
@@ -23933,8 +24268,8 @@ async function summarize(craft, sizeBytes) {
     warnings
   };
 }
-function countInstructions(node2) {
-  if (node2 === void 0) return 0;
+function countInstructions(node3) {
+  if (node3 === void 0) return 0;
   let n2 = 0;
   const walk = (kids) => {
     for (const k of kids) {
@@ -23942,7 +24277,7 @@ function countInstructions(node2) {
       walk(k.children);
     }
   };
-  walk(node2.children);
+  walk(node3.children);
   return n2;
 }
 function renderSummary(s) {
@@ -24197,7 +24532,7 @@ var CompileError = class extends Error {
     this.name = "CompileError";
   }
 };
-var node = (tag, attrs = {}, children = []) => ({
+var node2 = (tag, attrs = {}, children = []) => ({
   tag,
   attrs,
   children
@@ -24215,12 +24550,12 @@ var Compiler = class {
   TOP_SPACING = 60;
   /** Выражения не нумеруются — это правило проверено на стоковых программах. */
   expr(e, path) {
-    if (typeof e === "number") return node("Constant", { number: numText(e) });
-    if (typeof e === "boolean") return node("Constant", { bool: String(e) });
+    if (typeof e === "number") return node2("Constant", { number: numText(e) });
+    if (typeof e === "boolean") return node2("Constant", { bool: String(e) });
     if (typeof e === "string") {
       if (e.startsWith("$"))
-        return node("Variable", { list: "false", local: "true", variableName: e.slice(1) });
-      return node("Constant", { text: e });
+        return node2("Variable", { list: "false", local: "true", variableName: e.slice(1) });
+      return node2("Constant", { text: e });
     }
     if (!Array.isArray(e) || e.length === 0)
       throw new CompileError(`\u041F\u0443\u0441\u0442\u043E\u0435 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435`, path);
@@ -24231,7 +24566,7 @@ var Compiler = class {
       const name = args[0];
       if (typeof name !== "string")
         throw new CompileError(`var \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0438\u043C\u044F \u043F\u0435\u0440\u0435\u043C\u0435\u043D\u043D\u043E\u0439`, path);
-      return node("Variable", { list: "false", local: "true", variableName: name });
+      return node2("Variable", { list: "false", local: "true", variableName: name });
     }
     if (op === "prop") {
       const property = args[0];
@@ -24245,7 +24580,7 @@ var Compiler = class {
           near.length > 0 ? `\u0412\u043E\u0437\u043C\u043E\u0436\u043D\u043E: ${near.join(", ")}` : `\u0421\u043F\u0438\u0441\u043E\u043A \u0441\u0432\u043E\u0439\u0441\u0442\u0432 \u2014 \u0432 \u0441\u043F\u0440\u0430\u0432\u043E\u0447\u043D\u0438\u043A\u0435 vizzy-blocks.`
         );
       }
-      return node("CraftProperty", { property, style: this.propStyle(property) });
+      return node2("CraftProperty", { property, style: this.propStyle(property) });
     }
     if (MATH_FUNCTIONS.includes(op))
       return this.applySpec(mathFunctionSpec(op), args, path, op);
@@ -24269,7 +24604,7 @@ var Compiler = class {
       );
     const attrs = { ...spec.fixedAttrs };
     if (spec.style !== "") attrs["style"] = spec.style;
-    return node(
+    return node2(
       spec.tag,
       attrs,
       args.map((a, i) => this.expr(a, `${path}.${op}[${i}]`))
@@ -24337,7 +24672,7 @@ var Compiler = class {
     }
     if (body !== void 0)
       children.push(
-        node(
+        node2(
           "Instructions",
           {},
           body.map((b, i) => this.stmt(b, `${path}.${op}.body[${i}]`, false))
@@ -24345,16 +24680,16 @@ var Compiler = class {
       );
     if (elseBody !== void 0)
       children.push(
-        node(
+        node2(
           "Instructions",
           {},
           elseBody.map((b, i) => this.stmt(b, `${path}.${op}.else[${i}]`, false))
         )
       );
-    return node(spec.tag, attrs, children);
+    return node2(spec.tag, attrs, children);
   }
   compile(program) {
-    const variables = node(
+    const variables = node2(
       "Variables",
       {},
       (program.variables ?? []).map((v) => {
@@ -24363,7 +24698,7 @@ var Compiler = class {
         else if (typeof v.value === "boolean") attrs2["bool"] = String(v.value);
         else if (typeof v.value === "string") attrs2["text"] = v.value;
         else attrs2["number"] = "0";
-        return node("Variable", attrs2);
+        return node2("Variable", attrs2);
       })
     );
     const instructions = [];
@@ -24385,7 +24720,7 @@ var Compiler = class {
         );
       }
       instructions.push(
-        node("Event", {
+        node2("Event", {
           event: eventName,
           id: String(this.nextId++),
           style,
@@ -24397,10 +24732,10 @@ var Compiler = class {
     }
     const attrs = { name: program.name };
     if (program.requiresMfd === true) attrs["requiresMfd"] = "true";
-    return node("Program", attrs, [
+    return node2("Program", attrs, [
       variables,
-      node("Instructions", {}, instructions),
-      node("Expressions", {})
+      node2("Instructions", {}, instructions),
+      node2("Expressions", {})
     ]);
   }
 };
@@ -24418,51 +24753,51 @@ for (const [name, spec] of Object.entries(EXPRESSIONS)) {
   if (spec.fixedAttrs?.["op"] !== void 0)
     expressionByKey.set(`${spec.tag}|op=${spec.fixedAttrs["op"]}`, name);
 }
-function decompileExpr(node2) {
-  if (node2.tag === "Constant") {
-    if (node2.attrs["number"] !== void 0) {
-      const v = Number(node2.attrs["number"]);
-      return Number.isFinite(v) ? v : node2.attrs["number"];
+function decompileExpr(node3) {
+  if (node3.tag === "Constant") {
+    if (node3.attrs["number"] !== void 0) {
+      const v = Number(node3.attrs["number"]);
+      return Number.isFinite(v) ? v : node3.attrs["number"];
     }
-    if (node2.attrs["bool"] !== void 0) return node2.attrs["bool"] === "true";
-    return node2.attrs["text"] ?? "";
+    if (node3.attrs["bool"] !== void 0) return node3.attrs["bool"] === "true";
+    return node3.attrs["text"] ?? "";
   }
-  if (node2.tag === "Variable") {
-    const name2 = node2.attrs["variableName"] ?? "";
+  if (node3.tag === "Variable") {
+    const name2 = node3.attrs["variableName"] ?? "";
     return `$${name2}`;
   }
-  if (node2.tag === "CraftProperty") return ["prop", node2.attrs["property"] ?? ""];
-  if (node2.tag === "MathFunction") {
-    const fn = node2.attrs["function"] ?? "";
+  if (node3.tag === "CraftProperty") return ["prop", node3.attrs["property"] ?? ""];
+  if (node3.tag === "MathFunction") {
+    const fn = node3.attrs["function"] ?? "";
     if (MATH_FUNCTIONS.includes(fn))
-      return [fn, ...node2.children.map(decompileExpr)];
+      return [fn, ...node3.children.map(decompileExpr)];
   }
-  const style = node2.attrs["style"] ?? "";
-  const op = node2.attrs["op"];
-  const name = expressionByKey.get(`${node2.tag}|${style}`) ?? (op !== void 0 ? expressionByKey.get(`${node2.tag}|op=${op}`) : void 0);
-  if (name !== void 0) return [name, ...node2.children.map(decompileExpr)];
+  const style = node3.attrs["style"] ?? "";
+  const op = node3.attrs["op"];
+  const name = expressionByKey.get(`${node3.tag}|${style}`) ?? (op !== void 0 ? expressionByKey.get(`${node3.tag}|op=${op}`) : void 0);
+  if (name !== void 0) return [name, ...node3.children.map(decompileExpr)];
   return {
-    raw: node2.tag,
-    attrs: node2.attrs,
-    args: node2.children.map(decompileExpr)
+    raw: node3.tag,
+    attrs: node3.attrs,
+    args: node3.children.map(decompileExpr)
   };
 }
-function decompileStmt(node2) {
-  const style = node2.attrs["style"] ?? "";
-  const name = instructionByKey.get(`${node2.tag}|${style}`);
-  const bodies = node2.children.filter((c) => c.tag === "Instructions");
-  const args = node2.children.filter((c) => c.tag !== "Instructions");
+function decompileStmt(node3) {
+  const style = node3.attrs["style"] ?? "";
+  const name = instructionByKey.get(`${node3.tag}|${style}`);
+  const bodies = node3.children.filter((c) => c.tag === "Instructions");
+  const args = node3.children.filter((c) => c.tag !== "Instructions");
   if (name === void 0)
     return [
       "raw",
-      { tag: node2.tag, attrs: node2.attrs },
+      { tag: node3.tag, attrs: node3.attrs },
       ...args.map(decompileExpr),
       ...bodies.map((b) => b.children.map(decompileStmt))
     ];
   const spec = INSTRUCTIONS[name];
   const out = [name];
   for (const attrName of spec?.namedAttrs ?? []) {
-    const v = node2.attrs[attrName];
+    const v = node3.attrs[attrName];
     if (v !== void 0) out.push(v);
   }
   out.push(...args.map(decompileExpr));
@@ -24635,6 +24970,52 @@ server.registerTool(
       if (missing.length > 0) out = `(\u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u043D\u0435\u0442 \u0432 \u043A\u0440\u0430\u0444\u0442\u0435: ${missing.join(", ")})
 ${out}`;
       return text(out);
+    }
+  )
+);
+server.registerTool(
+  "craft_build",
+  {
+    title: "\u0421\u043E\u0431\u0440\u0430\u0442\u044C \u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0446\u0438\u044E",
+    description: "\u0421\u043E\u0431\u0438\u0440\u0430\u0435\u0442 \u0430\u043F\u043F\u0430\u0440\u0430\u0442 \u0438\u0437 \u0434\u0435\u043A\u043B\u0430\u0440\u0430\u0442\u0438\u0432\u043D\u043E\u0439 \u0441\u043F\u0435\u0446\u0438\u0444\u0438\u043A\u0430\u0446\u0438\u0438: \u0441\u0442\u0435\u043A \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0441\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445. \u0421\u0430\u043C \u0441\u0447\u0438\u0442\u0430\u0435\u0442 \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u044B, \u043F\u043E\u0434\u0431\u0438\u0440\u0430\u0435\u0442 \u0442\u043E\u0447\u043A\u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F \u043F\u043E \u0434\u043E\u0431\u044B\u0442\u044B\u043C \u0440\u0435\u0446\u0435\u043F\u0442\u0430\u043C, \u0432\u044B\u0447\u0438\u0441\u043B\u044F\u0435\u0442 \u0451\u043C\u043A\u043E\u0441\u0442\u044C \u0431\u0430\u043A\u043E\u0432 \u0438 \u0440\u0430\u0437\u0431\u0438\u0432\u0430\u0435\u0442 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0430 \u0444\u0438\u0437\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u0442\u0435\u043B\u0430 \u043F\u043E \u043E\u0442\u0434\u0435\u043B\u0438\u0442\u0435\u043B\u044F\u043C. \u0412\u0438\u0434\u044B \u044D\u043B\u0435\u043C\u0435\u043D\u0442\u043E\u0432: pod, tank, engine, decoupler, nosecone, parachute, raw.",
+    inputSchema: {
+      spec: external_exports.object({
+        name: external_exports.string(),
+        type: external_exports.enum(["rocket", "plane"]).optional(),
+        stack: external_exports.array(external_exports.any()).describe("\u0421\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445: \u044D\u043B\u0435\u043C\u0435\u043D\u0442 0 \u0441\u0442\u043E\u0438\u0442 \u043D\u0430 \u043F\u043B\u043E\u0449\u0430\u0434\u043A\u0435"),
+        activation_groups: external_exports.array(external_exports.string()).optional()
+      }).describe(
+        '\u041F\u0440\u0438\u043C\u0435\u0440: { "name":"\u0417\u043E\u043D\u0434", "stack":[ {"kind":"engine","nozzle":"Bravo","stage":0}, {"kind":"tank","length":5,"diameter":2}, {"kind":"pod"}, {"kind":"parachute","stage":1} ] }'
+      ),
+      dry_run: external_exports.boolean().optional().describe("\u0422\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442, \u043D\u0435 \u0437\u0430\u043F\u0438\u0441\u044B\u0432\u0430\u044F"),
+      force: external_exports.boolean().optional()
+    }
+  },
+  guard(
+    async ({
+      spec,
+      dry_run,
+      force
+    }) => {
+      const result = await buildCraft(spec);
+      const lines = [
+        `\u0421\u043E\u0431\u0440\u0430\u043D\u043E: \xAB${spec.name}\xBB, ${result.partCount} \u0434\u0435\u0442\u0430\u043B\u0435\u0439`,
+        "",
+        "\u0420\u0430\u0441\u043A\u043B\u0430\u0434\u043A\u0430 (\u0441\u043D\u0438\u0437\u0443 \u0432\u0432\u0435\u0440\u0445, \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u0430 \u0446\u0435\u043D\u0442\u0440\u0430 \u043F\u043E Y):",
+        ...result.layout.map(
+          (l) => `  ${String(l.id).padStart(2)}  ${l.partType.padEnd(16)} y=${String(l.y).padStart(8)}  h=${l.height}${l.stage > 0 ? `  \u0441\u0442\u0443\u043F\u0435\u043D\u044C ${l.stage}` : ""}`
+        )
+      ];
+      if (result.warnings.length > 0)
+        lines.push("", "\u041F\u0440\u0435\u0434\u0443\u043F\u0440\u0435\u0436\u0434\u0435\u043D\u0438\u044F:", ...result.warnings.map((w) => `  ! ${w.message}`));
+      if (dry_run === true) {
+        lines.push("", "--- XML ---", result.xml.replace(/\r/g, ""));
+        return text(lines.join("\n"));
+      }
+      const path = await craftPath(spec.name);
+      const snap = await guardedWrite("craft_build", path, result.xml, { force });
+      lines.push("", `\u0417\u0430\u043F\u0438\u0441\u0430\u043D\u043E: ${path}`, `\u0421\u043D\u0438\u043C\u043E\u043A \u0434\u043B\u044F \u043E\u0442\u043A\u0430\u0442\u0430: ${snap.id}`);
+      return text(lines.join("\n"));
     }
   )
 );
