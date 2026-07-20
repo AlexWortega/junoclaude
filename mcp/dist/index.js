@@ -24077,6 +24077,12 @@ async function fillDefaultModifiers(typeId, existing) {
   const out = [...existing];
   for (const [tag, defaults] of Object.entries(pt.modifiers)) {
     if (present.has(tag)) continue;
+    if (tag === "Gyroscope") {
+      out.push(
+        node("Gyroscope", { ...defaults, maxAcceleration: "1", power: "97.65625" })
+      );
+      continue;
+    }
     if (tag === "Config") continue;
     out.push(node(tag, { ...defaults }));
   }

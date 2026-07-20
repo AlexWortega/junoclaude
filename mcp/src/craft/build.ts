@@ -257,6 +257,19 @@ async function fillDefaultModifiers(typeId: string, existing: XmlNode[]): Promis
 
   for (const [tag, defaults] of Object.entries(pt.modifiers)) {
     if (present.has(tag)) continue;
+
+    // The type definition declares a gyroscope with maxAcceleration="0", which
+    // produces no torque at all: a craft carrying it cannot rotate, so neither
+    // manual attitude commands nor the game's own LockNavSphere hold can turn
+    // it. The game fills in a working value when a part is placed in the
+    // designer — the stock reference rocket has maxAcceleration="1" and power
+    // 97.7. Emitting the raw default silently produces an unsteerable vehicle.
+    if (tag === 'Gyroscope') {
+      out.push(
+        node('Gyroscope', { ...defaults, maxAcceleration: '1', power: '97.65625' })
+      );
+      continue;
+    }
     // Config carries some fifty internal attributes and the game fills them in
     // itself — in the designs it saves it is always terse.
     if (tag === 'Config') continue;
