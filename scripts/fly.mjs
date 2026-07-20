@@ -975,6 +975,51 @@ async function circularise({
 }
 
 /**
+ * Measures how the craft responds to each control input, by pulsing them.
+ *
+ * Returns the angular acceleration per unit command for pitch, yaw and roll, in
+ * body coordinates where it is constant. Everything that steers uses this
+ * rather than reasoning about the frame: the game is left-handed, the input
+ * names do not describe what they do to a given craft — "pitch" measured 95%
+ * roll on this one — and the craft's roll at spawn varies between flights.
+ *
+ * Pulses take the *difference* in angular velocity, so the craft need not be
+ * brought to rest between them.
+ */
+async function calibrateAxes({ trace, startedAt, sampleMs, throttle = 0, pulseS = 1.2, cmd = 0.08 }) {
+  const elapsedNow = () => (Date.now() - startedAt) / 1000;
+  const axes = { pitch: [0, 0, 0], yaw: [0, 0, 0], roll: [0, 0, 0] };
+  const zeros = { pitch: 0, yaw: 0, roll: 0 };
+
+  for (const axis of ['pitch', 'yaw', 'roll']) {
+    let omega0 = null;
+    const began = elapsedNow();
+    while (elapsedNow() - began < pulseS + 0.5) {
+      const t = digest(await get('/telemetry'));
+      const omega = t.angular ?? [0, 0, 0];
+      if (omega0 === null) omega0 = omega;
+      if (elapsedNow() - began >= pulseS) {
+        const d = scale(add(omega, scale(omega0, -1)), 1 / (cmd * pulseS));
+        axes[axis] = [
+          dot(d, unit(t.att.right)),
+          dot(d, unit(t.att.up)),
+          dot(d, unit(t.att.forward)),
+        ];
+        trace.push({
+          t: elapsedNow(),
+          note: `${axis} axis (body) = [${axes[axis].map((x) => x.toFixed(3)).join(', ')}] rad/s² per unit command`,
+        });
+        break;
+      }
+      await post('/flight/input', { mode: 'hold', throttle, ...zeros, [axis]: cmd });
+      await sleep(sampleMs);
+    }
+  }
+  await post('/flight/input', { mode: 'hold', throttle, ...zeros });
+  return axes;
+}
+
+/**
  * Powered descent to a soft touchdown.
  *
  * The attitude demand is the easy one — straight up, which is the vehicle's
@@ -992,13 +1037,11 @@ async function descend({
   startedAt,
   durationS,
   nose,
-  sign,
+  axes,
   sampleMs = 50,
   touchdownSpeed = 3,
 }) {
   const elapsedNow = () => (Date.now() - startedAt) / 1000;
-  let prevTilt = null;
-  let prevAt = null;
   let landed = false;
   let warnedThrust = false;
 
@@ -1052,21 +1095,28 @@ async function descend({
       });
     }
 
-    // Hold the nose up. Tilt is unsigned here on purpose: straight up has no
-    // azimuth to get wrong, which is what made the insertion burn fragile.
-    const tilt = tiltFromVertical(t, nose);
-    sample.tilt = Number(tilt.toFixed(1));
-    const dt = prevAt === null ? 0 : elapsed - prevAt;
-    const tiltRate = dt > 0.05 ? (tilt - prevTilt) / dt : 0;
-    prevTilt = tilt;
-    prevAt = elapsed;
+    // Hold the nose on the local vertical, using the same measured-axis solver
+    // as the insertion burn. Straight up is the easiest aim there is — it has no
+    // azimuth to get wrong — but the *command* still has to come from measured
+    // response rather than a guessed sign.
+    const steer = steerToward(t, nose, zenithOf(t), axes, {
+      rate: 0.08,
+      bandwidth: 0.5,
+      damp: 1,
+      clamp: 0.25,
+    });
+    sample.tilt = Number(steer.errDeg.toFixed(1));
 
-    if (tilt > 2) {
-      const wantedRate = Math.max(-3, Math.min(3, (0 - tilt) * 0.25));
-      const cmd = Math.max(-0.05, Math.min(0.05, sign * 0.012 * (wantedRate - tiltRate)));
-      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd });
+    if (steer.errDeg > 1.5) {
+      await post('/flight/input', {
+        mode: 'hold',
+        throttle,
+        pitch: steer.pitch,
+        yaw: steer.yaw,
+        roll: steer.roll,
+      });
     } else {
-      await post('/flight/input', { mode: 'hold', throttle, pitch: null });
+      await post('/flight/input', { mode: 'hold', throttle, pitch: null, yaw: null, roll: null });
     }
 
     await sleep(sampleMs);
@@ -1174,12 +1224,13 @@ async function main() {
       }
       await sleep(250);
     }
+    const axes = await calibrateAxes({ trace, startedAt: started, sampleMs: 50 });
     await descend({
       trace,
       startedAt: started,
       durationS,
       nose: nose ?? { axis: 'up', sign: 1 },
-      sign: Number(process.env.JUNO_PITCH_SIGN ?? 1),
+      axes,
     });
     await post('/flight/input', { mode: 'clear' }).catch(() => {});
     console.log(summarise(trace));
