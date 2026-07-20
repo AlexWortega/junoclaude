@@ -710,6 +710,7 @@ async function circularise({
   let stillFor = 0;
   let burnStartedAt = null;
   let settleUntil = 0;
+  let windowOpened = false;
   let growingFor = 0;
   let prevError = null;
 
@@ -938,8 +939,14 @@ async function circularise({
       // failed began 158.9° out, pointing very nearly backwards, and spent the
       // whole burn subtracting speed. Burning a little late but aimed is
       // strictly better, so the gate is on aim as well as on time.
+      // The window closes hard: once apoapsis passes, timeToApoapsis jumps to
+      // the *next* one, so gating on both time and aim can miss it entirely —
+      // two flights never lit the engine at all despite aiming to within 2°.
+      // Remember that the window opened, and burn as soon as the aim is ready.
+      const inWindow = t.timeToApoapsis < burnSeconds / 2;
+      if (inWindow) windowOpened = true;
       const aimedWellEnough = error < 20;
-      if (t.timeToApoapsis < burnSeconds / 2 && aimedWellEnough) {
+      if ((inWindow || windowOpened) && aimedWellEnough) {
         burning = true;
         burnStartedAt = elapsed;
         trace.push({
