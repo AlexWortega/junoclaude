@@ -72,13 +72,20 @@ because most of the budget is spent pointing the wrong way.
    craft as stage two ran light, the tilt rate going 2 → 8 → 22 → -39 deg/s in
    five seconds.
 
-   **What still blocks repeatability:** the burn holds 14-38° off target on bad
-   runs, and at full thrust that misdirects a large fraction of the impulse.
-   Tightening the deadband to 4°/1.5° did not fix it. The next things to try are
-   throttling the insertion burn down so the same attitude error costs less and
-   the loop has more time per unit of impulse, and burning in shorter arcs
-   centred on apoapsis rather than one long burn that drove apoapsis from 130 km
-   to 417 km on the successful run and 1004 km on a failed one.
+   **What blocked repeatability, found and fixed:** the loop steered on the
+   *unsigned* angle from vertical, which is direction-blind. A craft pointing
+   along the horizon but *backwards* reads exactly 90° and the loop reports no
+   error, while the burn subtracts horizontal speed instead of adding it.
+   Measured on a failed trace: 169 of 454 burning samples — 37% — had the nose
+   retrograde, and every such stretch destroyed speed (t+220..237 took the
+   horizontal component from 249 to 45 m/s; t+299..321 from 924 to 606 m/s) with
+   the reported tilt sitting between 86° and 114° throughout. The tilt is now
+   signed by whether the nose leans along the direction of travel, so a
+   backwards attitude is a 180° error the loop rotates out through the vertical.
+
+   This is the second silent failure of the same shape — the loop satisfied
+   while the flight came apart — which is why the trace now carries a warning
+   whenever the error grows under a non-zero command.
 
 4. **Trans-lunar injection.** **Blocked on a missing bridge capability.**
    `/planets` returns only `name`, `sphereOfInfluence`, `rotationAngle` and
