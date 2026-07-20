@@ -72,7 +72,19 @@ export const INSTRUCTIONS: Record<string, InstructionSpec> = {
     namedAttrs: ['property'],
   },
   'set-target': { tag: 'SetTarget', style: 'set-target', args: [any('target')] },
-  'lock-nav': { tag: 'LockNavSphere', style: 'lock-nav-sphere', args: [any('direction')] },
+  // The game's own attitude hold. The direction is an attribute rather than an
+  // argument: `["lock-nav", "Prograde"]`. Stock craft use Prograde, Retrograde,
+  // Current and None, where None releases the hold.
+  //
+  // This is the game flying the craft for you. It removes the need for an
+  // external attitude loop altogether — which is what the autopilot spent most
+  // of its effort on, and badly.
+  'lock-nav': {
+    tag: 'LockNavSphere',
+    style: 'lock-nav-sphere',
+    args: [],
+    namedAttrs: ['indicatorType'],
+  },
   broadcast: {
     tag: 'BroadcastMessage',
     style: 'broadcast-msg',
