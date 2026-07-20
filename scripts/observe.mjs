@@ -104,6 +104,7 @@ while ((Date.now() - started) / 1000 < durationS) {
     thrust: t.propulsion.currentThrust,
     twr: t.propulsion.twr,
     fuel: t.mass.fuel,
+    battery: t.mass.remainingBattery,
     stage: t.state.currentStage,
     numStages: t.state.numStages,
     parts: t.state.partCount,

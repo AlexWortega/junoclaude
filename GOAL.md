@@ -6,26 +6,55 @@ no manual flying.
 
 ## Where it stands
 
-**No orbit has been demonstrated. The earlier claim was wrong.**
+**Still no orbit.** Best trajectory: periapsis **-364 km**, apoapsis 1262 km,
+eccentricity 0.472. Ascent to a 209 km apoapsis is reliable; the circularisation
+burn is not.
 
-Commit `c3bd69c` announced "ORBIT: periapsis 70.0 km, apoapsis 417.1 km,
-eccentricity 0.114, verified from telemetry". That claim is withdrawn. See
-"The orbit claim, retracted" below.
+The whole flight now runs from a Vizzy program aboard the craft — throttle,
+staging, pitch-over, `lock-nav Prograde` for the turn, coast, and the apoapsis
+burn. `scripts/observe.mjs` only watches and saves a stamped trace; nothing
+outside touches a control.
 
-What *is* supported by saved telemetry: on three flights the periapsis rose
-above +70 km, with the arithmetic checked — Droo's radius derives as
-`|pci| - altitudeAsl` = 1 274 200.0 m on the pad, and the best sample gives
-`periapsisDistance` 1 344 379.7 m, so 70.18 km of altitude. But **each of those
-traces contains exactly one sample above the threshold, and in every case it is
-the last sample in the file**, because the autopilot declares success and stops
-the instant periapsis crosses the target. Periapsis crossing a line at engine
-cutoff is not an orbit; no telemetry shows any craft completing a revolution.
+### What the gyroscope fix changed
 
-Every generated craft until commit `a2bf34f` also carried a gyroscope with
-`maxAcceleration="0"`, which produces no torque at all. The vehicles could not
-rotate, by any means — so the trajectories were thrust-shaped parabolas, and a
-large part of the attitude-control work below was measuring a craft that was
-never able to respond.
+Rebuilt craft rotate: holding pitch at 0.5 took the rate from 0.003 to
+0.692 rad/s in 2.5 s, **39.5 deg/s gained**, which works out to about
+**31.6 deg/s² per unit of command**. `scripts/turn-test.mjs` measures this.
+
+`lock-nav Prograde` holds attitude with no external input at all: 88° of error
+down to **6.7°** during powered ascent. The external steering loop — measured
+rotation axes, three-input least squares, calibration pulses, hysteresis — is
+deleted from the flight path.
+
+### What still fails, and what was ruled out
+
+The coast attitude is the blocker. Two hypotheses, both tested:
+
+- **Power — ruled out.** The battery reads 0.994 of full after 240 s of flight.
+- **A rotating target — ruled out.** A hold working against a moving target
+  gives a small error; the craft was *tumbling*, at 0.12 rad/s through the whole
+  coast.
+
+The cause was a torque pulse with no counter-pulse. The pitch-over commanded
+0.08 for 4 s, which at 31.6 deg/s² per unit is 10 deg/s — exactly the 10.5 deg/s
+the craft still carried fifty seconds later. Nothing arrests it, because
+`lock-nav` does not appear to command attitude while an input axis is held at a
+value: the same pinning behaviour the HTTP bridge shows, where holding an axis
+at zero switches off the game's own stability assist.
+
+Pitching over as a matched pair of pulses cut the coast rotation sixfold, from
+0.1186 to 0.0209 rad/s, and burning at low throttle before the main burn — so
+the gimbal gives the hold something to work with — moved the best periapsis from
+-840 km to -364 km. Neither is enough yet.
+
+### Conventions worth not rediscovering
+
+- Vizzy's `Orbit.Apoapsis`/`Orbit.Periapsis` are **altitudes**; the bridge's
+  `apoapsisDistance`/`periapsisDistance` are from the planet's **centre**.
+  Adding Droo's radius to the Vizzy value sent a flight chasing 1394 km.
+- Holding prograde is the right attitude only **at** apoapsis. On the way up it
+  points uphill and on the way down it points downhill, so a burn anywhere else
+  adds height rather than speed.
 
 ## The orbit claim, retracted
 
