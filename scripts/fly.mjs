@@ -780,7 +780,12 @@ async function circularise({
       if (calibration.startedAt === null) calibration.startedAt = elapsed;
       const omega = t.angular ?? [0, 0, 0];
       const ORDER = ['pitch', 'yaw', 'roll'];
-      const PULSE_S = 1.2;
+      // A lit engine gimbals far harder than the command pod's own torque, so
+      // the same pulse that is gentle in coast is violent under thrust: one
+      // mid-burn recalibration left the craft at 4.17 rad/s, or 239°/s. Scale
+      // the pulse down when there is thrust.
+      const PULSE_S = t.thrust > 1 ? 0.5 : 1.2;
+      calibration.cmd = t.thrust > 1 ? 0.015 : 0.08;
 
       if (calibration.index < ORDER.length) {
         const axis = ORDER[calibration.index];
@@ -899,10 +904,18 @@ async function circularise({
     // the previous attempts got wrong — a scalar tilt is direction-blind, and
     // signing it introduced jumps that made the measured rate reach 1160 deg/s
     // and pin the command at its limit.
+    // Horizontal prograde, taken from the orbit rather than from the current
+    // velocity direction. Near the top of a steep arc the horizontal component
+    // of the velocity is tiny — 32 m/s on one flight — so using it directly
+    // gives a noisy aim that wanders, and the slew chased it instead of
+    // converging. The orbital plane's normal is stable, and the in-plane
+    // horizontal direction follows from it.
     const z = zenithOf(t);
-    const vel = t.velocityVector ?? [0, 0, 0];
-    const flat = add(vel, scale(z, -dot(vel, z)));
-    const aim = vecLength(flat) > 20 ? unit(flat) : unit(cross(z, unit(t.att.right)));
+    const rv = t.pci;
+    const vv = t.velocityVector ?? [0, 0, 0];
+    const normal = cross(rv, vv);
+    const inPlane = cross(normal, rv);
+    const aim = vecLength(inPlane) > 1e-6 ? unit(inPlane) : unit(cross(z, unit(t.att.right)));
 
     // Gains follow measured thrust, not commanded: the engine takes a second or
     // two to answer, and until it does the only actuator is the pod's torque.
