@@ -946,7 +946,13 @@ async function descend({
     const height = Math.max(0, t.agl);
     const wantedDescent = -Math.min(60, Math.max(touchdownSpeed, 0.35 * height));
     const error = wantedDescent - t.vertical; // positive means "slow the fall"
-    const throttle = Math.max(0, Math.min(1, 0.5 + error * 0.08));
+    // Feed forward the throttle that exactly hovers, then correct around it.
+    // `twr` is quoted at full throttle, so its reciprocal is the hover setting
+    // and it tracks the craft getting lighter as it burns. A fixed guess of 0.5
+    // instead leaves the proportional term to make up a large steady offset,
+    // which saturates it and turns a smooth descent into bang-bang.
+    const hover = t.twr > 0.05 ? Math.min(1, 1 / t.twr) : 0.5;
+    const throttle = Math.max(0, Math.min(1, hover + error * 0.04));
     sample.wantedDescent = Number(wantedDescent.toFixed(1));
     sample.throttle = Number(throttle.toFixed(3));
 
