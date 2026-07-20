@@ -151,6 +151,78 @@ function tiltFromVertical(t, nose) {
   return (Math.acos(Math.max(-1, Math.min(1, dot(n, zenithOf(t))))) * 180) / Math.PI;
 }
 
+/**
+ * Command that best rotates the nose towards an aim direction.
+ *
+ * Nothing here is derived from the frame's geometry. The calibration pulse
+ * measures the angular velocity the craft actually produces per unit command,
+ * and that vector *is* the achievable rotation axis — stored in body
+ * coordinates, where it is constant, and rebuilt in the world frame each
+ * sample. The command is the least-squares projection of the wanted angular
+ * velocity onto it.
+ *
+ * Every earlier attempt tried to reason the rotation sense out of cross
+ * products and got it wrong in some geometries, silently: the game's frame is
+ * left-handed and the craft's roll at spawn varies, so two runs measured
+ * +0.0558 and -0.0553 rad/s for the same command.
+ *
+ * The aim is a direction, not an angle, so the error is the angle between nose
+ * and aim: in [0,180], zero when correct, and continuous — unlike a signed
+ * tilt, whose jumps drove the measured rate to 1160 deg/s.
+ */
+function bodyToWorld(t, v) {
+  return add(
+    add(scale(unit(t.att.right), v[0]), scale(unit(t.att.up), v[1])),
+    scale(unit(t.att.forward), v[2])
+  );
+}
+
+function steerToward(t, nose, aim, axes, gain) {
+  const n = scale(unit(t.att[nose.axis]), nose.sign);
+  const a = unit(aim);
+  const errRad = Math.acos(Math.max(-1, Math.min(1, dot(n, a))));
+  const errDeg = (errRad * 180) / Math.PI;
+
+  // All three inputs, measured, and solved exactly.
+  //
+  // The input names do not describe what they do to this craft: "pitch" was
+  // measured at [0.477, -0.944, -0.108] with the nose along `up`, so 95% of it
+  // rotates the vehicle about its own long axis — roll, in rocket terms. Two
+  // such axes cannot point the nose at all; weighting roll down only traded a
+  // stalled slew for a craft spinning up to 0.39 rad/s. With all three
+  // calibrated the matrix is square, so the wanted rotation — including a roll
+  // rate of exactly zero — is solved rather than approximated.
+  const P = bodyToWorld(t, axes.pitch);
+  const Y = bodyToWorld(t, axes.yaw);
+  const R = bodyToWorld(t, axes.roll);
+
+  const wanted = scale(cross(n, a), gain.rate);
+  const omega = t.angular ?? [0, 0, 0];
+  const b = add(wanted, scale(omega, -1));
+
+  // Cramer's rule on [P Y R] x = b.
+  const det = dot(P, cross(Y, R));
+  if (Math.abs(det) < 1e-9) return { pitch: 0, yaw: 0, roll: 0, errDeg };
+  let cp = (dot(b, cross(Y, R)) / det) * gain.damp;
+  let cy = (dot(P, cross(b, R)) / det) * gain.damp;
+  let cr = (dot(P, cross(Y, b)) / det) * gain.damp;
+
+  // Scale the whole solution rather than clipping each component. Cramer's rule
+  // gives an exact answer only as a set; clamping one axis on its own bends the
+  // resulting rotation away from the one asked for, and the roll axis is weak
+  // enough (magnitude 0.32 against pitch's 1.09) that it saturates first and
+  // drags the other two off course.
+  const peak = Math.max(Math.abs(cp), Math.abs(cy), Math.abs(cr));
+  if (peak > gain.clamp) {
+    const k = gain.clamp / peak;
+    cp *= k;
+    cy *= k;
+    cr *= k;
+  }
+
+  return { pitch: cp, yaw: cy, roll: cr, errDeg };
+}
+
 function steerCommand(t, nose, tiltDeg, azimuthUnit, gain, polarity) {
   // Chase the target no more than a right angle at a time. `axis = n × target`
   // has magnitude sin(error), so beyond 90° the term shrinks again and past a
@@ -298,7 +370,7 @@ function progradeTiltDeg(t) {
 
 async function ascend({
   durationS = 120,
-  sampleMs = 250,
+  sampleMs = 50,
   targetApoapsis = null,
   gravityTurn = false,
   turnStart = 8000,
@@ -321,8 +393,8 @@ async function ascend({
   let stallSince = null;
   let lastParts = null;
   let frozen = null;
-  let frozenFor = 0;
-  let dryFor = 0;
+  let frozenSince = null;
+  let drySince = null;
   let holdingPitch = false;
   let steering = false;
 
@@ -392,11 +464,15 @@ async function ascend({
     // again, throwing away a full stage 2.5 s after separating the one below
     // it. Requiring several consecutive dry samples, and a longer cooldown,
     // distinguishes an engine that is starting from one that is finished.
-    dryFor = t.thrust < 1 || t.stageFuel <= 0.01 ? dryFor + 1 : 0;
-    if (dryFor >= 3 && t.stage < t.numStages - 1 && elapsed > 3 && elapsed - lastStageAt > 6) {
+    // Time, not samples. These thresholds were written when the loop ran at
+    // 4 Hz, where three samples meant 0.75 s; at 20 Hz they meant 0.15 s, and a
+    // momentary dip in thrust staged the vehicle during the climb.
+    if (t.thrust >= 1 && t.stageFuel > 0.01) drySince = null;
+    else drySince ??= elapsed;
+    if (drySince !== null && elapsed - drySince > 0.75 && t.stage < t.numStages - 1 && elapsed > 3 && elapsed - lastStageAt > 6) {
       await post('/flight/stage', {});
       lastStageAt = elapsed;
-      dryFor = 0;
+      drySince = null;
       trace.push({ t: elapsed, note: `staged to ${t.stage + 1}/${t.numStages}` });
     }
 
@@ -534,13 +610,13 @@ async function ascend({
     // A destroyed craft does not report an error: the telemetry simply freezes
     // on its last values. Detect the freeze rather than polling it for minutes.
     if (frozen !== null && t.altitude === frozen.altitude && t.surfaceSpeed === frozen.surfaceSpeed) {
-      frozenFor += 1;
-      if (frozenFor > 12) {
+      frozenSince ??= elapsed;
+      if (elapsed - frozenSince > 3) {
         trace.push({ t: elapsed, note: 'aborted: telemetry frozen, craft is gone' });
         break;
       }
     } else {
-      frozenFor = 0;
+      frozenSince = null;
     }
     frozen = t;
 
@@ -585,7 +661,7 @@ async function circularise({
   trace,
   targetPeriapsis,
   durationS,
-  sampleMs = 250,
+  sampleMs = 50,
   startedAt,
   nose,
   polarity,
@@ -599,7 +675,9 @@ async function circularise({
   let steering = false;
   let holdingPitch = false;
   let lastStageAt = elapsedNow();
-  let dryFor = 0;
+  let drySince = null;
+  let frozen = null;
+  let frozenSince = null;
   // The pitch polarity is measured once, with a calibration pulse at the start
   // of the coast, and then never changed.
   //
@@ -622,8 +700,8 @@ async function circularise({
   // d(tilt)/d(cmd) directly sidesteps all of it: it is measured per flight, in
   // the same scalar the loop steers on.
   let sign = polarity.pitch;
-  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06 };
-  let axisBody = [0, 0, 0];
+  let calibration = { state: 'calibrating', index: 0, at: null, omega0: [0, 0, 0], settleAt: null, startedAt: null, cmd: 0.08 };
+  let axes = { pitch: [0, 0, 0], yaw: [0, 0, 0], roll: [0, 0, 0] };
   let prevTilt = null;
   let prevAt = null;
   let stillFor = 0;
@@ -650,6 +728,19 @@ async function circularise({
     const sample = { t: Number(elapsed.toFixed(1)), phase: 'circularise', ...t };
     trace.push(sample);
 
+    // A destroyed craft freezes its telemetry rather than erroring; without
+    // this the loop polled a dead vehicle for ten minutes.
+    if (frozen !== null && t.altitude === frozen.altitude && t.surfaceSpeed === frozen.surfaceSpeed) {
+      frozenSince ??= elapsed;
+      if (elapsed - frozenSince > 3) {
+        trace.push({ t: elapsed, note: 'aborted: telemetry frozen, craft is gone' });
+        break;
+      }
+    } else {
+      frozenSince = null;
+    }
+    frozen = t;
+
     if (t.apoapsis === null) {
       trace.push({ t: elapsed, note: 'orbit went invalid during coast' });
       break;
@@ -673,69 +764,80 @@ async function circularise({
     // which is the whole reason for coasting up here first.
     const tilt = tiltFromVertical(t, nose);
 
-    // Calibrate the pitch polarity before doing anything else with the axis.
-    // The plant is dω/dt = P·cmd; for the loop to be stable its polarity has to
-    // equal sign(P), so a known command is held briefly and the resulting change
-    // in rotation rate about `right` is measured.
+    // Calibrate all three inputs, then damp out what the pulses left.
+    //
+    // Each pulse takes the *difference* in angular velocity across it, so the
+    // craft does not have to be brought to rest in between. Nulling between
+    // pulses was tried and failed: with only one axis known at a time the null
+    // could not cancel an off-axis spin, timed out, and the next pulse then
+    // measured the leftover rotation instead of its own — yaw and roll came
+    // back with byte-identical axes, and the whole calibration ate 160 s of a
+    // coast that only had 200.
     if (calibration.state !== 'done') {
+      if (calibration.startedAt === null) calibration.startedAt = elapsed;
       const omega = t.angular ?? [0, 0, 0];
-      if (calibration.state === 'pulse') {
+      const ORDER = ['pitch', 'yaw', 'roll'];
+
+      if (calibration.index < ORDER.length) {
+        const axis = ORDER[calibration.index];
         if (calibration.at === null) {
           calibration.at = elapsed;
-          calibration.tilt0 = tilt;
-        } else if (elapsed - calibration.at >= 2.5) {
-          // Store the angular velocity per unit command, in *body* coordinates
-          // where it is constant. This replaces every attempt to derive the
-          // rotation sense from cross products: the game's frame is left-handed
-          // and the craft's roll at spawn varies, so two runs measured +0.0558
-          // and -0.0553 rad/s for the same command. Measuring the axis itself
-          // makes all of that irrelevant.
-          const omega = t.angular ?? [0, 0, 0];
-          axisBody = [
-            dot(omega, unit(t.att.right)) / calibration.cmd,
-            dot(omega, unit(t.att.up)) / calibration.cmd,
-            dot(omega, unit(t.att.forward)) / calibration.cmd,
+          calibration.omega0 = omega;
+        } else if (elapsed - calibration.at >= 1.2) {
+          const d = add(omega, scale(calibration.omega0, -1));
+          axes[axis] = [
+            dot(d, unit(t.att.right)) / calibration.cmd,
+            dot(d, unit(t.att.up)) / calibration.cmd,
+            dot(d, unit(t.att.forward)) / calibration.cmd,
           ];
-          calibration.state = 'null';
           trace.push({
             t: elapsed,
-            note:
-              `pitch calibration: rotation axis per unit command (body) = [` +
-              axisBody.map((x) => x.toFixed(3)).join(', ') + `] rad/s`,
+            note: `${axis} axis per unit command (body) = [${axes[axis]
+              .map((x) => x.toFixed(3))
+              .join(', ')}] rad/s`,
           });
+          calibration.index += 1;
+          calibration.at = null;
         }
-        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: calibration.cmd });
+        const zeros = { pitch: 0, yaw: 0, roll: 0 };
+        const held = calibration.at === null ? zeros : { ...zeros, [axis]: calibration.cmd };
+        await post('/flight/input', { mode: 'hold', throttle: 0, ...held });
         await sleep(sampleMs);
         continue;
       }
-      // Stop the rotation the pulse started before handing over to the loop.
-      //
-      // Damp the measured rotation directly, using the axis just calibrated:
-      // the command that best cancels it is the projection of -omega onto the
-      // achievable axis. Working from the tilt scalar instead never converged,
-      // because that scalar is discontinuous.
-      const U = add(
-        add(scale(unit(t.att.right), axisBody[0]), scale(unit(t.att.up), axisBody[1])),
-        scale(unit(t.att.forward), axisBody[2])
-      );
-      const uu = dot(U, U);
-      const nullRate = vecLength(omega);
-      if (nullRate < 0.01) stillFor += 1;
-      else stillFor = 0;
-      if (stillFor >= 4 || elapsed - calibration.at > 40) {
+
+      // Now that all three are known, damp the accumulated rotation with the
+      // full solver rather than one axis at a time.
+      if (calibration.settleAt === null) calibration.settleAt = elapsed;
+      const spinning = vecLength(omega);
+      if (spinning < 0.01 || elapsed - calibration.settleAt > 20) {
         calibration.state = 'done';
-        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: null });
-        holdingPitch = false;
-        trace.push({
-          t: elapsed,
-          note: `calibration done, residual rotation ${nullRate.toFixed(4)} rad/s`,
-        });
-      } else {
-        const c = uu < 1e-9 ? 0 : dot(scale(omega, -1), U) / uu;
         await post('/flight/input', {
           mode: 'hold',
           throttle: 0,
-          pitch: Math.max(-0.1, Math.min(0.1, c)),
+          pitch: null,
+          yaw: null,
+          roll: null,
+        });
+        holdingPitch = false;
+        trace.push({
+          t: elapsed,
+          note: `calibration done in ${(elapsed - calibration.startedAt).toFixed(1)}s, residual ${spinning.toFixed(4)} rad/s`,
+        });
+      } else {
+        const stop = steerToward(
+          t,
+          nose,
+          scale(unit(t.att[nose.axis]), nose.sign), // aim at where it already points
+          axes,
+          { rate: 0, damp: 1, clamp: 0.3 }
+        );
+        await post('/flight/input', {
+          mode: 'hold',
+          throttle: 0,
+          pitch: stop.pitch,
+          yaw: stop.yaw,
+          roll: stop.roll,
         });
       }
       await sleep(sampleMs);
@@ -762,11 +864,29 @@ async function circularise({
     // Gains follow measured thrust, not commanded: the engine takes a second or
     // two to answer, and until it does the only actuator is the pod's torque.
     const thrusting = t.thrust > 1;
+    // The rate demand has to be one the clamp can actually deliver, or the
+    // solution saturates and the loop bang-bangs: asking 0.25 rad/s when a
+    // command of 0.12 produces about 0.13 left it pinned at the limit, spinning
+    // up and then fighting its own spin, with the error drifting 87° to 101°
+    // instead of closing. The least-squares solution is already the exact
+    // command, so damp stays at 1 and the aggressiveness lives in the rate.
+    // Slow and monotonic beats fast and oscillating. At 0.12 the loop swung the
+    // error 100° -> 49° -> 106° with a period of about 20 s, which is what an
+    // under-damped rate loop does when it is sampled four times a second over a
+    // network; at 0.05 it closed steadily at roughly 0.8°/s and never
+    // overshot. The coast is lengthened instead to give that rate time to work.
+    // The loop runs at 20 Hz, not the 4 Hz assumed for most of this work. The
+    // bridge round trip was never measured until late: a telemetry read is
+    // 17 ms and an input write another 17, so a 50 ms period has headroom. The
+    // 250 ms sample interval was an arbitrary constant, and every conclusion
+    // drawn about "4 Hz being the limit" rested on it. With five times the
+    // bandwidth the rate demand can be far more aggressive without the
+    // under-damped swinging that a slow loop produced.
     const gain = thrusting
-      ? { rate: 0.15, damp: 0.5, clamp: 0.05 }
-      : { rate: 0.25, damp: 0.8, clamp: 0.12 };
+      ? { rate: 0.12, damp: 1, clamp: 0.3 }
+      : { rate: 0.2, damp: 1, clamp: 0.4 };
 
-    const steer = steerToward(t, nose, aim, axisBody, gain);
+    const steer = steerToward(t, nose, aim, axes, gain);
     const error = steer.errDeg;
     sample.tilt = Number(tiltFromVertical(t, nose).toFixed(1));
     sample.aimError = Number(error.toFixed(1));
@@ -775,7 +895,7 @@ async function circularise({
     // so: steering the wrong way while reporting no error is the failure this
     // loop has had twice, and it cost several flights each time.
     if (steering && prevError !== null && error > prevError + 0.05) {
-      if (++growingFor === 3)
+      if (++growingFor === 20)
         trace.push({
           t: elapsed,
           note: `WARNING: aim error growing under command (${prevError.toFixed(1)}° -> ${error.toFixed(1)}°)`,
@@ -788,14 +908,22 @@ async function circularise({
 
     const throttle = burning ? burnThrottle : 0;
     if (steering) {
-      sample.cmdPitch = Number(steer.cmd.toFixed(4));
+      sample.cmdPitch = Number(steer.pitch.toFixed(4));
+      sample.cmdYaw = Number(steer.yaw.toFixed(4));
+      sample.cmdRoll = Number(steer.roll.toFixed(4));
       holdingPitch = true;
-      await post('/flight/input', { mode: 'hold', throttle, pitch: steer.cmd });
+      await post('/flight/input', {
+        mode: 'hold',
+        throttle,
+        pitch: steer.pitch,
+        yaw: steer.yaw,
+        roll: steer.roll,
+      });
     } else {
       await post('/flight/input', {
         mode: 'hold',
         throttle,
-        ...(holdingPitch ? { pitch: null } : {}),
+        ...(holdingPitch ? { pitch: null, yaw: null, roll: null } : {}),
       });
       holdingPitch = false;
     }
@@ -807,11 +935,12 @@ async function circularise({
     // start of one burn, throwing away two stages and leaving the 1432 N third
     // stage to do the whole insertion. Wait for the engine to answer first.
     const settled = burnStartedAt !== null && elapsed - burnStartedAt > 4;
-    dryFor = burning && settled && (t.thrust < 1 || t.stageFuel <= 0.01) ? dryFor + 1 : 0;
-    if (dryFor >= 3 && t.stage < t.numStages - 1 && elapsed - lastStageAt > 6) {
+    if (!(burning && settled && (t.thrust < 1 || t.stageFuel <= 0.01))) drySince = null;
+    else drySince ??= elapsed;
+    if (drySince !== null && elapsed - drySince > 0.75 && t.stage < t.numStages - 1 && elapsed - lastStageAt > 6) {
       await post('/flight/stage', {});
       lastStageAt = elapsed;
-      dryFor = 0;
+      drySince = null;
       burnStartedAt = elapsed;
       trace.push({ t: elapsed, note: `staged to ${t.stage + 1}/${t.numStages}` });
     }
@@ -840,7 +969,7 @@ async function descend({
   durationS,
   nose,
   sign,
-  sampleMs = 250,
+  sampleMs = 50,
   touchdownSpeed = 3,
 }) {
   const elapsedNow = () => (Date.now() - startedAt) / 1000;
