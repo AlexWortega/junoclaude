@@ -6,63 +6,80 @@ no manual flying.
 
 ## Where it stands
 
-A two-stage, 7-part vehicle built entirely from a JSON spec flies to **15.1 km**
-with both stages firing and every part intact. A lighter single-stage one
-reaches **26.6 km**. Nothing has reached orbit yet.
+A three-stage, 10-part vehicle built entirely from a JSON spec flies intact,
+stages cleanly and reaches **875 km** of altitude. It is **not in orbit**: the
+best trajectory so far has a periapsis of **-688 km** and an eccentricity of
+**0.495**, against the 0.998 every earlier flight showed. Orbit needs a
+periapsis above +70 km, so roughly 750 m/s of horizontal velocity is still
+missing.
 
-Working: `craft_build` produces craft the game loads and flies; `scripts/fly.mjs`
-drives a flight through the bridge with telemetry twice a second, automatic
-staging and an abort when there is thrust but no climb; the bridge supplies live
-telemetry, staging, throttle and flight events.
+Working: `craft_build` produces multi-stage craft that hold together under load;
+`scripts/fly.mjs` flies them with telemetry four times a second, automatic
+staging, an above-atmosphere attitude loop and a circularisation phase;
+`scripts/build-craft.mjs` turns a JSON spec into a craft in one command.
 
 ## Route to the goal
 
-1. ~~**Survive staging.**~~ **Done.** Two fixes were needed.
+1. ~~**Survive staging.**~~ **Done.** Three separate causes, all now fixed.
 
    *Layout by attach points, not bounding boxes.* A part must be placed so its
-   bottom attach point meets the top attach point of the part below. Summing
-   heights leaves gaps, and a joint stretched over a gap tears apart under load.
-   Engines and parachutes attach at their own origin rather than offset by half
-   their height: the stock reference rocket puts its tank at y=-0.32 with a
-   half-length of 2.5 and its engine at exactly -2.82. Generated spacing now
-   matches the stock rocket's tank-to-engine distance exactly.
+   bottom attach point meets the top attach point of the part below.
 
-   *The interstage encloses the engine.* `Detacher1 → RocketEngine1` occurs in
-   none of the 61 stock craft — a decoupler never joins an engine directly.
-   `Detacher1` carries a `CoverEngine` modifier: it **encloses** the upper
-   stage's engine while itself joining tank to tank (`Fuselage1 → Detacher1`
-   20×, `Detacher1 → Fuselage1` 15×), and the engine connects only to its own
-   tank. `craft_build` special-cases the sequence `decoupler, engine, tank`.
+   *The interstage encloses the engine.* `Detacher1` carries a `CoverEngine`
+   modifier and joins tank to tank; the engine connects only to its own tank.
 
-2. ~~**Get off the pad.**~~ **Done**, and the first diagnosis was wrong, which
-   is worth remembering.
+   *Every multi-body craft needs `<BodyJoint>`.* This was the real blocker
+   behind "the decoupler does not hold". The element is a **child of the
+   `<Connection>`** that crosses a body boundary, and the builder emitted none,
+   so the game built a default joint instead. The stack sagged on the pad — 54°
+   from vertical before ignition — and tore under thrust, with the decouplers
+   still reporting `activated: false`. A decoupler also belongs to the body it
+   jettisons, not to one of its own, where the game recomputes it to zero mass.
 
-   "Craft spawn tilted" was a red herring: the stock `__new__` rocket also
-   reports a small pitch on the pad, and a craft reporting `pitch -13.6°` flew
-   to 26 km. The `90°` a large stock rocket shows comes from something else.
+2. ~~**Get off the pad.**~~ **Done.** Thrust-to-weight below 1 was one cause;
+   the missing joints were the other, and they are what made the tilt look like
+   a red herring. A stock craft spawns at alignment 1.000 and so does ours now.
 
-   The real cause was **thrust-to-weight below 1**. Measured, all with a single
-   default `Bravo` engine (thrust 3631):
+3. **Reach orbit.** Still the blocker, but the gap is now horizontal velocity
+   rather than structure or total energy. What was measured:
 
-   | tank | fuel | TWR | result |
-   |---|---|---|---|
-   | 5 m × 2 m, single stage | 88 | 3.34 | 26.6 km |
-   | 9 m × 2 m + upper stage | 204 | ~1.7 | **15.1 km, both stages fired** |
-   | 18 m × 2.4 m + upper stage | 571 | 0.62 | never left the pad |
+   - **Never override a control axis you are not steering with.**
+     `mode: "hold"` with `pitch: 0` is not "no input" — it pins the axis every
+     frame and switches off the game's own stability assist. Every flight that
+     posted a pitch value tumbled from 0 to 170° within twenty seconds, at
+     *both* polarities; flights that posted none flew dead straight to 82 km.
+     Passing `null` releases the axis. This single change took the peak from
+     13 km to 127 km.
+   - **`attitude.pitch` is not the angle from the horizon.** It is aircraft
+     pitch of the craft's *forward* axis, so a rocket standing on the pad reads
+     ~0°, not 90°. Steering on it commanded a 90° error and laid the vehicle
+     over. The loop now works in vectors: the zenith is `normalize(position.pci)`
+     — `pci` and the attitude basis share a frame — and the nose is whichever
+     body axis is vertical on the pad (`up` for our stacks, `forward` for stock).
+   - **Pitch only rotates the nose within the plane perpendicular to `right`.**
+     Taking the turn azimuth from the horizontal component of a near-vertical
+     velocity put the target outside that plane, and the command sat at 0.000
+     against a 78° error for fifty seconds. The azimuth now comes from the
+     craft's own geometry.
+   - **The input is a torque, and the loop is slow.** A constant 0.4 spins the
+     craft through 180°. At four samples a second over HTTP any hot gain
+     saturates and tumbles; `rate 0.03, damp 2, clamp 0.025` tracks smoothly.
+   - **Orbit fields are `apoapsisDistance`/`periapsisDistance`**, measured from
+     the planet's centre. `orbit.apoapsis` is the apsis *position vector*, so
+     the old altitude cutoff never once fired. Droo's radius is **1274.2 km**,
+     from `|pci| - altitudeAsl`.
+   - **Staging cannot key on total fuel.** `fuel <= 0.01` is never true on a
+     multi-stage craft. It now keys on thrust collapsing, needs three
+     consecutive dry samples so a spooling engine is not mistaken for a spent
+     one, and never stages into the parachute.
 
-   A `size: 2` engine raises thrust but burns 679 units in 6 s (~113/s against
-   ~2/s at `size: 1`), so it is not a free fix. Thrust and flow both scale with
-   `nozzleThroatSize`; stock craft use 0.5–1.0.
-
-3. **Reach orbit.** The current blocker. Peak vertical speed is 508 m/s against
-   roughly 2500 m/s needed for orbit around Droo. That calls for more stages
-   rather than a bigger single engine, while keeping lift-off TWR above about
-   1.3, and for a gravity turn — a vertical climb spends everything fighting
-   gravity. Success = periapsis above ~70 km; the autopilot already reads
-   `orbit.apoapsis` and `orbit.periapsis`.
-
-   Radial boosters are the natural answer and are not implemented: `RadialGroup`
-   exists in the spec type but the builder ignores it.
+   What is left: the vehicle spends its first 45 km climbing vertically because
+   the turn is held until the air is thin, and it runs dry at 2485 m/s of
+   horizontal speed against the ~3230 m/s needed. Turning lower is the obvious
+   win and is untested now that the axis-override bug is gone — one attempt at
+   20 km used the aggressive schedule instead of horizontal targeting and is not
+   a fair test. Fins would let the turn start lower still; radial boosters
+   (`RadialGroup` in the spec type) remain unimplemented.
 
 4. **Trans-lunar injection.** Burn to raise apoapsis to Luna's orbit. Needs
    Luna's orbital radius and a phase angle, both available from `/planets`.
