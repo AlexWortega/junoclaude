@@ -709,6 +709,7 @@ async function circularise({
   let prevAt = null;
   let stillFor = 0;
   let burnStartedAt = null;
+  let settleUntil = 0;
   let growingFor = 0;
   let prevError = null;
 
@@ -959,10 +960,22 @@ async function circularise({
     } else if (steering) growingFor = 0;
     prevError = steering ? error : null;
 
-    if (steering && error < (thrusting ? 1.5 : 0.5)) steering = false;
-    else if (!steering && error > (thrusting ? 4 : 2)) steering = true;
+    if (steering && error < (thrusting ? 1.0 : 0.3)) steering = false;
+    else if (!steering && error > (thrusting ? 2.5 : 1.0)) steering = true;
 
     const throttle = burning ? burnThrottle : 0;
+    if (elapsed < settleUntil) {
+      // Riding out a separation transient: hands off.
+      await post('/flight/input', {
+        mode: 'hold',
+        throttle,
+        ...(holdingPitch ? { pitch: null, yaw: null, roll: null } : {}),
+      });
+      holdingPitch = false;
+      await sleep(sampleMs);
+      continue;
+    }
+
     if (steering) {
       sample.cmdPitch = Number(steer.pitch.toFixed(4));
       sample.cmdYaw = Number(steer.yaw.toFixed(4));
@@ -998,18 +1011,20 @@ async function circularise({
       lastStageAt = elapsed;
       drySince = null;
       burnStartedAt = elapsed;
-      // The calibrated axes describe the vehicle that was measured. Dropping a
-      // stage changes the mass, the inertia and which engine is gimballing, and
-      // the old axes then steer the wrong way: one burn held the aim inside 25°
-      // until it staged, then lost it to 93° within twenty seconds. Re-measure.
-      calibration.state = 'calibrating';
-      calibration.index = 0;
-      calibration.at = null;
-      calibration.settleAt = null;
-      calibration.startedAt = null;
+      // Do *not* recalibrate here, tempting as it is. The axes do go stale —
+      // dropping a stage changes mass, inertia and which engine gimbals, and
+      // one burn lost the aim from 8° to 93° on stale axes. But pulsing the
+      // controls of a craft that is simultaneously separating and thrusting is
+      // far worse: those attempts ended at 4.17 rad/s and then 29.7 rad/s,
+      // which is 1700°/s and unrecoverable. A wrong gain is survivable for a
+      // proportional loop; a tumble is not.
+      //
+      // Instead let go of the axes briefly so the game's own damping absorbs
+      // the separation transient, then resume on the old calibration.
+      settleUntil = elapsed + 3;
       trace.push({
         t: elapsed,
-        note: `staged to ${t.stage + 1}/${t.numStages}, recalibrating axes`,
+        note: `staged to ${t.stage + 1}/${t.numStages}, releasing axes to settle`,
       });
     }
 
