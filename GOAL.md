@@ -80,27 +80,41 @@ because most of the budget is spent pointing the wrong way.
    centred on apoapsis rather than one long burn that drove apoapsis from 130 km
    to 417 km on the successful run and 1004 km on a failed one.
 
-4. **Trans-lunar injection.** Burn to raise apoapsis to Luna's orbit. Needs
-   Luna's orbital radius and a phase angle, both available from `/planets`.
+4. **Trans-lunar injection.** **Blocked on a missing bridge capability.**
+   `/planets` returns only `name`, `sphereOfInfluence`, `rotationAngle` and
+   `terrainLoaded` — no orbital radius, no position, no elements. A phase angle
+   cannot be computed from that, and nothing on the client side can recover it:
+   the craft's own `position.solar` locates the craft, not Luna. Exposing
+   celestial body positions or orbits from the mod is the prerequisite, and is
+   the one change so far that genuinely needs a Unity rebuild.
 
-5. **Capture and landing.** Retrograde burn near periapsis, then a suicide burn
-   to touch down under ~5 m/s. Needs landing legs, which `craft_build` has no
-   item for.
+   (Luna's sphere of influence is 6 661 802 m and Droo's is 413 815 643 m, which
+   is all the geometry currently available.)
 
-6. **Return.** Ascent from Luna, trans-Droo injection, atmospheric entry behind
-   a heat shield, parachute descent.
+5. **Capture and landing.** Landing legs now exist: `craft_build` takes a
+   `radial` group on a tank, laid out the way stock craft do it — a ring on a
+   circle of the parent's radius, each member joining its attach point 0 to the
+   parent's surface point, sharing one `symmetryId`, with the azimuth appearing
+   in the position as `(R cos θ, y, R sin θ)` and inverted in the rotation as
+   `90 - θ`. Radial parts ride in their parent's body. Not yet flown.
+
+   Still missing: a heat shield and RCS. Touchdown must be under about 5 m/s.
+
+6. **Return.** Ascent from Luna, trans-Droo injection, entry behind a heat
+   shield, parachute descent.
 
 ## Known gaps blocking the later steps
 
-- **No attitude control.** A gravity turn needs some way to point the craft.
-  The bridge deliberately rejects `targetHeading` (the game models it as an
-  orientation quaternion, not a scalar heading), so either work out the
-  quaternion or drive `pitch`/`yaw` inputs in a closed loop from the autopilot.
-- **Missing parts** in `craft_build`: landing legs, heat shield, RCS, radial
-  boosters.
+- **No celestial body positions.** `/planets` carries no orbital elements, so
+  no transfer to Luna can be planned. This needs the mod.
+- **Missing parts** in `craft_build`: heat shield, RCS, radial boosters.
+  (Landing legs are done — see step 5.)
 - **Rough mass estimates.** The centre of mass lands within 0.8 m of the game's
-  own figure — fine for spawning, not good enough for planning a burn.
+  own figure — fine for spawning, not good enough for planning a burn. Stage
+  masses for a Δv budget are better measured in flight from
+  `maxThrust / (twr · g)` than taken from the builder.
 - **Flight control should move into Vizzy.** The external autopilot pays a
-  network round trip per decision. The Vizzy compiler is ready and verified
-  byte-exact against seven stock programs, so an in-game program is the natural
-  home for the ascent loop once attitude control works.
+  network round trip per decision, and the 4 Hz that leaves is the direct cause
+  of the attitude loop's fragility: every gain here is limited by it. The Vizzy
+  compiler is ready and verified byte-exact against seven stock programs, so an
+  in-game program is the natural home for the control loop.
