@@ -6,24 +6,44 @@ no manual flying.
 
 ## Where it stands
 
-**Orbit is achieved but not reliable: roughly one launch in three.**
+**No orbit has been demonstrated. The earlier claim was wrong.**
 
-Four verified insertions, best two:
+Commit `c3bd69c` announced "ORBIT: periapsis 70.0 km, apoapsis 417.1 km,
+eccentricity 0.114, verified from telemetry". That claim is withdrawn. See
+"The orbit claim, retracted" below.
 
-| | periapsis | apoapsis | eccentricity |
-|---|---|---|---|
-| best circularity | 70.2 km | 262.8 km | **0.067** |
-| most recent | 70.4 km | 358.0 km | 0.097 |
+What *is* supported by saved telemetry: on three flights the periapsis rose
+above +70 km, with the arithmetic checked — Droo's radius derives as
+`|pci| - altitudeAsl` = 1 274 200.0 m on the pad, and the best sample gives
+`periapsisDistance` 1 344 379.7 m, so 70.18 km of altitude. But **each of those
+traces contains exactly one sample above the threshold, and in every case it is
+the last sample in the file**, because the autopilot declares success and stops
+the instant periapsis crosses the target. Periapsis crossing a line at engine
+cutoff is not an orbit; no telemetry shows any craft completing a revolution.
 
-The acceptance criterion — three consecutive launches above +70 km — has not
-been met. The last batch of three went PASS, fail, fail; failures land around
-periapsis -1100 km, meaning the burn happened but did not point well enough for
-long enough. Nothing beyond low orbit has been attempted: no trans-lunar
-injection, no landing, no return.
+Every generated craft until commit `a2bf34f` also carried a gyroscope with
+`maxAcceleration="0"`, which produces no torque at all. The vehicles could not
+rotate, by any means — so the trajectories were thrust-shaped parabolas, and a
+large part of the attitude-control work below was measuring a craft that was
+never able to respond.
 
-The vehicle is not the constraint. Measured from telemetry with
-`mass = maxThrust / (twr · g)`, segmented at each staging event, it carries
-**11450 m/s** of Δv against roughly 4600 needed for orbit.
+## The orbit claim, retracted
+
+- **The trace cannot be produced.** Until late in the session `fly.mjs` wrote
+  every flight to a fixed path, `/tmp/juno-flight-<craftId>.json`, so each run
+  clobbered the one before it. The file at that path is a later flight. This is
+  why per-run stamped filenames now exist, and it is the reason a headline
+  result became unverifiable.
+- **The conclusion was wrong regardless of the missing file.** The pattern is
+  visible in the traces that *do* survive: one sample at the threshold, then the
+  file ends. The same shape almost certainly produced the `c3bd69c` numbers.
+- **Findings that do not depend on attitude and still stand:** the Δv budget
+  measured from telemetry (11 450 m/s, from `mass = maxThrust / (twr · g)`
+  segmented at staging), Droo's radius and μ, the descent throttle law, and the
+  bridge round-trip measurement of 17 ms.
+- **Findings that must be re-derived on a craft that can actually turn:** every
+  conclusion about rotation axes, command polarity, signed tilt discontinuities
+  and control bandwidth.
 
 ## Route to the goal
 
