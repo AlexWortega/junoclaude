@@ -602,7 +602,6 @@ async function circularise({
   gains = { rate: 0.06, damp: 2, clamp: 0.06 },
   engageDeg = 10,
   releaseDeg = 3,
-  adaptSign = process.env.JUNO_ADAPT_SIGN === '1',
 }) {
   const elapsedNow = () => (Date.now() - startedAt) / 1000;
   let burning = false;
@@ -610,16 +609,35 @@ async function circularise({
   let holdingPitch = false;
   let lastStageAt = elapsedNow();
   let dryFor = 0;
-  // The polarity of the pitch channel is learned in flight rather than derived.
-  // `dot(n × target, right)` has repeatedly come out with the wrong sign in
-  // some geometries, and the failure is silent: the loop reports cmd -0.001,
-  // believing it holds the commanded rate, while the nose slides the other way
-  // — one burn watched the tilt go 78° to 6° and the horizontal speed fall from
-  // 1119 back to 640 m/s. Watching whether the error actually shrinks catches
-  // that in a couple of seconds whichever way the geometry happens to fall.
+  // The pitch polarity is measured once, with a calibration pulse at the start
+  // of the coast, and then never changed.
+  //
+  // It cannot be derived reliably: the command enters as a torque about the
+  // craft's `right` axis, the desired rotation comes from `n × target`, and
+  // whether those agree in sign depends on the handedness of the game's frame,
+  // which is left-handed. Getting it wrong fails *silently* — the loop reports
+  // cmd -0.001, believing it holds the commanded rate, while the nose slides
+  // from 78° to 6° and the horizontal speed collapses from 1119 to 640 m/s.
+  //
+  // Measuring it from the ongoing response instead was tried and chatters: on a
+  // craft that is already oscillating it reads the oscillation, not the sign,
+  // and flipped twelve times in forty seconds. A single pulse during the coast
+  // has none of that trouble — there is no thrust, no air and no hurry.
+  // Everything here is controlled in the one scalar that matters, the tilt from
+  // vertical, whose target is unambiguously 90°. The earlier law built its
+  // command from `dot(n × target, right)`, and that projection's sign depends on
+  // the frame's handedness and on the craft's roll at spawn — two calibration
+  // runs measured +0.0558 and -0.0553 rad/s for the *same* command. Calibrating
+  // d(tilt)/d(cmd) directly sidesteps all of it: it is measured per flight, in
+  // the same scalar the loop steers on.
   let sign = polarity.pitch;
-  let wrongFor = 0;
+  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06 };
+  let prevTilt = null;
+  let prevAt = null;
+  let growingFor = 0;
   let prevError = null;
+
+  const rateAboutRight = (t) => dot(t.angular ?? [0, 0, 0], unit(t.att.right));
 
   await post('/flight/input', { mode: 'hold', throttle: 0 });
 
@@ -671,35 +689,121 @@ async function circularise({
       return vecLength(vh) > 20 && dot(unit(h), vh) < 0 ? scale(unit(h), -1) : unit(h);
     })();
 
+    // Calibrate the pitch polarity before doing anything else with the axis.
+    // The plant is dω/dt = P·cmd; for the loop to be stable its polarity has to
+    // equal sign(P), so a known command is held briefly and the resulting change
+    // in rotation rate about `right` is measured.
+    if (calibration.state !== 'done') {
+      const omega = rateAboutRight(t);
+      if (calibration.state === 'pulse') {
+        if (calibration.at === null) {
+          calibration.at = elapsed;
+          calibration.tilt0 = tilt;
+        } else if (elapsed - calibration.at >= 2.5) {
+          const delta = tilt - calibration.tilt0;
+          sign = delta > 0 ? 1 : -1;
+          calibration.state = 'null';
+          trace.push({
+            t: elapsed,
+            note:
+              `pitch calibration: cmd +${calibration.cmd} moved tilt by ` +
+              `${delta.toFixed(1)}°, so +cmd ${sign > 0 ? 'raises' : 'lowers'} tilt`,
+          });
+        }
+        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: calibration.cmd });
+        await sleep(sampleMs);
+        continue;
+      }
+      // Stop the rotation the pulse started before handing over to the loop.
+      //
+      // Gently: the pulse also measured the plant, 0.0558 rad/s in 2.5 s at
+      // 0.06, so a command of 0.12 swings the rate by 0.09 in a single 250 ms
+      // sample. Against a tight threshold that overshoots the band every time
+      // and never lands — the first attempt sat here for 340 s and never
+      // reached the burn. The step per sample has to be small compared with the
+      // band it is aiming for.
+      if (Math.abs(omega) < 0.02 || elapsed - calibration.at > 25) {
+        calibration.state = 'done';
+        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: null });
+        holdingPitch = false;
+        trace.push({
+          t: elapsed,
+          note: `calibration done, residual rate ${omega.toFixed(4)} rad/s`,
+        });
+      } else {
+        const c = Math.max(-0.05, Math.min(0.05, sign * -omega * 0.8));
+        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: c });
+      }
+      await sleep(sampleMs);
+      continue;
+    }
+
     // Start the burn a little before the high point so it straddles apoapsis.
     if (!burning && t.timeToApoapsis !== null && t.timeToApoapsis < 25) {
       burning = true;
       trace.push({ t: elapsed, note: `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km` });
     }
 
+    // Two different regimes, and they need different handling.
+    //
+    // Coasting, the only actuator is the command pod's own torque: the loop
+    // converges cleanly, taking the tilt 8° to 89° with the command tapering
+    // 0.025 -> 0.002 -> -0.009 on the way in. So hold it there continuously.
+    // Releasing at 90° hands the nose to the stability assist, which holds
+    // attitude *inertially* — and over a hundred seconds of coast the local
+    // vertical rotates out from under it, drifting the tilt to 126° by the time
+    // the burn starts. That drift alone pointed the first burn backwards and
+    // dropped the horizontal speed from 195 to 129 m/s.
+    //
+    // Burning, the engine gimbal is the actuator and it is far stronger. The
+    // same gains that converge on pod torque tumbled the craft, swinging the
+    // tilt 173° -> 7° -> 170°. So the burn uses a fraction of the gain and
+    // leans on the assist through a deadband.
+    // Damping has to be strong and the position term gentle. With both at one
+    // gain the loop tracked well until stage two ran light, then lost it: the
+    // tilt rate went 2 -> 8 -> 22 -> -39 deg/s in five seconds while the command
+    // was still only -0.05. A rate error now commands most of the available
+    // authority, so a developing tumble is arrested, while the angle error alone
+    // never asks for more than a couple of degrees a second.
+    const activeGain = burning ? 0.01 : 0.012;
+    const rateLimit = burning ? 2.5 : 4;
+    const activeEngage = burning ? engageDeg : 1;
+    const activeRelease = burning ? releaseDeg : 0.4;
+
     const error = Math.abs(tilt - 90);
-    // Off by default: on a craft that is already oscillating this reacts to the
-    // oscillation rather than to a genuine sign error and chatters, flipping
-    // twelve times in forty seconds and making the burn worse. It needs a much
-    // longer window of evidence than a tumbling upper stage ever provides.
-    if (adaptSign && steering && prevError !== null && error > prevError + 0.05) {
-      if (++wrongFor >= 4) {
-        sign = -sign;
-        wrongFor = 0;
-        trace.push({ t: elapsed, note: `pitch polarity flipped to ${sign}` });
-      }
-    } else if (steering) wrongFor = 0;
+
+    // Sanity check: under a non-zero command the error must shrink. If it grows
+    // instead, say so in the trace. Silently steering the wrong way is the worst
+    // failure mode this loop has had, and it cost several flights before it was
+    // spotted — an alarm makes it obvious in the summary.
+    if (steering && prevError !== null && error > prevError + 0.05) {
+      if (++growingFor === 3)
+        trace.push({
+          t: elapsed,
+          note: `WARNING: error growing under command (${prevError.toFixed(1)}° -> ${error.toFixed(1)}°), polarity ${sign} may be wrong`,
+        });
+    } else if (steering) growingFor = 0;
     prevError = steering ? error : null;
 
-    if (steering && error < releaseDeg) steering = false;
-    else if (!steering && error > engageDeg) steering = true;
+    if (steering && error < activeRelease) steering = false;
+    else if (!steering && error > activeEngage) steering = true;
 
     const throttle = burning ? 1 : 0;
+    // Cascade in tilt: the angle error asks for a turn rate, and the command
+    // closes on that rate using the rate actually measured between samples.
+    const dt = prevAt === null ? 0 : elapsed - prevAt;
+    const tiltRate = dt > 0.05 ? (tilt - prevTilt) / dt : 0;
+    prevTilt = tilt;
+    prevAt = elapsed;
+
     if (steering) {
-      const cmd = steerCommand(t, nose, 90, horizontal, gains, { ...polarity, pitch: sign });
-      sample.cmdPitch = Number(cmd.pitch.toFixed(3));
+      const wantedRate = Math.max(-rateLimit, Math.min(rateLimit, (90 - tilt) * 0.25)); // deg/s
+      const raw = sign * activeGain * (wantedRate - tiltRate);
+      const cmd = Math.max(-0.12, Math.min(0.12, raw));
+      sample.cmdPitch = Number(cmd.toFixed(4));
+      sample.tiltRate = Number(tiltRate.toFixed(2));
       holdingPitch = true;
-      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd.pitch });
+      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd });
     } else {
       // Hand the nose back to the game's stability assist, which holds it far
       // better than this loop can at four samples a second.
