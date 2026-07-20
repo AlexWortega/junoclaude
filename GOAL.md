@@ -6,35 +6,24 @@ no manual flying.
 
 ## Where it stands
 
-**Orbit was reached once, and verified from telemetry:**
+**Orbit is achieved but not reliable: roughly one launch in three.**
 
-| | |
-|---|---|
-| periapsis | **70.0 km** |
-| apoapsis | **417.1 km** |
-| eccentricity | 0.114 |
-| orbital speed | 3507 m/s at 122 km |
+Four verified insertions, best two:
 
-It is **marginal and not yet reproducible.** The loop stops the moment periapsis
-crosses the 70 km target and there were 18 fuel units left, so there is almost
-no reserve. Three further attempts from the same build — one asking for a 120 km
-periapsis, two repeating the successful configuration exactly — ended at
-periapsis -222 km, -579 km and -974 km. The orbit is real; the *procedure* is
-not yet reliable, and nothing beyond low orbit is possible until it is.
-
-The vehicle is not the limit. Measured from telemetry with
-`mass = maxThrust / (twr · g)`, segmented at each staging event:
-
-| stage | mass | thrust | Δv |
+| | periapsis | apoapsis | eccentricity |
 |---|---|---|---|
-| 1 | 449 → 237 kg | 12314 N | 2084 m/s |
-| 2 | 216 → 37 kg | 5303 N | 5692 m/s |
-| 3 | 37 → 12 kg | 1432 N | 3674 m/s |
-| | | **total** | **11450 m/s** |
+| best circularity | 70.2 km | 262.8 km | **0.067** |
+| most recent | 70.4 km | 358.0 km | 0.097 |
 
-Orbital speed at 100 km is 3405 m/s, so ~4600 m/s is needed with losses. The
-vehicle carries nearly three times that and still only just reaches orbit,
-because most of the budget is spent pointing the wrong way.
+The acceptance criterion — three consecutive launches above +70 km — has not
+been met. The last batch of three went PASS, fail, fail; failures land around
+periapsis -1100 km, meaning the burn happened but did not point well enough for
+long enough. Nothing beyond low orbit has been attempted: no trans-lunar
+injection, no landing, no return.
+
+The vehicle is not the constraint. Measured from telemetry with
+`mass = maxThrust / (twr · g)`, segmented at each staging event, it carries
+**11450 m/s** of Δv against roughly 4600 needed for orbit.
 
 ## Route to the goal
 
