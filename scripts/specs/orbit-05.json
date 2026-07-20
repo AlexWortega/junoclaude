@@ -1,0 +1,13 @@
+{
+  "name": "JC-Orbit-05",
+  "type": "rocket",
+  "stack": [
+    { "kind": "engine", "nozzle": "Bravo", "size": 1.6 },
+    { "kind": "tank", "length": 7, "diameter": 2.6 },
+    { "kind": "decoupler", "diameter": 2.6, "stage": 1 },
+    { "kind": "engine", "nozzle": "Bravo", "size": 0.9, "stage": 1 },
+    { "kind": "tank", "length": 5.5, "diameter": 2.0 },
+    { "kind": "pod" },
+    { "kind": "parachute", "stage": 2 }
+  ]
+}
