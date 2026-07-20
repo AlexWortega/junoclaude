@@ -6,13 +6,24 @@ no manual flying.
 
 ## Where it stands
 
-A three-stage, 10-part vehicle built from a JSON spec flies intact and stages
-cleanly. It is **not in orbit**. Best trajectory measured: periapsis
-**-688 km**, eccentricity **0.495**, against 0.998 on every flight before the
-joints were fixed. Orbit needs periapsis above +70 km.
+**Orbit was reached once, and verified from telemetry:**
 
-**The vehicle is not short of energy.** Measured from telemetry, using
-`mass = maxThrust / (twr · g)` segmented at each staging event:
+| | |
+|---|---|
+| periapsis | **70.0 km** |
+| apoapsis | **417.1 km** |
+| eccentricity | 0.114 |
+| orbital speed | 3507 m/s at 122 km |
+
+It is **marginal and not yet reproducible.** The loop stops the moment periapsis
+crosses the 70 km target and there were 18 fuel units left, so there is almost
+no reserve. Three further attempts from the same build — one asking for a 120 km
+periapsis, two repeating the successful configuration exactly — ended at
+periapsis -222 km, -579 km and -974 km. The orbit is real; the *procedure* is
+not yet reliable, and nothing beyond low orbit is possible until it is.
+
+The vehicle is not the limit. Measured from telemetry with
+`mass = maxThrust / (twr · g)`, segmented at each staging event:
 
 | stage | mass | thrust | Δv |
 |---|---|---|---|
@@ -21,72 +32,53 @@ joints were fixed. Orbit needs periapsis above +70 km.
 | 3 | 37 → 12 kg | 1432 N | 3674 m/s |
 | | | **total** | **11450 m/s** |
 
-Orbital speed at 100 km is 3405 m/s, so roughly 4600 m/s is needed with losses.
-The vehicle carries nearly three times that. An earlier note here claiming it
-was ~745 m/s short was wrong: nothing is short but the *direction* the Δv is
-spent in. Stage 2 alone could reach orbit if it were pointed correctly.
+Orbital speed at 100 km is 3405 m/s, so ~4600 m/s is needed with losses. The
+vehicle carries nearly three times that and still only just reaches orbit,
+because most of the budget is spent pointing the wrong way.
 
 ## Route to the goal
 
-1. ~~**Survive staging.**~~ **Done.** The decisive fix was `<BodyJoint>`, a
-   child of the `<Connection>` that crosses a body boundary. Without it the game
-   builds a default joint, the stack sags on the pad — 54° from vertical before
-   ignition — and tears under thrust with the decouplers still reporting
-   `activated: false`. A decoupler also belongs to the body it jettisons, not to
-   one of its own, where the game recomputes it to zero mass.
+1. ~~**Survive staging.**~~ **Done.** The decisive fix was `<BodyJoint>`, a child
+   of the `<Connection>` that crosses a body boundary. Without it the game builds
+   a default joint, the stack sags on the pad — 54° from vertical before ignition
+   — and tears under thrust, with the decouplers still reporting
+   `activated: false`. A decoupler belongs to the body it jettisons, not to one
+   of its own, where the game recomputes it to zero mass.
 
-2. ~~**Get off the pad.**~~ **Done.** Alignment 1.000 on the pad, same as stock.
+2. ~~**Get off the pad.**~~ **Done.** Alignment 1.000, same as stock.
 
-3. **Reach orbit.** Blocked on **attitude control**, not on propulsion or
-   structure. What is established:
+3. **Reach orbit.** **Achieved once**; making it repeatable is the open work.
 
-   - **Never override a control axis you are not steering with.**
-     `mode: "hold"` with `pitch: 0` pins the axis every frame and switches off
-     the game's own stability assist. Passing `null` releases it. This one
-     change took the peak from 13 km to 127 km.
-   - **The assist holds attitude, and that is useful in one phase and harmful
-     in the other.** With the axis released the vehicle flies dead straight for
-     90 s; while a weak command fought the assist the tilt stayed pinned at 7°
-     against a 60° demand. Slewing needs the assist out of the way, holding a
-     burn attitude needs it engaged — hence hysteresis, engage at 12° of error
-     and release at 3°.
-   - **The steering law's sign is unreliable and fails silently.** The command
-     is built from `dot(n × target, right)`, whose sign comes out wrong in some
-     geometries. When it does, the loop reports `cmd -0.001` — believing it is
-     holding the commanded rate — while the nose slides the other way. One burn
-     watched the tilt go 78° → 6° and the horizontal speed collapse from
-     1119 back to 640 m/s. **This is the immediate blocker.** Learning the sign
-     from the measured response was tried and chatters on an oscillating craft
-     (twelve flips in forty seconds); it is behind `JUNO_ADAPT_SIGN=1` and needs
-     a far longer evidence window. Deriving the sign correctly from the frame,
-     once, is the better fix.
-   - **The input is a torque, and the loop is slow.** A constant 0.4 spins the
-     craft through 180°. At four samples a second any hot gain saturates and
-     tumbles; the craft is worst once light — the tilt swung 87°→170°→35° at
-     37 kg. `rate 0.03–0.06, damp 2, clamp 0.025–0.06` is the workable range.
-   - **Chasing a target more than 90° away breaks the law**, because
-     `|n × target| = sin(error)` shrinks again past a right angle and the
-     projection can change sign. Commands are capped to 80° of slew.
-   - **Pitch only moves the nose in the plane perpendicular to `right`,** so the
-     turn azimuth is derived from the craft's own geometry. Taking it from a
-     near-vertical velocity's horizontal component left the command at 0.000
-     against a 78° error for fifty seconds.
-   - Orbit fields are `apoapsisDistance`/`periapsisDistance` from the planet's
-     centre; Droo's radius is 1274.2 km. Staging keys on thrust collapsing over
-     three consecutive samples, never on total fuel, never into the parachute,
-     and never while coasting with the throttle shut.
+   The flight is flown as climb → coast → burn at apoapsis. The climb uses *no
+   attitude input at all*: overriding an axis switches off the game's own
+   stability assist, and left alone the vehicle flies dead straight. All turning
+   happens unpowered during the coast, and the burn holds one fixed direction.
 
-   The flight is now structured as climb → coast → burn at apoapsis: the climb
-   flies with no attitude input at all (stable), the slew to horizontal happens
-   unpowered during the coast where there is no hurry, and the burn holds one
-   fixed direction. The structure works — cutoff, coast and burn all trigger
-   correctly, and periapsis rises while the tilt is near 90° — but the burn
-   loses the attitude partway through to the sign bug above.
+   Control is a cascade on **tilt from vertical**, the one scalar with an
+   unambiguous target of 90°. An earlier law built its command from
+   `dot(n × target, right)`; that sign depends on the frame's handedness *and*
+   on the craft's roll at spawn — two runs measured +0.0558 and -0.0553 rad/s
+   for the same command — and getting it wrong failed **silently**, the loop
+   reporting cmd -0.001 while the nose slid from 78° to 6°. So `d(tilt)/d(cmd)`
+   is now calibrated per flight with a single pulse during the coast, and the
+   loop warns in the trace whenever the error grows under a non-zero command.
 
-   Turning lower was tried at 8, 15, 20 and 30 km and did not help: at 45 km the
-   best eccentricity was 0.495, at 15 km 0.655, at 8 km 0.991. Rebalancing mass
-   toward the upper stages (JC-Orbit-04) also did not help, which is consistent
-   with Δv not being the constraint.
+   Coast and burn need different regimes. Coasting, the only actuator is the
+   pod's own torque and the loop holds continuously — releasing hands the nose
+   to the assist, which holds attitude *inertially*, so the local vertical
+   rotates out from under it and the tilt drifts to 126°. Burning, the engine
+   gimbal is far stronger, so the gain drops and a deadband leans on the assist.
+   Damping and position gains are separate: with one value the burn lost the
+   craft as stage two ran light, the tilt rate going 2 → 8 → 22 → -39 deg/s in
+   five seconds.
+
+   **What still blocks repeatability:** the burn holds 14-38° off target on bad
+   runs, and at full thrust that misdirects a large fraction of the impulse.
+   Tightening the deadband to 4°/1.5° did not fix it. The next things to try are
+   throttling the insertion burn down so the same attitude error costs less and
+   the loop has more time per unit of impulse, and burning in shorter arcs
+   centred on apoapsis rather than one long burn that drove apoapsis from 130 km
+   to 417 km on the successful run and 1004 km on a failed one.
 
 4. **Trans-lunar injection.** Burn to raise apoapsis to Luna's orbit. Needs
    Luna's orbital radius and a phase angle, both available from `/planets`.

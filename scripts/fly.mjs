@@ -767,8 +767,12 @@ async function circularise({
     // never asks for more than a couple of degrees a second.
     const activeGain = burning ? 0.01 : 0.012;
     const rateLimit = burning ? 2.5 : 4;
-    const activeEngage = burning ? engageDeg : 1;
-    const activeRelease = burning ? releaseDeg : 0.4;
+    // Hold the burn attitude tightly. A wide deadband lets the error grow to
+    // 10° before the loop reacts, and at full thrust that misdirects a large
+    // amount of impulse: attempts drifted 14-38° off and their periapsis ended
+    // hundreds of kilometres apart from the same configuration.
+    const activeEngage = burning ? 4 : 1;
+    const activeRelease = burning ? 1.5 : 0.4;
 
     const error = Math.abs(tilt - 90);
 
