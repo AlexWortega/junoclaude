@@ -915,6 +915,7 @@ async function descend({
   let prevTilt = null;
   let prevAt = null;
   let landed = false;
+  let warnedThrust = false;
 
   while (elapsedNow() < durationS) {
     let t;
@@ -948,6 +949,17 @@ async function descend({
     const throttle = Math.max(0, Math.min(1, 0.5 + error * 0.08));
     sample.wantedDescent = Number(wantedDescent.toFixed(1));
     sample.throttle = Number(throttle.toFixed(3));
+
+    // Say so rather than ride it into the ground: at full throttle and less
+    // than unit thrust-to-weight there is no descent rate this loop can hold,
+    // and the arithmetic below would keep asking politely all the way down.
+    if (throttle > 0.98 && t.twr > 0 && t.twr < 1 && height < 2000 && !warnedThrust) {
+      warnedThrust = true;
+      trace.push({
+        t: elapsed,
+        note: `WARNING: full throttle at TWR ${t.twr.toFixed(2)} — cannot arrest the descent`,
+      });
+    }
 
     // Hold the nose up. Tilt is unsigned here on purpose: straight up has no
     // azimuth to get wrong, which is what made the insertion burn fragile.
