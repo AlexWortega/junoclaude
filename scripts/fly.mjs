@@ -800,14 +800,24 @@ async function circularise({
     // was still only -0.05. A rate error now commands most of the available
     // authority, so a developing tumble is arrested, while the angle error alone
     // never asks for more than a couple of degrees a second.
-    const activeGain = burning ? 0.01 : 0.012;
-    const rateLimit = burning ? 2.5 : 4;
+    // Select on thrust that has actually arrived, not on thrust that has been
+    // commanded. `burning` flips the moment the throttle opens, but the engine
+    // takes a second or two to answer, and until it does the only actuator is
+    // still the pod's own torque — so the burn gains, tuned against a far
+    // stronger gimbal, are wrong for that window.
+    //
+    // This is the third place in this loop with the same mistake: staging fired
+    // on a spooling engine in the climb, then again in the burn. Anywhere a
+    // decision keys on thrust, it has to key on the measured value.
+    const thrusting = t.thrust > 1;
+    const activeGain = thrusting ? 0.01 : 0.012;
+    const rateLimit = thrusting ? 2.5 : 4;
     // Hold the burn attitude tightly. A wide deadband lets the error grow to
     // 10° before the loop reacts, and at full thrust that misdirects a large
     // amount of impulse: attempts drifted 14-38° off and their periapsis ended
     // hundreds of kilometres apart from the same configuration.
-    const activeEngage = burning ? 4 : 1;
-    const activeRelease = burning ? 1.5 : 0.4;
+    const activeEngage = thrusting ? 4 : 1;
+    const activeRelease = thrusting ? 1.5 : 0.4;
 
     const error = Math.abs(tilt - 90);
 
