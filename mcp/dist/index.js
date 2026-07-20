@@ -24086,7 +24086,10 @@ function estimateGroupMass(partIds, stack) {
   let mass = 0;
   for (const id of partIds) {
     const item = stack[id];
-    if (item === void 0) continue;
+    if (item === void 0) {
+      mass += 5;
+      continue;
+    }
     switch (item.kind) {
       case "tank": {
         const half = item.diameter / 2;
@@ -24158,6 +24161,7 @@ async function buildCraft(spec) {
   const centreOfMass = massSum > 0 ? momentSum / massSum : cursor / 2;
   const layout = [];
   const parts2 = [];
+  const extraConnections = [];
   for (const [index, item] of spec.stack.entries()) {
     const height = heights[index];
     const centerY = rawCentres[index] - centreOfMass;
@@ -24175,6 +24179,52 @@ async function buildCraft(spec) {
     const modifiers = await fillDefaultModifiers(attrs["partType"], modifiersFor(item));
     parts2.push(node("Part", attrs, modifiers));
     layout.push({ id: index, partType: attrs["partType"], y: round6(centerY), height, stage });
+  }
+  const radialParts = [];
+  for (const [index, item] of spec.stack.entries()) {
+    if (item.kind !== "tank" || item.radial === void 0) continue;
+    for (const group of item.radial) {
+      const count = group.count ?? 4;
+      const variant = group.variant ?? "LandingLeg4";
+      if (await partType(variant) === void 0)
+        throw new Error(`Unknown radial part type "${variant}". Check it with part_lookup.`);
+      const radius = item.diameter / 2;
+      const base = rawCentres[index] - item.length / 2 - centreOfMass;
+      const y = base + item.length * (group.height ?? 0.12);
+      const symmetryId = `jc-${index}-${radialParts.length}-${count}`;
+      for (let k = 0; k < count; k++) {
+        const theta = ((group.angle ?? 0) + 360 * k / count) * (Math.PI / 180);
+        const id = spec.stack.length + radialParts.length;
+        const attrs = {
+          id: String(id),
+          partType: variant,
+          position: vecStr([radius * Math.cos(theta), y, radius * Math.sin(theta)]),
+          rotation: vecStr([
+            group.splay ?? 25,
+            90 - theta * 180 / Math.PI,
+            0
+          ]),
+          commandPodId: String(rootIndex)
+        };
+        if (group.stage !== void 0 && group.stage > 0)
+          attrs["activationStage"] = String(group.stage);
+        parts2.push(node("Part", attrs, await fillDefaultModifiers(variant, [
+          node("Drag", { drag: "0,0,0,0,0,0", area: "0,0,0,0,0,0" }),
+          node("Config", {})
+        ])));
+        layout.push({ id, partType: variant, y: round6(y), height: 1, stage: group.stage ?? 0 });
+        radialParts.push({ id, parent: index, mass: 5, y });
+        extraConnections.push(
+          node("Connection", {
+            partA: String(id),
+            partB: String(index),
+            attachPointsA: "0",
+            attachPointsB: "0",
+            symmetryId
+          })
+        );
+      }
+    }
   }
   if (spec.activation_groups !== void 0 && podIndex >= 0) {
     const names = Array.from({ length: 10 }, (_, i) => spec.activation_groups?.[i] ?? "").join(",");
@@ -24220,6 +24270,10 @@ async function buildCraft(spec) {
     }
   });
   if (current.length > 0) groups.push(current);
+  for (const rp of radialParts) {
+    const group = groups.find((g) => g.includes(rp.parent));
+    if (group !== void 0) group.push(rp.id);
+  }
   const bodyOfPart = /* @__PURE__ */ new Map();
   groups.forEach((partIds, i) => {
     for (const id of partIds) bodyOfPart.set(id, i + 1);
@@ -24228,9 +24282,11 @@ async function buildCraft(spec) {
     let m = 0;
     let moment = 0;
     for (const id of partIds) {
-      const pm = estimateGroupMass([id], spec.stack);
+      const radial = radialParts.find((r) => r.id === id);
+      const pm = radial === void 0 ? estimateGroupMass([id], spec.stack) : radial.mass;
+      const y = radial === void 0 ? rawCentres[id] - centreOfMass : radial.y;
       m += pm;
-      moment += pm * (rawCentres[id] - centreOfMass);
+      moment += pm * y;
     }
     return m > 0 ? moment / m : 0;
   });
@@ -24285,6 +24341,7 @@ async function buildCraft(spec) {
       )
     );
   }
+  connections2.push(...extraConnections);
   const bodies = groups.map(
     (partIds, i) => node("Body", {
       id: String(i + 1),

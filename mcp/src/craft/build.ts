@@ -19,9 +19,32 @@ import {
 } from './geometry.js';
 import type { XmlNode as Node } from '../xml.js';
 
+/**
+ * A ring of parts attached to the *side* of a stack item rather than stacked on
+ * its end — landing legs, and eventually radial boosters.
+ *
+ * Stock craft place these on a circle at the parent's radius, each joining its
+ * own attach point 0 to the parent's surface attach point (also 0 on a
+ * `Fuselage1`), with the whole ring sharing one `symmetryId`. The azimuth shows
+ * up twice: in the position, and inverted in the rotation.
+ */
+export interface RadialGroup {
+  part: 'landing_leg';
+  variant?: string;
+  /** How many, spread evenly around the hull. */
+  count?: number;
+  /** Azimuth of the first one, in degrees. */
+  angle?: number;
+  /** Height on the parent, as a fraction of its length from the bottom. */
+  height?: number;
+  /** Outward tilt, in degrees; stock legs splay by about 25. */
+  splay?: number;
+  stage?: number;
+}
+
 export type StackItem =
   | { kind: 'pod'; variant?: string; name?: string }
-  | { kind: 'tank'; length: number; diameter: number; top_diameter?: number; fuel?: string; stage?: number }
+  | { kind: 'tank'; length: number; diameter: number; top_diameter?: number; fuel?: string; stage?: number; radial?: RadialGroup[] }
   | { kind: 'engine'; nozzle?: string; size?: number; stage?: number; name?: string }
   | { kind: 'decoupler'; diameter: number; stage: number }
   | { kind: 'nosecone'; diameter: number; length?: number }
@@ -252,7 +275,12 @@ function estimateGroupMass(partIds: number[], stack: StackItem[]): number {
   let mass = 0;
   for (const id of partIds) {
     const item = stack[id];
-    if (item === undefined) continue;
+    // Radial parts are numbered past the end of the stack; they carry a flat
+    // estimate rather than a stack entry.
+    if (item === undefined) {
+      mass += 5;
+      continue;
+    }
     switch (item.kind) {
       case 'tank': {
         const half = item.diameter / 2;
@@ -347,6 +375,7 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
 
   const layout: BuildResult['layout'] = [];
   const parts: XmlNode[] = [];
+  const extraConnections: XmlNode[] = [];
 
   for (const [index, item] of spec.stack.entries()) {
     const height = heights[index] as number;
@@ -367,6 +396,71 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     const modifiers = await fillDefaultModifiers(attrs['partType'] as string, modifiersFor(item));
     parts.push(node('Part', attrs, modifiers));
     layout.push({ id: index, partType: attrs['partType'] as string, y: round6(centerY), height, stage });
+  }
+
+  // Radial rings: legs and the like, attached to the side of a stack item.
+  //
+  // Each sits on a circle of the parent's radius. The azimuth appears twice and
+  // in opposite senses — in the position as `(R cos θ, y, R sin θ)`, and in the
+  // rotation as `90 - θ`, which is what stock craft do: a leg at θ=30° carries
+  // rotation y=60, one at θ=-60° carries 150. The ring shares a `symmetryId`,
+  // and every member joins its own attach point 0 to the parent's surface
+  // attach point, which is also 0 on a `Fuselage1`.
+  interface RadialPart {
+    id: number;
+    parent: number;
+    mass: number;
+    y: number;
+  }
+  const radialParts: RadialPart[] = [];
+
+  for (const [index, item] of spec.stack.entries()) {
+    if (item.kind !== 'tank' || item.radial === undefined) continue;
+    for (const group of item.radial) {
+      const count = group.count ?? 4;
+      const variant = group.variant ?? 'LandingLeg4';
+      if ((await partType(variant)) === undefined)
+        throw new Error(`Unknown radial part type "${variant}". Check it with part_lookup.`);
+
+      const radius = item.diameter / 2;
+      const base = (rawCentres[index] as number) - item.length / 2 - centreOfMass;
+      const y = base + item.length * (group.height ?? 0.12);
+      const symmetryId = `jc-${index}-${radialParts.length}-${count}`;
+
+      for (let k = 0; k < count; k++) {
+        const theta = ((group.angle ?? 0) + (360 * k) / count) * (Math.PI / 180);
+        const id = spec.stack.length + radialParts.length;
+        const attrs: Record<string, string> = {
+          id: String(id),
+          partType: variant,
+          position: vecStr([radius * Math.cos(theta), y, radius * Math.sin(theta)]),
+          rotation: vecStr([
+            group.splay ?? 25,
+            90 - (theta * 180) / Math.PI,
+            0,
+          ]),
+          commandPodId: String(rootIndex),
+        };
+        if (group.stage !== undefined && group.stage > 0)
+          attrs['activationStage'] = String(group.stage);
+
+        parts.push(node('Part', attrs, await fillDefaultModifiers(variant, [
+          node('Drag', { drag: '0,0,0,0,0,0', area: '0,0,0,0,0,0' }),
+          node('Config', {}),
+        ])));
+        layout.push({ id, partType: variant, y: round6(y), height: 1, stage: group.stage ?? 0 });
+        radialParts.push({ id, parent: index, mass: 5, y });
+        extraConnections.push(
+          node('Connection', {
+            partA: String(id),
+            partB: String(index),
+            attachPointsA: '0',
+            attachPointsB: '0',
+            symmetryId,
+          })
+        );
+      }
+    }
   }
 
   // The command pod carries the activation group names.
@@ -442,6 +536,14 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
   // Both are needed before the connections are written, because a connection
   // that crosses a body boundary has to carry the joint that holds the two
   // bodies together.
+  // A radial part is rigidly attached to its parent, so it belongs to the same
+  // body: giving it one of its own would leave a near-massless body hanging off
+  // the hull, which is exactly what tore the early multi-stage vehicles apart.
+  for (const rp of radialParts) {
+    const group = groups.find((g) => g.includes(rp.parent));
+    if (group !== undefined) group.push(rp.id);
+  }
+
   const bodyOfPart = new Map<number, number>();
   groups.forEach((partIds, i) => {
     for (const id of partIds) bodyOfPart.set(id, i + 1);
@@ -450,9 +552,14 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     let m = 0;
     let moment = 0;
     for (const id of partIds) {
-      const pm = estimateGroupMass([id], spec.stack);
+      const radial = radialParts.find((r) => r.id === id);
+      const pm = radial === undefined ? estimateGroupMass([id], spec.stack) : radial.mass;
+      // Radial parts are already positioned in craft coordinates; stack parts
+      // still have to be shifted by the centre of mass. Mixing the two up put a
+      // NaN in the body's position and the game refused the craft.
+      const y = radial === undefined ? (rawCentres[id] as number) - centreOfMass : radial.y;
       m += pm;
-      moment += pm * ((rawCentres[id] as number) - centreOfMass);
+      moment += pm * y;
     }
     return m > 0 ? moment / m : 0;
   });
@@ -527,6 +634,8 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
       )
     );
   }
+
+  connections.push(...extraConnections);
 
   const bodies: XmlNode[] = groups.map((partIds, i) =>
     node('Body', {

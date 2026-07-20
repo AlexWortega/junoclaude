@@ -152,6 +152,29 @@ function tiltFromVertical(t, nose) {
 }
 
 /**
+ * Tilt signed by whether the nose leans along the direction of travel or
+ * against it: +90 is horizontal and prograde, -90 horizontal and retrograde.
+ *
+ * The unsigned angle is direction-blind, and that is a hole big enough to lose
+ * an orbit through. A craft pointing backwards along the horizon reads exactly
+ * 90 and the loop reports no error at all, while the burn subtracts horizontal
+ * speed instead of adding it — one flight watched it fall from 1507 to 555 m/s
+ * with the tilt sitting on target the whole way. Signing it makes that a 180°
+ * error, which the loop then rotates out through the vertical.
+ */
+function signedTilt(t, nose) {
+  const tilt = tiltFromVertical(t, nose);
+  const z = zenithOf(t);
+  const flat = (v) => add(v, scale(z, -dot(v, z)));
+  const noseFlat = flat(scale(unit(t.att[nose.axis]), nose.sign));
+  const velFlat = flat(t.velocityVector ?? [0, 0, 0]);
+  // Near the vertical the nose has almost no horizontal part and the sign is
+  // noise; the error is then about 90° whichever way it is read, so leave it.
+  if (vecLength(noseFlat) < 1e-3 || vecLength(velFlat) < 20) return tilt;
+  return dot(unit(noseFlat), unit(velFlat)) >= 0 ? tilt : -tilt;
+}
+
+/**
  * Steer the nose towards a direction tilted `tiltDeg` from the vertical, in the
  * given compass azimuth.
  *
@@ -602,6 +625,7 @@ async function circularise({
   gains = { rate: 0.06, damp: 2, clamp: 0.06 },
   engageDeg = 10,
   releaseDeg = 3,
+  burnThrottle = Number(process.env.JUNO_BURN_THROTTLE ?? 0.5),
 }) {
   const elapsedNow = () => (Date.now() - startedAt) / 1000;
   let burning = false;
@@ -631,9 +655,10 @@ async function circularise({
   // d(tilt)/d(cmd) directly sidesteps all of it: it is measured per flight, in
   // the same scalar the loop steers on.
   let sign = polarity.pitch;
-  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06 };
+  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06, prevTilt: null, prevAt: null };
   let prevTilt = null;
   let prevAt = null;
+  let stillFor = 0;
   let growingFor = 0;
   let prevError = null;
 
@@ -677,7 +702,7 @@ async function circularise({
     // At apoapsis every newton spent this way goes into raising periapsis, and
     // the target is a single fixed direction rather than a moving schedule —
     // which is the whole reason for coasting up here first.
-    const tilt = tiltFromVertical(t, nose);
+    const tilt = signedTilt(t, nose);
     sample.tilt = Number(tilt.toFixed(1));
     const reach = cross(unit(t.att.right), scale(unit(t.att[nose.axis]), nose.sign));
     const z = zenithOf(t);
@@ -714,24 +739,30 @@ async function circularise({
         await sleep(sampleMs);
         continue;
       }
-      // Stop the rotation the pulse started before handing over to the loop.
+      // Stop the rotation the pulse started before handing over to the loop,
+      // measured in the same scalar everything else here uses.
       //
-      // Gently: the pulse also measured the plant, 0.0558 rad/s in 2.5 s at
-      // 0.06, so a command of 0.12 swings the rate by 0.09 in a single 250 ms
-      // sample. Against a tight threshold that overshoots the band every time
-      // and never lands — the first attempt sat here for 340 s and never
-      // reached the burn. The step per sample has to be small compared with the
-      // band it is aiming for.
-      if (Math.abs(omega) < 0.02 || elapsed - calibration.at > 25) {
+      // Nulling `ω · right` instead does not work: pitch does not necessarily
+      // act about the craft's `right` axis, so that projection can be small
+      // while the craft is still swinging. A run left the calibration at
+      // -0.0135 rad/s on the timeout having never reached the threshold, and
+      // carried the leftover spin into the slew.
+      const nullRate = calibration.prevTilt === null ? 0 : (tilt - calibration.prevTilt) / (elapsed - calibration.prevAt);
+      calibration.prevTilt = tilt;
+      calibration.prevAt = elapsed;
+
+      if (Math.abs(nullRate) < 0.4) stillFor += 1;
+      else stillFor = 0;
+      if (stillFor >= 4 || elapsed - calibration.at > 40) {
         calibration.state = 'done';
         await post('/flight/input', { mode: 'hold', throttle: 0, pitch: null });
         holdingPitch = false;
         trace.push({
           t: elapsed,
-          note: `calibration done, residual rate ${omega.toFixed(4)} rad/s`,
+          note: `calibration done, residual tilt rate ${nullRate.toFixed(2)} deg/s`,
         });
       } else {
-        const c = Math.max(-0.05, Math.min(0.05, sign * -omega * 0.8));
+        const c = Math.max(-0.03, Math.min(0.03, sign * -nullRate * 0.01));
         await post('/flight/input', { mode: 'hold', throttle: 0, pitch: c });
       }
       await sleep(sampleMs);
@@ -792,7 +823,11 @@ async function circularise({
     if (steering && error < activeRelease) steering = false;
     else if (!steering && error > activeEngage) steering = true;
 
-    const throttle = burning ? 1 : 0;
+    // Burn at part throttle. The vehicle carries roughly three times the Δv it
+    // needs, so trading burn efficiency for control is cheap — at full thrust a
+    // given attitude error misdirects the maximum possible impulse, and the
+    // 4 Hz loop gets the fewest samples per unit of Δv exactly when it matters.
+    const throttle = burning ? burnThrottle : 0;
     // Cascade in tilt: the angle error asks for a turn rate, and the command
     // closes on that rate using the rate actually measured between samples.
     const dt = prevAt === null ? 0 : elapsed - prevAt;
@@ -969,7 +1004,11 @@ async function main() {
   await post('/flight/input', { mode: 'clear' }).catch(() => {});
   console.log(summarise(trace));
 
-  const traceFile = `/tmp/juno-flight-${craftId.replace(/\W+/g, '_')}.json`;
+  // Stamped per run: comparing a good flight against a bad one is the only way
+  // to find what varies between them, and a fixed name destroys the evidence
+  // from every run but the last.
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const traceFile = `/tmp/juno-flight-${craftId.replace(/\W+/g, '_')}-${stamp}.json`;
   await (await import('node:fs/promises')).writeFile(traceFile, JSON.stringify(trace, null, 2));
   console.error(`full trace → ${traceFile}`);
 }
