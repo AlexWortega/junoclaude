@@ -12,8 +12,8 @@ runs="${2:-3}"
 
 for i in $(seq 1 "$runs"); do
   echo "=== run $i/$runs ==="
-  JUNO_TARGET_APOAPSIS="${JUNO_TARGET_APOAPSIS:-130000}" \
-    node scripts/fly.mjs "$craft" "DSC Large Pad" 600 2>&1 | tail -4
+  JUNO_TARGET_APOAPSIS="${JUNO_TARGET_APOAPSIS:-200000}" \
+    node scripts/fly.mjs "$craft" "DSC Large Pad" 800 2>&1 | tail -5
 done
 
 echo

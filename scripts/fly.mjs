@@ -822,7 +822,14 @@ async function circularise({
       // full solver rather than one axis at a time.
       if (calibration.settleAt === null) calibration.settleAt = elapsed;
       const spinning = vecLength(omega);
-      if (spinning < 0.01 || elapsed - calibration.settleAt > 20) {
+      // Do not hand over while still tumbling. The craft arrives from the climb
+      // already spinning — separation imparts it and the climb flies with the
+      // axes released, so nothing damps it — and one run entered the slew at
+      // 0.45 rad/s because the settle gave up after 20 s. The coast is minutes
+      // long; spending up to a minute here is cheap next to steering a tumbling
+      // vehicle through the whole burn.
+      sample.settleSpin = Number(spinning.toFixed(4));
+      if (spinning < 0.02 || elapsed - calibration.settleAt > 60) {
         calibration.state = 'done';
         await post('/flight/input', {
           mode: 'hold',
@@ -842,8 +849,9 @@ async function circularise({
           nose,
           scale(unit(t.att[nose.axis]), nose.sign), // aim at where it already points
           axes,
-          { rate: 0, bandwidth: 0.5, damp: 1, clamp: 0.3 }
+          { rate: 0, bandwidth: 1.2, damp: 1, clamp: 0.6 }
         );
+        sample.cmdPitch = Number(stop.pitch.toFixed(4));
         await post('/flight/input', {
           mode: 'hold',
           throttle: burning ? burnThrottle : 0,
