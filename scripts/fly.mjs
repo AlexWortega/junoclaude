@@ -870,41 +870,6 @@ async function circularise({
       continue;
     }
 
-    // Start the burn half a burn-length before apoapsis, so it straddles the
-    // high point instead of running almost entirely past it.
-    //
-    // A fixed 25 s lead was far too short: this vehicle needs minutes of thrust
-    // to make orbital speed, so essentially the whole burn happened after
-    // apoapsis and simply pushed apoapsis higher — one flight watched it climb
-    // from 200 km to 1445 km while periapsis barely moved. The length is
-    // estimated from the speed still to find and the acceleration available,
-    // both of which are in telemetry.
-    if (!burning && t.timeToApoapsis !== null && t.apoapsis !== null) {
-      const rApo = (planetRadius ?? 0) + t.apoapsis;
-      const MU = 9.81 * (planetRadius ?? 1) ** 2;
-      const vCirc = Math.sqrt(MU / rApo);
-      const horiz = Math.sqrt(Math.max(0, t.surfaceSpeed ** 2 - t.vertical ** 2));
-      const deficit = Math.max(0, vCirc - horiz);
-      const accel = t.twr > 0 ? t.twr * 9.81 * burnThrottle : 1;
-      const burnSeconds = Math.min(400, deficit / Math.max(0.5, accel));
-      sample.burnLead = Number(burnSeconds.toFixed(0));
-      if (t.timeToApoapsis < burnSeconds / 2) {
-        burning = true;
-        burnStartedAt = elapsed;
-        trace.push({
-          t: elapsed,
-          note:
-            `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km, ` +
-            `${deficit.toFixed(0)} m/s to find, ~${burnSeconds.toFixed(0)}s of thrust`,
-        });
-      }
-    }
-
-    // Aim at one vector: the horizon, in the direction of travel. Angle and
-    // azimuth are then a single quantity with no discontinuity, which is what
-    // the previous attempts got wrong — a scalar tilt is direction-blind, and
-    // signing it introduced jumps that made the measured rate reach 1160 deg/s
-    // and pin the command at its limit.
     // Horizontal prograde, taken from the orbit rather than from the current
     // velocity direction. Near the top of a steep arc the horizontal component
     // of the velocity is tiny — 32 m/s on one flight — so using it directly
@@ -948,6 +913,49 @@ async function circularise({
     sample.tilt = Number(tiltFromVertical(t, nose).toFixed(1));
     sample.aimError = Number(error.toFixed(1));
 
+    // Start the burn half a burn-length before apoapsis, so it straddles the
+    // high point instead of running almost entirely past it.
+    //
+    // A fixed 25 s lead was far too short: this vehicle needs minutes of thrust
+    // to make orbital speed, so essentially the whole burn happened after
+    // apoapsis and simply pushed apoapsis higher — one flight watched it climb
+    // from 200 km to 1445 km while periapsis barely moved. The length is
+    // estimated from the speed still to find and the acceleration available,
+    // both of which are in telemetry.
+    if (!burning && t.timeToApoapsis !== null && t.apoapsis !== null) {
+      const rApo = (planetRadius ?? 0) + t.apoapsis;
+      const MU = 9.81 * (planetRadius ?? 1) ** 2;
+      const vCirc = Math.sqrt(MU / rApo);
+      const horiz = Math.sqrt(Math.max(0, t.surfaceSpeed ** 2 - t.vertical ** 2));
+      const deficit = Math.max(0, vCirc - horiz);
+      const accel = t.twr > 0 ? t.twr * 9.81 * burnThrottle : 1;
+      // Cap the lead sensibly. When the estimate saturated at 400 s one flight
+      // lit the engine at 383 km, wildly early, and never recovered.
+      const burnSeconds = Math.min(240, deficit / Math.max(0.5, accel));
+      sample.burnLead = Number(burnSeconds.toFixed(0));
+      // Do not start the burn while badly mis-aimed. Of four flights, the two
+      // that reached orbit began with the aim 24.8° and 17.5° out; one that
+      // failed began 158.9° out, pointing very nearly backwards, and spent the
+      // whole burn subtracting speed. Burning a little late but aimed is
+      // strictly better, so the gate is on aim as well as on time.
+      const aimedWellEnough = error < 20;
+      if (t.timeToApoapsis < burnSeconds / 2 && aimedWellEnough) {
+        burning = true;
+        burnStartedAt = elapsed;
+        trace.push({
+          t: elapsed,
+          note:
+            `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km, ` +
+            `${deficit.toFixed(0)} m/s to find, ~${burnSeconds.toFixed(0)}s of thrust`,
+        });
+      }
+    }
+
+    // Aim at one vector: the horizon, in the direction of travel. Angle and
+    // azimuth are then a single quantity with no discontinuity, which is what
+    // the previous attempts got wrong — a scalar tilt is direction-blind, and
+    // signing it introduced jumps that made the measured rate reach 1160 deg/s
+    // and pin the command at its limit.
     // Under a non-zero command the error must shrink. If it grows instead, say
     // so: steering the wrong way while reporting no error is the failure this
     // loop has had twice, and it cost several flights each time.
