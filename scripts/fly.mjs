@@ -963,7 +963,23 @@ async function circularise({
     if (steering && error < (thrusting ? 1.0 : 0.3)) steering = false;
     else if (!steering && error > (thrusting ? 2.5 : 1.0)) steering = true;
 
-    const throttle = burning ? burnThrottle : 0;
+    // A little thrust while slewing, because in coast this vehicle cannot point
+    // where it needs to.
+    //
+    // The measured axes say why: the pitch input is almost pure roll
+    // ([-0.011, 0.140, -0.004] with the nose along `up`), and the yaw and roll
+    // inputs came back nearly parallel to each other. The matrix is
+    // ill-conditioned, so the nose can only swing in one plane — and the aim
+    // sits outside it. The error fell from 84° to 44° and then stopped, which is
+    // the signature of a direction the controls cannot reach rather than of a
+    // gain that is too low.
+    //
+    // The engine gimbal is far stronger than the pod's torque and acts across
+    // the transverse axes, so idling the engine during the slew buys the
+    // authority. It costs a little propellant against a burn that is otherwise
+    // aimed 44° wrong.
+    const slewThrottle = !burning && error > 5 ? 0.15 : 0;
+    const throttle = burning ? burnThrottle : slewThrottle;
     if (elapsed < settleUntil) {
       // Riding out a separation transient: hands off.
       await post('/flight/input', {
