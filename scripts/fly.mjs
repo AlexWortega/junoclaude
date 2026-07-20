@@ -659,6 +659,7 @@ async function circularise({
   let prevTilt = null;
   let prevAt = null;
   let stillFor = 0;
+  let burnStartedAt = null;
   let growingFor = 0;
   let prevError = null;
 
@@ -762,7 +763,9 @@ async function circularise({
           note: `calibration done, residual tilt rate ${nullRate.toFixed(2)} deg/s`,
         });
       } else {
-        const c = Math.max(-0.03, Math.min(0.03, sign * -nullRate * 0.01));
+        // 0.01 per deg/s was too weak to stop the pulse inside the timeout: one
+        // run left calibration at 1.06 deg/s having never reached 0.4.
+        const c = Math.max(-0.05, Math.min(0.05, sign * -nullRate * 0.04));
         await post('/flight/input', { mode: 'hold', throttle: 0, pitch: c });
       }
       await sleep(sampleMs);
@@ -772,6 +775,7 @@ async function circularise({
     // Start the burn a little before the high point so it straddles apoapsis.
     if (!burning && t.timeToApoapsis !== null && t.timeToApoapsis < 25) {
       burning = true;
+      burnStartedAt = elapsed;
       trace.push({ t: elapsed, note: `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km` });
     }
 
@@ -856,11 +860,17 @@ async function circularise({
 
     // Only a burning engine can run dry; during the coast the thrust is zero
     // because the throttle is shut, which is not a reason to stage.
-    dryFor = burning && (t.thrust < 1 || t.stageFuel <= 0.01) ? dryFor + 1 : 0;
+    // A freshly commanded engine reads zero thrust for a second or two while it
+    // spools up. Counting that as a dry stage staged twice within 6.2 s at the
+    // start of one burn, throwing away two stages and leaving the 1432 N third
+    // stage to do the whole insertion. Wait for the engine to answer first.
+    const settled = burnStartedAt !== null && elapsed - burnStartedAt > 4;
+    dryFor = burning && settled && (t.thrust < 1 || t.stageFuel <= 0.01) ? dryFor + 1 : 0;
     if (dryFor >= 3 && t.stage < t.numStages - 1 && elapsed - lastStageAt > 6) {
       await post('/flight/stage', {});
       lastStageAt = elapsed;
       dryFor = 0;
+      burnStartedAt = elapsed;
       trace.push({ t: elapsed, note: `staged to ${t.stage + 1}/${t.numStages}` });
     }
 
