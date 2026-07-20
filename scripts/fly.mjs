@@ -198,7 +198,10 @@ function steerToward(t, nose, aim, axes, gain) {
 
   const wanted = scale(cross(n, a), gain.rate);
   const omega = t.angular ?? [0, 0, 0];
-  const b = add(wanted, scale(omega, -1));
+  // Close on the rate error with a first-order time constant. The axes are in
+  // rad/s² per unit command, so this asks for an acceleration and the solve
+  // returns the command that produces it.
+  const b = scale(add(wanted, scale(omega, -1)), gain.bandwidth);
 
   // Cramer's rule on [P Y R] x = b.
   const det = dot(P, cross(Y, R));
@@ -777,31 +780,40 @@ async function circularise({
       if (calibration.startedAt === null) calibration.startedAt = elapsed;
       const omega = t.angular ?? [0, 0, 0];
       const ORDER = ['pitch', 'yaw', 'roll'];
+      const PULSE_S = 1.2;
 
       if (calibration.index < ORDER.length) {
         const axis = ORDER[calibration.index];
         if (calibration.at === null) {
           calibration.at = elapsed;
           calibration.omega0 = omega;
-        } else if (elapsed - calibration.at >= 1.2) {
-          const d = add(omega, scale(calibration.omega0, -1));
+        } else if (elapsed - calibration.at >= PULSE_S) {
+          // Angular *acceleration* per unit command, not the velocity the pulse
+          // happened to accumulate. Dividing by the pulse length matters: the
+          // raw difference scales with it, so shortening the pulse from 2.5 s
+          // to 1.2 s silently doubled every command the solver produced and the
+          // craft tumbled at 1.5 rad/s with the inputs pinned to their limits.
+          const d = scale(add(omega, scale(calibration.omega0, -1)), 1 / (calibration.cmd * PULSE_S));
           axes[axis] = [
-            dot(d, unit(t.att.right)) / calibration.cmd,
-            dot(d, unit(t.att.up)) / calibration.cmd,
-            dot(d, unit(t.att.forward)) / calibration.cmd,
+            dot(d, unit(t.att.right)),
+            dot(d, unit(t.att.up)),
+            dot(d, unit(t.att.forward)),
           ];
           trace.push({
             t: elapsed,
-            note: `${axis} axis per unit command (body) = [${axes[axis]
+            note: `${axis} axis (body) = [${axes[axis]
               .map((x) => x.toFixed(3))
-              .join(', ')}] rad/s`,
+              .join(', ')}] rad/s² per unit command`,
           });
           calibration.index += 1;
           calibration.at = null;
         }
         const zeros = { pitch: 0, yaw: 0, roll: 0 };
         const held = calibration.at === null ? zeros : { ...zeros, [axis]: calibration.cmd };
-        await post('/flight/input', { mode: 'hold', throttle: 0, ...held });
+        // Keep burning through a mid-flight recalibration: the pulses perturb
+        // the attitude by a degree or two, which is far cheaper than shutting
+        // the engine down near apoapsis.
+        await post('/flight/input', { mode: 'hold', throttle: burning ? burnThrottle : 0, ...held });
         await sleep(sampleMs);
         continue;
       }
@@ -830,11 +842,11 @@ async function circularise({
           nose,
           scale(unit(t.att[nose.axis]), nose.sign), // aim at where it already points
           axes,
-          { rate: 0, damp: 1, clamp: 0.3 }
+          { rate: 0, bandwidth: 0.5, damp: 1, clamp: 0.3 }
         );
         await post('/flight/input', {
           mode: 'hold',
-          throttle: 0,
+          throttle: burning ? burnThrottle : 0,
           pitch: stop.pitch,
           yaw: stop.yaw,
           roll: stop.roll,
@@ -883,8 +895,8 @@ async function circularise({
     // bandwidth the rate demand can be far more aggressive without the
     // under-damped swinging that a slow loop produced.
     const gain = thrusting
-      ? { rate: 0.12, damp: 1, clamp: 0.3 }
-      : { rate: 0.2, damp: 1, clamp: 0.4 };
+      ? { rate: 0.06, bandwidth: 0.5, damp: 1, clamp: 0.25 }
+      : { rate: 0.10, bandwidth: 0.5, damp: 1, clamp: 0.3 };
 
     const steer = steerToward(t, nose, aim, axes, gain);
     const error = steer.errDeg;
@@ -942,7 +954,19 @@ async function circularise({
       lastStageAt = elapsed;
       drySince = null;
       burnStartedAt = elapsed;
-      trace.push({ t: elapsed, note: `staged to ${t.stage + 1}/${t.numStages}` });
+      // The calibrated axes describe the vehicle that was measured. Dropping a
+      // stage changes the mass, the inertia and which engine is gimballing, and
+      // the old axes then steer the wrong way: one burn held the aim inside 25°
+      // until it staged, then lost it to 93° within twenty seconds. Re-measure.
+      calibration.state = 'calibrating';
+      calibration.index = 0;
+      calibration.at = null;
+      calibration.settleAt = null;
+      calibration.startedAt = null;
+      trace.push({
+        t: elapsed,
+        note: `staged to ${t.stage + 1}/${t.numStages}, recalibrating axes`,
+      });
     }
 
     await sleep(sampleMs);
