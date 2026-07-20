@@ -162,7 +162,14 @@ function tiltFromVertical(t, nose) {
  * polarity of each input axis, which the calibration below measures.
  */
 function steerCommand(t, nose, tiltDeg, azimuthUnit, gain, polarity) {
-  const rad = (tiltDeg * Math.PI) / 180;
+  // Chase the target no more than a right angle at a time. `axis = n × target`
+  // has magnitude sin(error), so beyond 90° the term shrinks again and past a
+  // point the projection changes sign: a flight commanded to 140° sat at
+  // cmd 0.000 while the tilt slid the wrong way, from 61° back to 6°, with the
+  // loop believing it was holding the requested rate.
+  const current = tiltFromVertical(t, nose);
+  const capped = Math.max(current - 80, Math.min(current + 80, tiltDeg));
+  const rad = (capped * Math.PI) / 180;
   const target = unit(
     add(scale(zenithOf(t), Math.cos(rad)), scale(azimuthUnit, Math.sin(rad)))
   );
@@ -275,13 +282,13 @@ function throttleFor(t, cap) {
  */
 function scheduledTiltDeg(altitude) {
   const table = [
-    [1000, 10],
-    [5000, 20],
-    [10000, 32],
-    [20000, 48],
-    [35000, 65],
-    [60000, 80],
-    [90000, 88],
+    [8000, 5],
+    [15000, 15],
+    [25000, 32],
+    [40000, 52],
+    [60000, 70],
+    [85000, 85],
+    [110000, 90],
   ];
   if (altitude <= table[0][0]) return 0;
   for (let i = 1; i < table.length; i++) {
@@ -289,7 +296,7 @@ function scheduledTiltDeg(altitude) {
     const [aLo, tLo] = table[i - 1];
     if (altitude <= aHi) return tLo + ((altitude - aLo) / (aHi - aLo)) * (tHi - tLo);
   }
-  return 88;
+  return 90;
 }
 
 /** Angle of the surface velocity vector from the local vertical, in degrees. */
@@ -304,14 +311,18 @@ async function ascend({
   sampleMs = 250,
   targetApoapsis = null,
   gravityTurn = false,
-  turnStart = 45000,
+  turnStart = 8000,
+  engageDeg = 12,
+  releaseDeg = 3,
+  insertionApoapsis = 95000,
+  insertionAltitude = 60000,
   turnEnd = 45000,
   trace = [],
   started = Date.now(),
   probe = null,
   polarity = { pitch: 1, yaw: 1 },
   kickTiltDeg = 10,
-  gains = { rate: 0.03, damp: 2, clamp: 0.025 },
+  gains = { rate: 0.06, damp: 2, clamp: 0.06 },
   twrCap = 2.2,
 }) {
   let nose = null;
@@ -323,6 +334,7 @@ async function ascend({
   let frozenFor = 0;
   let dryFor = 0;
   let holdingPitch = false;
+  let steering = false;
 
   await post('/flight/input', { mode: 'hold', throttle: 1 });
   // Throttle alone does nothing: the first stage still has to be activated,
@@ -458,20 +470,22 @@ async function ascend({
         // Hold prograde once the turn has begun: that is what a gravity turn
         // is, and it keeps the angle of attack near zero. The kick floor gets
         // it started, since prograde is still straight up at that moment.
-        // Once there is real horizontal speed, aim straight at the horizontal
-        // direction of travel: that is where every remaining newton should go
-        // to raise periapsis. Holding a fixed angle from the vertical instead
-        // drifts, because the vertical itself rotates as the craft flies — the
-        // tilt crept from 88° to 144° while the loop reported no error.
-        const horizSpeed = Math.sqrt(
-          Math.max(0, t.surfaceSpeed ** 2 - t.vertical ** 2)
-        );
+        // While the apoapsis is still being raised, follow the schedule. Once
+        // it is high enough the job changes: the remaining thrust has to both
+        // add horizontal speed and slowly bleed off the climb, so the nose
+        // goes just past the horizon. Only just: asking for 140° made the slew
+        // overshoot to 173°, which pointed the thrust backwards and collapsed
+        // the horizontal speed from 457 to 169 m/s. Near 90° is where the
+        // horizontal speed actually accumulates.
         const wanted =
           t.altitude < turnStart
             ? 0
-            : horizSpeed > 300
-              ? 90
-              : Math.max(scheduledTiltDeg(t.altitude), progradeTiltDeg(t));
+            : t.apoapsis !== null &&
+                t.apoapsis > insertionApoapsis &&
+                t.altitude > insertionAltitude
+              ? 90 + Math.max(0, Math.min(12, t.vertical / 80))
+              : Math.min(90, scheduledTiltDeg(t.altitude));
+
         sample.wantTilt = Number(wanted.toFixed(1));
 
         // Only override the pitch axis while actually steering, and release it
@@ -483,7 +497,26 @@ async function ascend({
         // both polarities ran the tilt from 0 to 170° in twenty seconds, while
         // flights that never posted a pitch value at all flew dead straight to
         // 82 km. Passing null releases the axis back to the game.
-        if (t.altitude < turnStart) {
+        // Slew with the axis held, then hand the attitude back to the game.
+        //
+        // Overriding an axis switches off the game's own stability assist, and
+        // the assist holds the craft's attitude: with the axis released the
+        // vehicle flew 90 s dead straight, and while a weak command fought it
+        // the tilt stayed pinned at 7° against a 60° demand. Both behaviours
+        // are useful, in different phases. Slewing needs the assist out of the
+        // way; burning needs it holding the nose still, which the loop cannot
+        // do on a light upper stage — the tilt oscillated 87°→170°→35° once the
+        // craft was down to 37 kg.
+        //
+        // So: engage to slew when well off target, release once close, and do
+        // not re-engage until it has drifted well off again. Without the gap
+        // between the two thresholds the assist re-centres the craft on every
+        // other sample and the turn never opens.
+        const error = Math.abs(tilt - wanted);
+        if (steering && error < releaseDeg) steering = false;
+        else if (!steering && error > engageDeg) steering = true;
+
+        if (t.altitude < turnStart || !steering) {
           if (holdingPitch) {
             await post('/flight/input', { mode: 'hold', throttle: 1, pitch: null });
             holdingPitch = false;
@@ -546,7 +579,7 @@ async function ascend({
     await sleep(sampleMs);
   }
 
-  return { trace, lastParts };
+  return { trace, lastParts, nose };
 }
 
 /**
@@ -558,11 +591,37 @@ async function ascend({
  * only thing that raises periapsis is adding horizontal speed at apoapsis, so
  * this phase holds the nose on the horizon and burns there.
  */
-async function circularise({ trace, targetPeriapsis, durationS, sampleMs = 500, startedAt }) {
+async function circularise({
+  trace,
+  targetPeriapsis,
+  durationS,
+  sampleMs = 250,
+  startedAt,
+  nose,
+  polarity,
+  gains = { rate: 0.06, damp: 2, clamp: 0.06 },
+  engageDeg = 10,
+  releaseDeg = 3,
+  adaptSign = process.env.JUNO_ADAPT_SIGN === '1',
+}) {
   const elapsedNow = () => (Date.now() - startedAt) / 1000;
   let burning = false;
+  let steering = false;
+  let holdingPitch = false;
+  let lastStageAt = elapsedNow();
+  let dryFor = 0;
+  // The polarity of the pitch channel is learned in flight rather than derived.
+  // `dot(n × target, right)` has repeatedly come out with the wrong sign in
+  // some geometries, and the failure is silent: the loop reports cmd -0.001,
+  // believing it holds the commanded rate, while the nose slides the other way
+  // — one burn watched the tilt go 78° to 6° and the horizontal speed fall from
+  // 1119 back to 640 m/s. Watching whether the error actually shrinks catches
+  // that in a couple of seconds whichever way the geometry happens to fall.
+  let sign = polarity.pitch;
+  let wrongFor = 0;
+  let prevError = null;
 
-  await post('/flight/input', { mode: 'hold', throttle: 0, pitch: 0 });
+  await post('/flight/input', { mode: 'hold', throttle: 0 });
 
   while (elapsedNow() < durationS) {
     let t;
@@ -574,44 +633,92 @@ async function circularise({ trace, targetPeriapsis, durationS, sampleMs = 500, 
       await sleep(sampleMs);
       continue;
     }
-    trace.push({ t: Number(elapsedNow().toFixed(1)), phase: 'circularise', ...t });
+
+    const elapsed = elapsedNow();
+    const sample = { t: Number(elapsed.toFixed(1)), phase: 'circularise', ...t };
+    trace.push(sample);
 
     if (t.apoapsis === null) {
-      trace.push({ t: elapsedNow(), note: 'orbit went invalid during coast' });
+      trace.push({ t: elapsed, note: 'orbit went invalid during coast' });
       break;
     }
-
     if (t.periapsis >= targetPeriapsis) {
-      await post('/flight/input', { mode: 'hold', throttle: 0 });
+      await post('/flight/input', { mode: 'hold', throttle: 0, pitch: null });
       trace.push({
-        t: elapsedNow(),
-        note: `orbit achieved: periapsis ${(t.periapsis / 1000).toFixed(1)}km`,
+        t: elapsed,
+        note: `ORBIT: periapsis ${(t.periapsis / 1000).toFixed(1)}km apoapsis ${(t.apoapsis / 1000).toFixed(1)}km`,
       });
       break;
     }
-
-    // Start the burn shortly before apoapsis so the burn straddles it, which
-    // wastes less than burning entirely after the high point.
-    const nearApoapsis = t.timeToApoapsis !== null && t.timeToApoapsis < 20;
-    if (!burning && nearApoapsis) {
-      burning = true;
-      trace.push({ t: elapsedNow(), note: 'circularisation burn' });
+    if (t.altitude < 20000 && t.vertical < -100) {
+      trace.push({ t: elapsed, note: 'aborted: re-entered before circularising' });
+      break;
     }
 
-    // Hold the nose on the horizon: at apoapsis all the thrust should go into
-    // horizontal speed, none into climbing higher.
-    const error = 0 - t.pitch;
-    const command = Math.max(-1, Math.min(1, error / 45));
-    await post('/flight/input', {
-      mode: 'hold',
-      throttle: burning ? 1 : 0,
-      pitch: command,
-    });
+    // Point along the horizon, in the direction the craft is already moving.
+    // At apoapsis every newton spent this way goes into raising periapsis, and
+    // the target is a single fixed direction rather than a moving schedule —
+    // which is the whole reason for coasting up here first.
+    const tilt = tiltFromVertical(t, nose);
+    sample.tilt = Number(tilt.toFixed(1));
+    const reach = cross(unit(t.att.right), scale(unit(t.att[nose.axis]), nose.sign));
+    const z = zenithOf(t);
+    const horizontal = (() => {
+      const h = add(reach, scale(z, -dot(reach, z)));
+      if (vecLength(h) < 1e-6) return unit(t.att.east);
+      const v = t.velocityVector ?? [0, 0, 0];
+      const vh = add(v, scale(z, -dot(v, z)));
+      return vecLength(vh) > 20 && dot(unit(h), vh) < 0 ? scale(unit(h), -1) : unit(h);
+    })();
 
-    if (burning && t.thrust < 1 && t.stage < t.numStages) {
+    // Start the burn a little before the high point so it straddles apoapsis.
+    if (!burning && t.timeToApoapsis !== null && t.timeToApoapsis < 25) {
+      burning = true;
+      trace.push({ t: elapsed, note: `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km` });
+    }
+
+    const error = Math.abs(tilt - 90);
+    // Off by default: on a craft that is already oscillating this reacts to the
+    // oscillation rather than to a genuine sign error and chatters, flipping
+    // twelve times in forty seconds and making the burn worse. It needs a much
+    // longer window of evidence than a tumbling upper stage ever provides.
+    if (adaptSign && steering && prevError !== null && error > prevError + 0.05) {
+      if (++wrongFor >= 4) {
+        sign = -sign;
+        wrongFor = 0;
+        trace.push({ t: elapsed, note: `pitch polarity flipped to ${sign}` });
+      }
+    } else if (steering) wrongFor = 0;
+    prevError = steering ? error : null;
+
+    if (steering && error < releaseDeg) steering = false;
+    else if (!steering && error > engageDeg) steering = true;
+
+    const throttle = burning ? 1 : 0;
+    if (steering) {
+      const cmd = steerCommand(t, nose, 90, horizontal, gains, { ...polarity, pitch: sign });
+      sample.cmdPitch = Number(cmd.pitch.toFixed(3));
+      holdingPitch = true;
+      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd.pitch });
+    } else {
+      // Hand the nose back to the game's stability assist, which holds it far
+      // better than this loop can at four samples a second.
+      await post('/flight/input', {
+        mode: 'hold',
+        throttle,
+        ...(holdingPitch ? { pitch: null } : {}),
+      });
+      holdingPitch = false;
+    }
+
+    // Only a burning engine can run dry; during the coast the thrust is zero
+    // because the throttle is shut, which is not a reason to stage.
+    dryFor = burning && (t.thrust < 1 || t.stageFuel <= 0.01) ? dryFor + 1 : 0;
+    if (dryFor >= 3 && t.stage < t.numStages - 1 && elapsed - lastStageAt > 6) {
       await post('/flight/stage', {});
-      trace.push({ t: elapsedNow(), note: 'staged during circularisation' });
-      await sleep(1000);
+      lastStageAt = elapsed;
+      dryFor = 0;
+      trace.push({ t: elapsed, note: `staged to ${t.stage + 1}/${t.numStages}` });
     }
 
     await sleep(sampleMs);
@@ -704,6 +811,10 @@ async function main() {
     : 70000;
 
   const trace = [];
+  // The climb is flown with no attitude input whatsoever: overriding an axis
+  // disables the game's stability assist, and left alone the vehicle holds a
+  // dead-straight vertical climb. All the turning happens in the coast, where
+  // there is no thrust and no hurry.
   // A calibration flight: hold one axis at a fixed command from the given time
   // and record how the nose swings, which settles the polarity of that input.
   const probe =
@@ -714,7 +825,7 @@ async function main() {
           input: JSON.parse(process.env.JUNO_PROBE),
         };
 
-  await ascend({
+  const climb = await ascend({
     durationS,
     trace,
     started,
@@ -723,9 +834,11 @@ async function main() {
       pitch: Number(process.env.JUNO_PITCH_SIGN ?? 1),
       yaw: Number(process.env.JUNO_YAW_SIGN ?? 1),
     },
-    gravityTurn: process.env.JUNO_GRAVITY_TURN === '1',
+    gravityTurn: false,
     kickTiltDeg: Number(process.env.JUNO_KICK_TILT ?? 10),
-    turnStart: Number(process.env.JUNO_TURN_START ?? 45000),
+    turnStart: Number(process.env.JUNO_TURN_START ?? 8000),
+    engageDeg: Number(process.env.JUNO_ENGAGE ?? 12),
+    releaseDeg: Number(process.env.JUNO_RELEASE ?? 3),
     twrCap: Number(process.env.JUNO_TWR_CAP ?? 2.2),
     targetApoapsis,
   });
@@ -733,7 +846,17 @@ async function main() {
   // Reaching the target apoapsis is only half an orbit: without a burn at the
   // high point the periapsis stays underground and the craft comes back down.
   if (targetApoapsis !== null)
-    await circularise({ trace, targetPeriapsis, durationS, startedAt: started });
+    await circularise({
+      trace,
+      targetPeriapsis,
+      durationS,
+      startedAt: started,
+      nose: climb.nose,
+      polarity: {
+        pitch: Number(process.env.JUNO_PITCH_SIGN ?? 1),
+        yaw: Number(process.env.JUNO_YAW_SIGN ?? 1),
+      },
+    });
 
   await post('/flight/input', { mode: 'clear' }).catch(() => {});
   console.log(summarise(trace));
