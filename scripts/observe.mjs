@@ -72,6 +72,7 @@ const started = Date.now();
 let radius = null;
 let frozenSince = null;
 let prev = null;
+let warpMode = 1;
 
 while ((Date.now() - started) / 1000 < durationS) {
   let t;
@@ -129,8 +130,32 @@ while ((Date.now() - started) / 1000 < durationS) {
   } else frozenSince = null;
   prev = row;
 
+  // Warp through the ballistic coast, and only there.
+  //
+  // The requested modeIndex comes back one lower than asked for, so the values
+  // here are what the bridge actually reports: 4 is 10x, 6 is 100x. High warp
+  // is refused outright while the craft is on an impact course, which is a
+  // useful signal in itself — a vehicle that cannot warp is not in an orbit.
+  //
+  // Only on unpowered coast, and back to normal well before the burn: the
+  // program aboard waits in half-second steps, and at 10x those become five
+  // seconds, which is enough to overshoot a burn start.
+  const coasting = row.thrust < 1 && row.altitude > 60000 && !row.grounded;
+  const nearBurn = row.apoapsis !== null && t.orbit?.timeToApoapsis < 120;
+  const wantWarp = coasting && !nearBurn ? 5 : 1;
+  if (wantWarp !== warpMode) {
+    try {
+      const r = await post('/flight/timewarp', { modeIndex: wantWarp });
+      warpMode = wantWarp;
+      trace.push({ t: elapsed, note: `timewarp ${r.modeName}` });
+    } catch {
+      warpMode = 1; // refused, usually an impact course; try again later
+    }
+  }
+
   await sleep(200);
 }
+await post('/flight/timewarp', { modeIndex: 1 }).catch(() => {});
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const file = `/tmp/juno-obs-${craftId.replace(/\W+/g, '_')}-${stamp}.json`;
