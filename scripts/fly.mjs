@@ -151,39 +151,6 @@ function tiltFromVertical(t, nose) {
   return (Math.acos(Math.max(-1, Math.min(1, dot(n, zenithOf(t))))) * 180) / Math.PI;
 }
 
-/**
- * Tilt signed by whether the nose leans along the direction of travel or
- * against it: +90 is horizontal and prograde, -90 horizontal and retrograde.
- *
- * The unsigned angle is direction-blind, and that is a hole big enough to lose
- * an orbit through. A craft pointing backwards along the horizon reads exactly
- * 90 and the loop reports no error at all, while the burn subtracts horizontal
- * speed instead of adding it — one flight watched it fall from 1507 to 555 m/s
- * with the tilt sitting on target the whole way. Signing it makes that a 180°
- * error, which the loop then rotates out through the vertical.
- */
-function signedTilt(t, nose) {
-  const tilt = tiltFromVertical(t, nose);
-  const z = zenithOf(t);
-  const flat = (v) => add(v, scale(z, -dot(v, z)));
-  const noseFlat = flat(scale(unit(t.att[nose.axis]), nose.sign));
-  const velFlat = flat(t.velocityVector ?? [0, 0, 0]);
-  // Near the vertical the nose has almost no horizontal part and the sign is
-  // noise; the error is then about 90° whichever way it is read, so leave it.
-  if (vecLength(noseFlat) < 1e-3 || vecLength(velFlat) < 20) return tilt;
-  return dot(unit(noseFlat), unit(velFlat)) >= 0 ? tilt : -tilt;
-}
-
-/**
- * Steer the nose towards a direction tilted `tiltDeg` from the vertical, in the
- * given compass azimuth.
- *
- * The rotation that takes the nose onto the target is about `nose × target`,
- * whose magnitude is the sine of the angle still to close. Projecting that axis
- * onto the two body axes perpendicular to the nose gives the two rate commands
- * directly, so nothing has to be guessed from the frame's handedness — only the
- * polarity of each input axis, which the calibration below measures.
- */
 function steerCommand(t, nose, tiltDeg, azimuthUnit, gain, polarity) {
   // Chase the target no more than a right angle at a time. `axis = n × target`
   // has magnitude sin(error), so beyond 90° the term shrinks again and past a
@@ -655,7 +622,8 @@ async function circularise({
   // d(tilt)/d(cmd) directly sidesteps all of it: it is measured per flight, in
   // the same scalar the loop steers on.
   let sign = polarity.pitch;
-  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06, prevTilt: null, prevAt: null };
+  let calibration = { state: 'pulse', at: null, tilt0: null, cmd: 0.06 };
+  let axisBody = [0, 0, 0];
   let prevTilt = null;
   let prevAt = null;
   let stillFor = 0;
@@ -703,56 +671,56 @@ async function circularise({
     // At apoapsis every newton spent this way goes into raising periapsis, and
     // the target is a single fixed direction rather than a moving schedule —
     // which is the whole reason for coasting up here first.
-    const tilt = signedTilt(t, nose);
-    sample.tilt = Number(tilt.toFixed(1));
-    const reach = cross(unit(t.att.right), scale(unit(t.att[nose.axis]), nose.sign));
-    const z = zenithOf(t);
-    const horizontal = (() => {
-      const h = add(reach, scale(z, -dot(reach, z)));
-      if (vecLength(h) < 1e-6) return unit(t.att.east);
-      const v = t.velocityVector ?? [0, 0, 0];
-      const vh = add(v, scale(z, -dot(v, z)));
-      return vecLength(vh) > 20 && dot(unit(h), vh) < 0 ? scale(unit(h), -1) : unit(h);
-    })();
+    const tilt = tiltFromVertical(t, nose);
 
     // Calibrate the pitch polarity before doing anything else with the axis.
     // The plant is dω/dt = P·cmd; for the loop to be stable its polarity has to
     // equal sign(P), so a known command is held briefly and the resulting change
     // in rotation rate about `right` is measured.
     if (calibration.state !== 'done') {
-      const omega = rateAboutRight(t);
+      const omega = t.angular ?? [0, 0, 0];
       if (calibration.state === 'pulse') {
         if (calibration.at === null) {
           calibration.at = elapsed;
           calibration.tilt0 = tilt;
         } else if (elapsed - calibration.at >= 2.5) {
-          const delta = tilt - calibration.tilt0;
-          sign = delta > 0 ? 1 : -1;
+          // Store the angular velocity per unit command, in *body* coordinates
+          // where it is constant. This replaces every attempt to derive the
+          // rotation sense from cross products: the game's frame is left-handed
+          // and the craft's roll at spawn varies, so two runs measured +0.0558
+          // and -0.0553 rad/s for the same command. Measuring the axis itself
+          // makes all of that irrelevant.
+          const omega = t.angular ?? [0, 0, 0];
+          axisBody = [
+            dot(omega, unit(t.att.right)) / calibration.cmd,
+            dot(omega, unit(t.att.up)) / calibration.cmd,
+            dot(omega, unit(t.att.forward)) / calibration.cmd,
+          ];
           calibration.state = 'null';
           trace.push({
             t: elapsed,
             note:
-              `pitch calibration: cmd +${calibration.cmd} moved tilt by ` +
-              `${delta.toFixed(1)}°, so +cmd ${sign > 0 ? 'raises' : 'lowers'} tilt`,
+              `pitch calibration: rotation axis per unit command (body) = [` +
+              axisBody.map((x) => x.toFixed(3)).join(', ') + `] rad/s`,
           });
         }
         await post('/flight/input', { mode: 'hold', throttle: 0, pitch: calibration.cmd });
         await sleep(sampleMs);
         continue;
       }
-      // Stop the rotation the pulse started before handing over to the loop,
-      // measured in the same scalar everything else here uses.
+      // Stop the rotation the pulse started before handing over to the loop.
       //
-      // Nulling `ω · right` instead does not work: pitch does not necessarily
-      // act about the craft's `right` axis, so that projection can be small
-      // while the craft is still swinging. A run left the calibration at
-      // -0.0135 rad/s on the timeout having never reached the threshold, and
-      // carried the leftover spin into the slew.
-      const nullRate = calibration.prevTilt === null ? 0 : (tilt - calibration.prevTilt) / (elapsed - calibration.prevAt);
-      calibration.prevTilt = tilt;
-      calibration.prevAt = elapsed;
-
-      if (Math.abs(nullRate) < 0.4) stillFor += 1;
+      // Damp the measured rotation directly, using the axis just calibrated:
+      // the command that best cancels it is the projection of -omega onto the
+      // achievable axis. Working from the tilt scalar instead never converged,
+      // because that scalar is discontinuous.
+      const U = add(
+        add(scale(unit(t.att.right), axisBody[0]), scale(unit(t.att.up), axisBody[1])),
+        scale(unit(t.att.forward), axisBody[2])
+      );
+      const uu = dot(U, U);
+      const nullRate = vecLength(omega);
+      if (nullRate < 0.01) stillFor += 1;
       else stillFor = 0;
       if (stillFor >= 4 || elapsed - calibration.at > 40) {
         calibration.state = 'done';
@@ -760,13 +728,15 @@ async function circularise({
         holdingPitch = false;
         trace.push({
           t: elapsed,
-          note: `calibration done, residual tilt rate ${nullRate.toFixed(2)} deg/s`,
+          note: `calibration done, residual rotation ${nullRate.toFixed(4)} rad/s`,
         });
       } else {
-        // 0.01 per deg/s was too weak to stop the pulse inside the timeout: one
-        // run left calibration at 1.06 deg/s having never reached 0.4.
-        const c = Math.max(-0.05, Math.min(0.05, sign * -nullRate * 0.04));
-        await post('/flight/input', { mode: 'hold', throttle: 0, pitch: c });
+        const c = uu < 1e-9 ? 0 : dot(scale(omega, -1), U) / uu;
+        await post('/flight/input', {
+          mode: 'hold',
+          throttle: 0,
+          pitch: Math.max(-0.1, Math.min(0.1, c)),
+        });
       }
       await sleep(sampleMs);
       continue;
@@ -779,87 +749,49 @@ async function circularise({
       trace.push({ t: elapsed, note: `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km` });
     }
 
-    // Two different regimes, and they need different handling.
-    //
-    // Coasting, the only actuator is the command pod's own torque: the loop
-    // converges cleanly, taking the tilt 8° to 89° with the command tapering
-    // 0.025 -> 0.002 -> -0.009 on the way in. So hold it there continuously.
-    // Releasing at 90° hands the nose to the stability assist, which holds
-    // attitude *inertially* — and over a hundred seconds of coast the local
-    // vertical rotates out from under it, drifting the tilt to 126° by the time
-    // the burn starts. That drift alone pointed the first burn backwards and
-    // dropped the horizontal speed from 195 to 129 m/s.
-    //
-    // Burning, the engine gimbal is the actuator and it is far stronger. The
-    // same gains that converge on pod torque tumbled the craft, swinging the
-    // tilt 173° -> 7° -> 170°. So the burn uses a fraction of the gain and
-    // leans on the assist through a deadband.
-    // Damping has to be strong and the position term gentle. With both at one
-    // gain the loop tracked well until stage two ran light, then lost it: the
-    // tilt rate went 2 -> 8 -> 22 -> -39 deg/s in five seconds while the command
-    // was still only -0.05. A rate error now commands most of the available
-    // authority, so a developing tumble is arrested, while the angle error alone
-    // never asks for more than a couple of degrees a second.
-    // Select on thrust that has actually arrived, not on thrust that has been
-    // commanded. `burning` flips the moment the throttle opens, but the engine
-    // takes a second or two to answer, and until it does the only actuator is
-    // still the pod's own torque — so the burn gains, tuned against a far
-    // stronger gimbal, are wrong for that window.
-    //
-    // This is the third place in this loop with the same mistake: staging fired
-    // on a spooling engine in the climb, then again in the burn. Anywhere a
-    // decision keys on thrust, it has to key on the measured value.
+    // Aim at one vector: the horizon, in the direction of travel. Angle and
+    // azimuth are then a single quantity with no discontinuity, which is what
+    // the previous attempts got wrong — a scalar tilt is direction-blind, and
+    // signing it introduced jumps that made the measured rate reach 1160 deg/s
+    // and pin the command at its limit.
+    const z = zenithOf(t);
+    const vel = t.velocityVector ?? [0, 0, 0];
+    const flat = add(vel, scale(z, -dot(vel, z)));
+    const aim = vecLength(flat) > 20 ? unit(flat) : unit(cross(z, unit(t.att.right)));
+
+    // Gains follow measured thrust, not commanded: the engine takes a second or
+    // two to answer, and until it does the only actuator is the pod's torque.
     const thrusting = t.thrust > 1;
-    const activeGain = thrusting ? 0.01 : 0.012;
-    const rateLimit = thrusting ? 2.5 : 4;
-    // Hold the burn attitude tightly. A wide deadband lets the error grow to
-    // 10° before the loop reacts, and at full thrust that misdirects a large
-    // amount of impulse: attempts drifted 14-38° off and their periapsis ended
-    // hundreds of kilometres apart from the same configuration.
-    const activeEngage = thrusting ? 4 : 1;
-    const activeRelease = thrusting ? 1.5 : 0.4;
+    const gain = thrusting
+      ? { rate: 0.15, damp: 0.5, clamp: 0.05 }
+      : { rate: 0.25, damp: 0.8, clamp: 0.12 };
 
-    const error = Math.abs(tilt - 90);
+    const steer = steerToward(t, nose, aim, axisBody, gain);
+    const error = steer.errDeg;
+    sample.tilt = Number(tiltFromVertical(t, nose).toFixed(1));
+    sample.aimError = Number(error.toFixed(1));
 
-    // Sanity check: under a non-zero command the error must shrink. If it grows
-    // instead, say so in the trace. Silently steering the wrong way is the worst
-    // failure mode this loop has had, and it cost several flights before it was
-    // spotted — an alarm makes it obvious in the summary.
+    // Under a non-zero command the error must shrink. If it grows instead, say
+    // so: steering the wrong way while reporting no error is the failure this
+    // loop has had twice, and it cost several flights each time.
     if (steering && prevError !== null && error > prevError + 0.05) {
       if (++growingFor === 3)
         trace.push({
           t: elapsed,
-          note: `WARNING: error growing under command (${prevError.toFixed(1)}° -> ${error.toFixed(1)}°), polarity ${sign} may be wrong`,
+          note: `WARNING: aim error growing under command (${prevError.toFixed(1)}° -> ${error.toFixed(1)}°)`,
         });
     } else if (steering) growingFor = 0;
     prevError = steering ? error : null;
 
-    if (steering && error < activeRelease) steering = false;
-    else if (!steering && error > activeEngage) steering = true;
+    if (steering && error < (thrusting ? 1.5 : 0.5)) steering = false;
+    else if (!steering && error > (thrusting ? 4 : 2)) steering = true;
 
-    // Burn at part throttle. The vehicle carries roughly three times the Δv it
-    // needs, so trading burn efficiency for control is cheap — at full thrust a
-    // given attitude error misdirects the maximum possible impulse, and the
-    // 4 Hz loop gets the fewest samples per unit of Δv exactly when it matters.
     const throttle = burning ? burnThrottle : 0;
-    // Cascade in tilt: the angle error asks for a turn rate, and the command
-    // closes on that rate using the rate actually measured between samples.
-    const dt = prevAt === null ? 0 : elapsed - prevAt;
-    const tiltRate = dt > 0.05 ? (tilt - prevTilt) / dt : 0;
-    prevTilt = tilt;
-    prevAt = elapsed;
-
     if (steering) {
-      const wantedRate = Math.max(-rateLimit, Math.min(rateLimit, (90 - tilt) * 0.25)); // deg/s
-      const raw = sign * activeGain * (wantedRate - tiltRate);
-      const cmd = Math.max(-0.12, Math.min(0.12, raw));
-      sample.cmdPitch = Number(cmd.toFixed(4));
-      sample.tiltRate = Number(tiltRate.toFixed(2));
+      sample.cmdPitch = Number(steer.cmd.toFixed(4));
       holdingPitch = true;
-      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd });
+      await post('/flight/input', { mode: 'hold', throttle, pitch: steer.cmd });
     } else {
-      // Hand the nose back to the game's stability assist, which holds it far
-      // better than this loop can at four samples a second.
       await post('/flight/input', {
         mode: 'hold',
         throttle,
