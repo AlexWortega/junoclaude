@@ -856,11 +856,34 @@ async function circularise({
       continue;
     }
 
-    // Start the burn a little before the high point so it straddles apoapsis.
-    if (!burning && t.timeToApoapsis !== null && t.timeToApoapsis < 25) {
-      burning = true;
-      burnStartedAt = elapsed;
-      trace.push({ t: elapsed, note: `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km` });
+    // Start the burn half a burn-length before apoapsis, so it straddles the
+    // high point instead of running almost entirely past it.
+    //
+    // A fixed 25 s lead was far too short: this vehicle needs minutes of thrust
+    // to make orbital speed, so essentially the whole burn happened after
+    // apoapsis and simply pushed apoapsis higher — one flight watched it climb
+    // from 200 km to 1445 km while periapsis barely moved. The length is
+    // estimated from the speed still to find and the acceleration available,
+    // both of which are in telemetry.
+    if (!burning && t.timeToApoapsis !== null && t.apoapsis !== null) {
+      const rApo = (planetRadius ?? 0) + t.apoapsis;
+      const MU = 9.81 * (planetRadius ?? 1) ** 2;
+      const vCirc = Math.sqrt(MU / rApo);
+      const horiz = Math.sqrt(Math.max(0, t.surfaceSpeed ** 2 - t.vertical ** 2));
+      const deficit = Math.max(0, vCirc - horiz);
+      const accel = t.twr > 0 ? t.twr * 9.81 * burnThrottle : 1;
+      const burnSeconds = Math.min(400, deficit / Math.max(0.5, accel));
+      sample.burnLead = Number(burnSeconds.toFixed(0));
+      if (t.timeToApoapsis < burnSeconds / 2) {
+        burning = true;
+        burnStartedAt = elapsed;
+        trace.push({
+          t: elapsed,
+          note:
+            `circularisation burn at ${(t.altitude / 1000).toFixed(0)}km, ` +
+            `${deficit.toFixed(0)} m/s to find, ~${burnSeconds.toFixed(0)}s of thrust`,
+        });
+      }
     }
 
     // Aim at one vector: the horizon, in the direction of travel. Angle and
