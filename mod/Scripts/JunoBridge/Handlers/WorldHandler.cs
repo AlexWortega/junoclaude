@@ -1,6 +1,7 @@
 using JunoBridge.Core;
 using JunoBridge.Json;
 using JunoBridge.Net;
+using JunoBridge.Serialization;
 
 namespace JunoBridge.Handlers
 {
@@ -59,16 +60,49 @@ namespace JunoBridge.Handlers
             return BridgeResponse.Ok(w.ToString());
         }
 
+        /// <summary>
+        /// Writes a body and everything needed to plan a transfer to it.
+        ///
+        /// Name and sphere of influence alone are not enough: a transfer needs
+        /// the target's radius, its position, and its orbit around the parent,
+        /// and none of that can be recovered on the client side — a craft's own
+        /// telemetry locates the craft, not the moon it is aiming at.
+        ///
+        /// Positions are planet-centred inertial, the same frame the craft's
+        /// `position.pci` uses, so a phase angle is the angle between the two.
+        /// </summary>
         private static void WritePlanetTree(JsonWriter w, ModApi.Flight.Sim.IPlanetNode planet)
         {
             if (planet == null) return;
 
             w.BeginObject()
              .Str("name", planet.Name)
+             .Str("parent", planet.Parent == null ? null : planet.Parent.Name)
              .Num("sphereOfInfluence", planet.SphereOfInfluence)
              .Num("rotationAngle", planet.RotationAngle)
              .Bool("terrainLoaded", planet.IsTerrainDataLoaded)
-             .EndObject();
+             .Vec("position", planet.Position)
+             .Vec("solarPosition", planet.SolarPosition);
+
+            var data = planet.PlanetData;
+            if (data != null)
+            {
+                // Radius and mass are the two that matter and the two that
+                // exist: IPlanetData carries no Gravity, and IPlanetAtmosphereData
+                // no AtmosphereHeight. The gravitational parameter follows from
+                // the mass once G is calibrated against Droo, whose μ is already
+                // measured at 1.593e13 from surface gravity and radius.
+                w.Num("radius", data.Radius)
+                 .Num("mass", data.Mass);
+
+                var atmosphere = data.AtmosphereData;
+                if (atmosphere != null)
+                    w.Bool("hasAtmosphere", atmosphere.HasPhysicsAtmosphere);
+            }
+
+            OrbitSerializer.Write(w, "orbit", planet.Orbit, planet);
+
+            w.EndObject();
 
             if (planet.ChildPlanets == null) return;
             foreach (var child in planet.ChildPlanets)
