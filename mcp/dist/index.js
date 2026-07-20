@@ -24204,6 +24204,36 @@ async function buildCraft(spec) {
     }
     pairs.push([i, i + 1]);
   }
+  const groups = [];
+  let current = [];
+  spec.stack.forEach((item, index) => {
+    if (item.kind === "parachute") {
+      if (current.length > 0) groups.push(current);
+      groups.push([index]);
+      current = [];
+      return;
+    }
+    current.push(index);
+    if (item.kind === "decoupler") {
+      groups.push(current);
+      current = [];
+    }
+  });
+  if (current.length > 0) groups.push(current);
+  const bodyOfPart = /* @__PURE__ */ new Map();
+  groups.forEach((partIds, i) => {
+    for (const id of partIds) bodyOfPart.set(id, i + 1);
+  });
+  const groupCentre = groups.map((partIds) => {
+    let m = 0;
+    let moment = 0;
+    for (const id of partIds) {
+      const pm = estimateGroupMass([id], spec.stack);
+      m += pm;
+      moment += pm * (rawCentres[id] - centreOfMass);
+    }
+    return m > 0 ? moment / m : 0;
+  });
   const connections2 = [];
   for (const [lowerIdx, upperIdx] of pairs) {
     const lower = partTypeOf(spec.stack[lowerIdx]);
@@ -24221,28 +24251,40 @@ async function buildCraft(spec) {
         code: "inferred_connection",
         message: `The joint ${lower} \u2192 ${upper} was derived from tags rather than taken from existing designs. Check it in the designer: the parts may connect differently than intended.`
       });
+    const lowerBody = bodyOfPart.get(lowerIdx);
+    const upperBody = bodyOfPart.get(upperIdx);
+    const children = [];
+    if (lowerBody !== upperBody) {
+      const anchor = rawCentres[lowerIdx] + attachOffsets(spec.stack[lowerIdx]).top - centreOfMass;
+      children.push(
+        node("BodyJoint", {
+          body: String(lowerBody),
+          connectedBody: String(upperBody),
+          // Copied from stock: a break force of 0 reads as "does not break",
+          // and every stock joint uses the same large break torque.
+          breakTorque: "1E+07",
+          breakForce: "0",
+          jointType: "Normal",
+          position: vecStr([0, anchor - groupCentre[lowerBody - 1], 0]),
+          connectedPosition: vecStr([0, anchor - groupCentre[upperBody - 1], 0]),
+          axis: "0,0,1",
+          secondaryAxis: "0,1,0"
+        })
+      );
+    }
     connections2.push(
-      node("Connection", {
-        partA: String(lowerIdx),
-        partB: String(upperIdx),
-        attachPointsA: resolved.a,
-        attachPointsB: resolved.b
-      })
+      node(
+        "Connection",
+        {
+          partA: String(lowerIdx),
+          partB: String(upperIdx),
+          attachPointsA: resolved.a,
+          attachPointsB: resolved.b
+        },
+        children
+      )
     );
   }
-  const detachable = (item) => item.kind === "decoupler" || item.kind === "parachute";
-  const groups = [];
-  let current = [];
-  spec.stack.forEach((item, index) => {
-    if (detachable(item)) {
-      if (current.length > 0) groups.push(current);
-      groups.push([index]);
-      current = [];
-      return;
-    }
-    current.push(index);
-  });
-  if (current.length > 0) groups.push(current);
   const bodies = groups.map(
     (partIds, i) => node("Body", {
       id: String(i + 1),
@@ -24250,7 +24292,9 @@ async function buildCraft(spec) {
       // The game recomputes mass on load, but the physics treats zero as a
       // degenerate body: a vehicle with zero mass is thrown out on spawn.
       mass: String(round6(estimateGroupMass(partIds, spec.stack))),
-      position: "0,0,0",
+      // Stock writes the body's centre of mass here and leaves centerOfMass at
+      // the origin; the joint anchors above are measured from this point.
+      position: vecStr([0, groupCentre[i], 0]),
       rotation: "0,0,0",
       centerOfMass: "0,0,0"
     })

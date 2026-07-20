@@ -410,6 +410,53 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
     pairs.push([i, i + 1]);
   }
 
+  // Bodies are the stages, and a decoupler belongs to the stage it throws away:
+  // it closes the group it sits on top of. Stock `__designerTutorialFirstOrbit__`
+  // groups {5 engines, tank, Detacher(stage 1)} as one body and
+  // {engine, tank, tank, Detacher(stage 2)} as the next — the interstage always
+  // rides with the hardware below it, never alone.
+  //
+  // Giving a decoupler a body of its own made the game recompute it to *zero*
+  // mass, leaving a massless rigid body between two heavy ones.
+  //
+  // A parachute is the exception and does form its own body: without the split
+  // it stayed stuck to the hull and the vehicle flew as one piece.
+  const groups: number[][] = [];
+  let current: number[] = [];
+  spec.stack.forEach((item, index) => {
+    if (item.kind === 'parachute') {
+      if (current.length > 0) groups.push(current);
+      groups.push([index]);
+      current = [];
+      return;
+    }
+    current.push(index);
+    if (item.kind === 'decoupler') {
+      groups.push(current);
+      current = [];
+    }
+  });
+  if (current.length > 0) groups.push(current);
+
+  // Which body each part ends up in, and where that body's centre of mass sits.
+  // Both are needed before the connections are written, because a connection
+  // that crosses a body boundary has to carry the joint that holds the two
+  // bodies together.
+  const bodyOfPart = new Map<number, number>();
+  groups.forEach((partIds, i) => {
+    for (const id of partIds) bodyOfPart.set(id, i + 1);
+  });
+  const groupCentre = groups.map((partIds) => {
+    let m = 0;
+    let moment = 0;
+    for (const id of partIds) {
+      const pm = estimateGroupMass([id], spec.stack);
+      m += pm;
+      moment += pm * ((rawCentres[id] as number) - centreOfMass);
+    }
+    return m > 0 ? moment / m : 0;
+  });
+
   const connections: XmlNode[] = [];
   for (const [lowerIdx, upperIdx] of pairs) {
     const lower = partTypeOf(spec.stack[lowerIdx] as StackItem);
@@ -430,36 +477,56 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
           `Check it in the designer: the parts may connect differently than intended.`,
       });
 
+    const lowerBody = bodyOfPart.get(lowerIdx) as number;
+    const upperBody = bodyOfPart.get(upperIdx) as number;
+    const children: XmlNode[] = [];
+
+    // A connection that crosses a body boundary carries the joint that holds
+    // the two bodies together, as a nested <BodyJoint>. Leaving it out is what
+    // made every multi-body vehicle fail: the game fell back to a default joint
+    // that let the stack sag on the pad — the craft toppled to 54° before
+    // ignition — and tear apart under thrust, with the decouplers still
+    // reporting `activated: false`. Single-body vehicles were unaffected, which
+    // is why the 4-part rocket flew to 26 km while every staged one did not.
+    //
+    // The anchor is the point where the two parts meet, expressed relative to
+    // each body's own centre of mass. Both of the stock tutorial craft's joints
+    // resolve to exactly that point from either side.
+    if (lowerBody !== upperBody) {
+      const anchor =
+        (rawCentres[lowerIdx] as number) +
+        attachOffsets(spec.stack[lowerIdx] as StackItem).top -
+        centreOfMass;
+      children.push(
+        node('BodyJoint', {
+          body: String(lowerBody),
+          connectedBody: String(upperBody),
+          // Copied from stock: a break force of 0 reads as "does not break",
+          // and every stock joint uses the same large break torque.
+          breakTorque: '1E+07',
+          breakForce: '0',
+          jointType: 'Normal',
+          position: vecStr([0, anchor - (groupCentre[lowerBody - 1] as number), 0]),
+          connectedPosition: vecStr([0, anchor - (groupCentre[upperBody - 1] as number), 0]),
+          axis: '0,0,1',
+          secondaryAxis: '0,1,0',
+        })
+      );
+    }
+
     connections.push(
-      node('Connection', {
-        partA: String(lowerIdx),
-        partB: String(upperIdx),
-        attachPointsA: resolved.a,
-        attachPointsB: resolved.b,
-      })
+      node(
+        'Connection',
+        {
+          partA: String(lowerIdx),
+          partB: String(upperIdx),
+          attachPointsA: resolved.a,
+          attachPointsB: resolved.b,
+        },
+        children
+      )
     );
   }
-
-  // A detachable part forms a physical body of its own, so the split goes
-  // BEFORE it rather than after: otherwise a parachute last in the stack stuck
-  // to the hull and the vehicle flew as a single body. Verified by comparing
-  // with how the game re-saved our own design: it splits into
-  // {engine, tank, pod} and {parachute}.
-  const detachable = (item: StackItem): boolean =>
-    item.kind === 'decoupler' || item.kind === 'parachute';
-
-  const groups: number[][] = [];
-  let current: number[] = [];
-  spec.stack.forEach((item, index) => {
-    if (detachable(item)) {
-      if (current.length > 0) groups.push(current);
-      groups.push([index]);
-      current = [];
-      return;
-    }
-    current.push(index);
-  });
-  if (current.length > 0) groups.push(current);
 
   const bodies: XmlNode[] = groups.map((partIds, i) =>
     node('Body', {
@@ -468,7 +535,9 @@ export async function buildCraft(spec: CraftSpec): Promise<BuildResult> {
       // The game recomputes mass on load, but the physics treats zero as a
       // degenerate body: a vehicle with zero mass is thrown out on spawn.
       mass: String(round6(estimateGroupMass(partIds, spec.stack))),
-      position: '0,0,0',
+      // Stock writes the body's centre of mass here and leaves centerOfMass at
+      // the origin; the joint anchors above are measured from this point.
+      position: vecStr([0, groupCentre[i] as number, 0]),
       rotation: '0,0,0',
       centerOfMass: '0,0,0',
     })
