@@ -889,6 +889,90 @@ async function circularise({
   return trace;
 }
 
+/**
+ * Powered descent to a soft touchdown.
+ *
+ * The attitude demand is the easy one — straight up, which is the vehicle's
+ * naturally stable attitude and the only one this loop holds reliably — and the
+ * work is done by the throttle instead. Descent rate is commanded as a function
+ * of height, fast when there is room and slowing to a crawl near the ground, and
+ * the throttle closes on that. A first-order loop on descent rate is well within
+ * what four samples a second can hold, unlike an attitude loop.
+ *
+ * It costs more than a suicide burn, which is the right trade here: the vehicle
+ * measured 11450 m/s of Δv against roughly 4600 to orbit.
+ */
+async function descend({
+  trace,
+  startedAt,
+  durationS,
+  nose,
+  sign,
+  sampleMs = 250,
+  touchdownSpeed = 3,
+}) {
+  const elapsedNow = () => (Date.now() - startedAt) / 1000;
+  let prevTilt = null;
+  let prevAt = null;
+  let landed = false;
+
+  while (elapsedNow() < durationS) {
+    let t;
+    try {
+      t = digest(await get('/telemetry'));
+    } catch (e) {
+      trace.push({ t: elapsedNow(), error: e.code ?? e.message });
+      if (e.code === 'no_craft' || e.code === 'wrong_scene') break;
+      await sleep(sampleMs);
+      continue;
+    }
+
+    const elapsed = elapsedNow();
+    const sample = { t: Number(elapsed.toFixed(1)), phase: 'descend', ...t };
+    trace.push(sample);
+
+    if (t.grounded && Math.abs(t.vertical) < 1) {
+      landed = true;
+      await post('/flight/input', { mode: 'hold', throttle: 0, pitch: null });
+      trace.push({
+        t: elapsed,
+        note: `TOUCHDOWN at ${Math.abs(t.vertical).toFixed(2)} m/s`,
+      });
+      break;
+    }
+
+    // Commanded descent rate: room to fall high up, a crawl near the ground.
+    const height = Math.max(0, t.agl);
+    const wantedDescent = -Math.min(60, Math.max(touchdownSpeed, 0.35 * height));
+    const error = wantedDescent - t.vertical; // positive means "slow the fall"
+    const throttle = Math.max(0, Math.min(1, 0.5 + error * 0.08));
+    sample.wantedDescent = Number(wantedDescent.toFixed(1));
+    sample.throttle = Number(throttle.toFixed(3));
+
+    // Hold the nose up. Tilt is unsigned here on purpose: straight up has no
+    // azimuth to get wrong, which is what made the insertion burn fragile.
+    const tilt = tiltFromVertical(t, nose);
+    sample.tilt = Number(tilt.toFixed(1));
+    const dt = prevAt === null ? 0 : elapsed - prevAt;
+    const tiltRate = dt > 0.05 ? (tilt - prevTilt) / dt : 0;
+    prevTilt = tilt;
+    prevAt = elapsed;
+
+    if (tilt > 2) {
+      const wantedRate = Math.max(-3, Math.min(3, (0 - tilt) * 0.25));
+      const cmd = Math.max(-0.05, Math.min(0.05, sign * 0.012 * (wantedRate - tiltRate)));
+      await post('/flight/input', { mode: 'hold', throttle, pitch: cmd });
+    } else {
+      await post('/flight/input', { mode: 'hold', throttle, pitch: null });
+    }
+
+    await sleep(sampleMs);
+  }
+
+  if (!landed) trace.push({ t: elapsedNow(), note: 'descent ended without touchdown' });
+  return trace;
+}
+
 function summarise(trace) {
   const points = trace.filter((p) => p.altitude !== undefined);
   if (points.length === 0) return 'no telemetry collected';
@@ -966,6 +1050,44 @@ async function main() {
 
   const started = Date.now();
   const durationS = Number(durationRaw);
+
+  // A hop: climb to a set height, then land again. It exercises the descent
+  // law against real ground without waiting for a whole mission to Luna, which
+  // is the only other way to find out whether it can touch down softly.
+  if (process.env.JUNO_MODE === 'hop') {
+    const ceiling = Number(process.env.JUNO_HOP_CEILING ?? 1500);
+    const trace = [];
+    let nose = null;
+    await post('/flight/input', { mode: 'hold', throttle: 1 });
+    await post('/flight/stage', {});
+    while ((Date.now() - started) / 1000 < durationS) {
+      const t = digest(await get('/telemetry'));
+      trace.push({ t: Number(((Date.now() - started) / 1000).toFixed(1)), ...t });
+      if (nose === null && t.grounded) nose = findNoseAxis(t);
+      if (t.agl >= ceiling) {
+        await post('/flight/input', { mode: 'hold', throttle: 0 });
+        trace.push({ t: (Date.now() - started) / 1000, note: `ceiling ${ceiling} m reached` });
+        break;
+      }
+      await sleep(250);
+    }
+    await descend({
+      trace,
+      startedAt: started,
+      durationS,
+      nose: nose ?? { axis: 'up', sign: 1 },
+      sign: Number(process.env.JUNO_PITCH_SIGN ?? 1),
+    });
+    await post('/flight/input', { mode: 'clear' }).catch(() => {});
+    console.log(summarise(trace));
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    await (await import('node:fs/promises')).writeFile(
+      `/tmp/juno-hop-${craftId.replace(/\W+/g, '_')}-${stamp}.json`,
+      JSON.stringify(trace, null, 2)
+    );
+    return;
+  }
+
   const targetApoapsis = process.env.JUNO_TARGET_APOAPSIS
     ? Number(process.env.JUNO_TARGET_APOAPSIS)
     : null;
